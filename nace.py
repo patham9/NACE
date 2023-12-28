@@ -20,7 +20,7 @@ oooooooooooo
 o          o
 o   u      o
 o     ooooTo
-o x        o
+o x   v    o
 o          o
 oooooooooooo
 """
@@ -33,12 +33,21 @@ o x   D b ko
 o     o    o
 oooooooooooo
 """
+world4 = """
+oooooooooooo
+o   o   f  o
+o          o
+o   oooooooo
+o x v      o
+o       u  o
+oooooooooooo
+"""
 print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent move, w/a/s/d for manual movement in simulated world, v for switching to imagined world, l to list hypotheses, q to exit imagined world')
 else:
     print('Pass "debug" parameter for interactive debugging')
-print('Food collecting (1), cup on table challenge (2), doors and keys (3), input "1", "2", or "3":')
+print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), input "1", "2", "3", or "4":')
 challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
 slippery = "y" in input()
@@ -46,8 +55,11 @@ if "2" in challenge:
     world = world2
 if "3" in challenge:
     world = world3
+if "4" in challenge:
+    world = world4
+
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D')
+WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 loc = (2,4)
@@ -71,13 +83,30 @@ def move(world, action):
     if slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
     newloc = action(loc)
+    oldworld = deepcopy(world)
+    #ROBOT MOVEMENT ON FREE SPACE
+    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE:
+        world[BOARD][loc[1]][loc[0]] = FREE
+        loc = newloc
+        world[BOARD][loc[1]][loc[0]] = ROBOT
+    oldworld = deepcopy(world)
     for y in range(height):
         for x in range(width):
-            if world[BOARD][y][x] == CUP and world[BOARD][y+1][x] == TABLE:
+            if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == FREE:
+                world[BOARD][y+1][x] = ARROW_DOWN
+                world[BOARD][y][x] = FREE
+            if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == FREE:
+                world[BOARD][y-1][x] = ARROW_UP
+                world[BOARD][y][x] = FREE
+            if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == WALL:
+                world[BOARD][y][x] = ARROW_UP
+            if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == WALL:
+                world[BOARD][y][x] = ARROW_DOWN
+            if oldworld[BOARD][y][x] == CUP and oldworld[BOARD][y+1][x] == TABLE:
                 world[BOARD][y][x] = FREE
                 while True:
                     xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
-                    if world[BOARD][yr][xr] == FREE:
+                    if oldworld[BOARD][yr][xr] == FREE:
                         world[BOARD][yr][xr] = CUP
                         break
     #CUP
@@ -144,6 +173,10 @@ def prettyValue(value):
         return "door"
     if value == BATTERY:
         return "battery"
+    if value == ARROW_UP:
+        return "arrowup"
+    if value == ARROW_DOWN:
+        return "arrowdown"
     return value
 
 def prettyVarValue(name, value):
@@ -531,7 +564,9 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, custom
                 best_action_combination_for_revisit = new_planned_actions
                 oldest_age = new_age
             if new_score == 1.0:
-                queue.append((new_world, new_planned_actions, depth + 1))  # Enqueue children at the end
+                _, robot_cnt = get_robot_position(new_world)
+                if robot_cnt == 1:
+                    queue.append((new_world, new_planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 # LET'S SIMULATE FOR 100 STEPS
