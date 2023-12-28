@@ -1,3 +1,4 @@
+#Author: Patrick Hammer
 from collections import deque
 from copy import deepcopy
 import sys
@@ -32,13 +33,15 @@ o x   D b ko
 o     o    o
 oooooooooooo
 """
-print("Berick Cook's AIRIS replicated by Patrick Hammer from his video and discussions with him.")
+print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent move, w/a/s/d for manual movement in simulated world, v for switching to imagined world, l to list hypotheses, q to exit imagined world')
 else:
     print('Pass "debug" parameter for interactive debugging')
 print('Food collecting (1), cup on table challenge (2), doors and keys (3), input "1", "2", or "3":')
 challenge = input()
+print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
+slippery = "y" in input()
 if "2" in challenge:
     world = world2
 if "3" in challenge:
@@ -65,6 +68,8 @@ def down(loc):
     return (loc[0],   loc[1]+1)
 def move(world, action):
     global loc
+    if slippery and random.random() > 0.9: #agent still believes it did the proper action
+        action = random.choice(actions)    #but the world is slippery!
     newloc = action(loc)
     for y in range(height):
         for x in range(width):
@@ -174,7 +179,7 @@ def prettyPrintRule(rule):
             print(f" &| ", end="")
     scoreInc = f"<s_{rule[1][3][0]} --> scorePlus>"
     keys = f"<k_{rule[1][3][1]} --> keys>"
-    print(") &/", action, "=/> (" + prettyTriplet(rule[1]) + " &| " + scoreInc + " &| " + keys + ")>")
+    print(") &/", action, "=/> (" + prettyTriplet(rule[1]) + " &| " + scoreInc + " &| " + keys + ")>.", TruthValue(RuleEvidence[rule]))
 
 def OpRotate(op):
     if op == right:
@@ -238,20 +243,59 @@ def ruleVariants(rule): #location symmetry (knowledge about movement operations 
     rules.append((tuple([action4, action_values_precons[1]] + conditionlist4), rule[1]))
     return rules
 
+RuleEvidence = dict([])
+def AddRuleEvidence(rule, positive, w_max = 20):
+    if rule not in RuleEvidence:
+        RuleEvidence[rule] = (0, 0)
+    (wp, wn) = RuleEvidence[rule]
+    if positive:
+        if wp + wn <= w_max:
+            RuleEvidence[rule] = (wp+1, wn)
+        else:
+            RuleEvidence[rule] = (wp, max(0, wn-1))
+    else:
+        if wp + wn <= w_max:
+            RuleEvidence[rule] = (wp, wn+1)
+        else:
+            RuleEvidence[rule] = (max(0, wp-1), wn)
+
 def RemoveRule(ruleset, negruleset, rule):
     for r in ruleVariants(rule):
-        if rule in ruleset:
-            print("RULE REMOVAL: ", end=""); prettyPrintRule(rule)
-            ruleset.remove(rule)
-        negruleset.add(rule)
+        AddRuleEvidence(rule, False)
+        print("Neg. revised: ", end="");  prettyPrintRule(rule)
+        #in a deterministic setting this would have sufficed however
+        #simply excluding rules does not work in non-deterministic ones
+        #if rule in ruleset:
+        #    print("RULE REMOVAL: ", end=""); prettyPrintRule(rule)
+        #    ruleset.remove(rule)
+        #negruleset.add(rule)
+
+def TruthValue(wpn):
+    (wp, wn) = wpn
+    frequency = wp / (wp + wn)
+    confidende = (wp + wn) / (wp + wn + 1)
+    return (frequency, confidende)
+
+def Truth_Expectation(tv):
+    (f, c) = tv
+    return (c * (f - 0.5) + 0.5)
+
+def ChoiceRule(rule1, rule2):
+    T1 = TruthValue(RuleEvidence[rule1])
+    T2 = TruthValue(RuleEvidence[rule2])
+    if Truth_Expectation(T1) > Truth_Expectation(T2):
+        return rule1
+    return rule2
 
 def AddRule(ruleset, negruleset, rule): #try location symmetry
     variants = ruleVariants(rule)
     variantsadded = set([])
     for rule in variants:
+        AddRuleEvidence(rule, True)
+        print("Pos. revised: ", end="");  prettyPrintRule(rule)
         if rule not in negruleset:
             if rule not in ruleset:
-                print("RULE ADDITION: ", end=""); prettyPrintRule(rule)
+                #print("RULE ADDITION: ", end=""); prettyPrintRule(rule)
                 ruleset.add(rule)
                 variantsadded.add(rule)
     return variantsadded
@@ -518,7 +562,28 @@ def cupIsOnTable(world):
                 return True
     return False
 
-def airis_step(rules, negrules, oldworld):
+def airis_step(rulesin, negrules, oldworld):
+    rulesExcluded = set([])
+    rules = deepcopy(rulesin)
+    for i, rule1 in enumerate(rulesin):
+        if Truth_Expectation(TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
+            if rule1 in rules:
+                rulesExcluded.add(rule1)
+                rules.remove(rule1)
+        for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
+            if i != j:
+                if rule1[0] == rule2[0]:
+                    rulex = ChoiceRule(rule1, rule2)
+                    if rulex == rule1:
+                        if rule2 in rules:
+                            rulesExcluded.add(rule2)
+                            rules.remove(rule2)
+                            #print("excluded ", end=''); prettyPrintRule(rule2)
+                    else:
+                        if rule1 in rules:
+                            rulesExcluded.add(rule1)
+                            rules.remove(rule1)
+                            #print("excluded", end=''); prettyPrintRule(rule1)
     localObserve(oldworld)
     favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = max_depth__breadth_first_search(observed_world, rules, actions, customGoal = cupIsOnTable)
     debuginput = ""
@@ -547,6 +612,10 @@ def airis_step(rules, negrules, oldworld):
         action = left
     if debuginput == "d":
         action = right
+    if debuginput == 'l':
+        for x in rules:
+            prettyPrintRule(x)
+        input()
     newworld = move(deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     localObserve(newworld)
@@ -562,6 +631,8 @@ def airis_step(rules, negrules, oldworld):
     printworld(planworld)
     print("\033[0m")
     (newrules, newnegrules) = world_observe(observed_world_old, action, observed_world, rules, negrules, predicted_world)
+    for rule in rulesExcluded: #add again so we won't loose them
+        newrules.add(rule)
     return newrules, newnegrules, newworld, debuginput
 
 rules = set([])
@@ -573,7 +644,7 @@ for t in range(300):
     elapsed_time = end_time - start_time
     if elapsed_time < 1.0:
         time.sleep(1.0 - elapsed_time)
-    if "debug" in sys.argv and debuginput != "" and debuginput != "w" and debuginput != "a" and debuginput != "s" and debuginput != "d":
+    if "debug" in sys.argv and debuginput != "" and debuginput != "w" and debuginput != "a" and debuginput != "s" and debuginput != "d" and debuginput != "l":
         saveworld = deepcopy(world)
         predworld = deepcopy(world)
         score = 0.0
