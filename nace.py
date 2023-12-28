@@ -20,7 +20,7 @@ oooooooooooo
 o          o
 o   u      o
 o     ooooTo
-o x   v    o
+o x        o
 o          o
 oooooooooooo
 """
@@ -42,24 +42,38 @@ o x v      o
 o       u  o
 oooooooooooo
 """
+world5 = """
+oooooooooooo
+oo          
+oo          
+oo         c
+oox         
+oo          
+oooooooooooo
+"""
+
 print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent move, w/a/s/d for manual movement in simulated world, v for switching to imagined world, l to list hypotheses, q to exit imagined world')
 else:
     print('Pass "debug" parameter for interactive debugging')
-print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), input "1", "2", "3", or "4":')
+print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
 challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
 slippery = "y" in input()
+isWorld5 = False
 if "2" in challenge:
     world = world2
 if "3" in challenge:
     world = world3
 if "4" in challenge:
     world = world4
+if "5" in challenge:
+    world = world5
+    isWorld5 = True
 
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^')
+WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 loc = (2,4)
@@ -92,6 +106,12 @@ def move(world, action):
     oldworld = deepcopy(world)
     for y in range(height):
         for x in range(width):
+            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == FREE:
+                world[BOARD][y][x-1] = BALL
+                world[BOARD][y][x] = FREE
+            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == WALL:
+                world[BOARD][y][x] = FREE
+                world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
             if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == FREE:
                 world[BOARD][y+1][x] = ARROW_DOWN
                 world[BOARD][y][x] = FREE
@@ -126,6 +146,12 @@ def move(world, action):
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
         world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] - 1] + list(world[VALUES][2:])) #the second value +1 and the rest stays
+    #BALL
+    if oldworld[BOARD][newloc[1]][newloc[0]] == BALL:
+        world[BOARD][loc[1]][loc[0]] = FREE
+        loc = newloc
+        world[BOARD][loc[1]][loc[0]] = ROBOT
+        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
     #BATTERY
     if world[BOARD][newloc[1]][newloc[0]] == BATTERY:
         world[BOARD][loc[1]][loc[0]] = FREE
@@ -144,13 +170,16 @@ def move(world, action):
                 world[BOARD][y][x] = FOOD
                 break
     #FREE SPACE
-    if world[BOARD][newloc[1]][newloc[0]] == FREE:
+    if world[BOARD][newloc[1]][newloc[0]] == FREE or world[BOARD][newloc[1]][newloc[0]] == BALL:
         world[BOARD][loc[1]][loc[0]] = FREE
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
     return [world[BOARD], world[VALUES], world[TIMES]]
 
 actions = [left, right, up, down]
+if isWorld5:
+    actions = [up, down, left]
+
 def motorbabbling():
     return random.choice(actions)
 
@@ -177,6 +206,8 @@ def prettyValue(value):
         return "arrowup"
     if value == ARROW_DOWN:
         return "arrowdown"
+    if value == BALL:
+        return "ball"
     return value
 
 def prettyVarValue(name, value):
@@ -628,7 +659,7 @@ def airis_step(rulesin, negrules, oldworld):
     babble = random.random() > 1.0
     plan = []
     if airis_score >= 1.0 or babble or len(favoured_actions) == 0:
-        if not babble and oldest_age > 10.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
+        if not babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
             print("EXPLORE", plan_prettystring(favoured_actions_for_revisit), oldest_age)
             action = favoured_actions_for_revisit[0]
             plan = favoured_actions_for_revisit
@@ -676,6 +707,7 @@ for t in range(300):
     start_time = time.time()
     rules, negrules, world, debuginput = airis_step(rules, negrules, deepcopy(world))
     end_time = time.time()
+    print("VALUES", world[VALUES])
     elapsed_time = end_time - start_time
     if elapsed_time < 1.0:
         time.sleep(1.0 - elapsed_time)
