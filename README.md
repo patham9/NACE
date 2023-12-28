@@ -19,5 +19,7 @@ While the initial prototype is developed in Python, it will be integrated with !
 
 ![Rational OpenCog Controlled Agent (ROCCA)](https://github.com/opencog/rocca)
 
+![AIRIS demo video](https://www.youtube.com/watch?v=40W2OmV_rm0)
+
 
 
