@@ -95,12 +95,12 @@ oooooooooooo
 
 
 class WorldNode:
-    def __init__(self, board: np.ndarray, values: tuple, times: np.ndarray, loc: tuple, slippery=False, actions=None) -> None:
+    def __init__(self, board: np.ndarray, values: tuple, times: np.ndarray, loc_robot: tuple, slippery=False, actions=None) -> None:
         self.height, self.width = board.shape
         self.board = board
         self.values = values
         self.times = times
-        self.loc = loc
+        self.loc_robot = loc_robot
         self.slippery = slippery
         self.actions = [WorldNode.left, WorldNode.right, WorldNode.up, WorldNode.down] if actions is None else actions
 
@@ -124,7 +124,7 @@ class WorldNode:
     _actions_mapping = {Action.U: up, Action.D: down, Action.L: left, Action.R: right}
 
     def move(self, action: Action):
-        loc = self.loc
+        loc = self.loc_robot
         if self.slippery and random.random() > 0.9:  # agent still believes it did the proper action
             action = random.choice(self.actions)  # but the world is slippery!
         
