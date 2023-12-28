@@ -1,7 +1,7 @@
 # NACE ( Non-Axiomatic Causal Explorer )
 
 ## Aim
-This project builds upon an implementation of Berick Cook's AIRIS, with support for partial observability. The aim is to enhance its capabilities to handle non-deterministic and non-stationary environments, as well as changes external to the agent. This will initially be achieved by incorporating relevant components of Non-Axiomatic Logic (NAL).
+This project builds upon an ![implementation of Berick Cook's AIRIS](https://gist.github.com/patham9/ac25f7c85c82cebc0cb816823a4a6499), with support for partial observability. The aim is to enhance its capabilities to handle non-deterministic and non-stationary environments, as well as changes external to the agent. This will initially be achieved by incorporating relevant components of Non-Axiomatic Logic (NAL).
 
 ## Background
 
