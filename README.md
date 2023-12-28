@@ -19,7 +19,9 @@ While the initial prototype is developed in Python, it will be integrated with !
 
 ![Rational OpenCog Controlled Agent (ROCCA)](https://github.com/opencog/rocca)
 
-![AIRIS demo video](https://www.youtube.com/watch?v=40W2OmV_rm0)
+## Demo videos:
 
+AIRIS Project 2023 Demonstration: https://www.youtube.com/watch?v=40W2OmV_rm0
 
+OpenNARS for Applications v0.8.8 Demos: https://www.youtube.com/watch?v=oyQ250H5owE
 
