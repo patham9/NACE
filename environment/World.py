@@ -2,6 +2,8 @@ import numpy as np
 import random
 from copy import deepcopy
 from enum import Enum
+from typing import List, Tuple
+from numba import njit
 
 VIEWDISTX, VIEWDISTY = (3, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL = (
@@ -95,12 +97,12 @@ oooooooooooo
 
 
 class WorldNode:
-    def __init__(self, board: np.ndarray, values: tuple, times: np.ndarray, loc_robot: tuple, slippery=False, actions=None) -> None:
+    def __init__(self, board: np.ndarray, values: Tuple[int, int], times: np.ndarray, loc_robot: tuple, slippery=False, actions=None) -> None:
         self.height, self.width = board.shape
         self.board = board
         self.values = values
         self.times = times
-        self.loc_robot = loc_robot
+        self.loc_robot: Tuple[int, int] = loc_robot
         self.slippery = slippery
         self.actions = [WorldNode.left, WorldNode.right, WorldNode.up, WorldNode.down] if actions is None else actions
 
@@ -225,5 +227,28 @@ class WorldNode:
     def motorbabbling(self):
         return random.choice(self.actions)
 
+    def observe(self, dist_x=VIEWDISTX, dist_y=VIEWDISTY) -> np.ndarray:
+        y, x = self.loc_robot
+        return self.board[y-dist_y+1:y+dist_y, x-dist_x+1:x+dist_x]
+
+    def localObserve(self, dist_x=VIEWDISTX, dist_y=VIEWDISTY) -> "WorldNode":
+        board_local = self.observe(dist_x, dist_y)
+        board = np.array([[" " for _ in range(self.height)] for _ in range(self.width)])
+        y, x = self.loc_robot
+        board[y-dist_y+1:y+dist_y, x-dist_x+1:x+dist_x] = board_local
+        return WorldNode(board, self.values, self.times, self.loc_robot)
+
+    @staticmethod
+    def cupIsOnTable(world: 'WorldNode'):
+        for x in range(world.width):
+            for y in range(world.height-1):
+                if world.board[y+1, x] == 'T' and world.board[y, x] == 'u':
+                    return True
+        return False
+
+    @staticmethod
+    def pretty_str(board: np.ndarray) -> str:
+        return '\n'.join(''.join(line) for line in board)
+
     def __str__(self) -> str:
-        return '\n'.join(''.join(line) for line in self.board)
+        return self.pretty_str(self.board)
