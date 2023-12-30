@@ -6,6 +6,7 @@ from constants import *
 import world as W
 import prettyprint as P
 import knowledge as K
+from NACE.World import World, WorldNode
 
 rules = set([])
 negrules = set([])
@@ -218,7 +219,7 @@ def world_predict(oldworld, action, rules, customGoal=None):
                     used_rules_amount += 1
     score = used_rules_sumscore / \
         used_rules_amount if used_rules_amount > 0 else 1.0  # AIRIS confidence
-    robot_position, _ = get_robot_position(newworld)
+    robot_position, _cnt = get_robot_position(newworld)
     age = 0
     if robot_position:
         age = (W.t - newworld[TIMES][robot_position[0]][robot_position[1]])
@@ -243,19 +244,22 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, custom
     best_action_combination_for_revisit = []
     oldest_age = 0.0
     while queue:
+        current_world: WorldNode
         current_world, planned_actions, depth = queue.popleft()  # Dequeue from the front
         if depth > max_depth:  # If maximum depth is reached, stop searching
             continue
         # , current_world[VALUES][1:]]) #-- 1!!!
-        world_BOARD_VALUES = to_tuple([current_world[BOARD]])
+        # world_BOARD_VALUES = to_tuple([current_world[BOARD]])
+        world_BOARD_VALUES = (current_world.board_to_tuple(), )
         if world_BOARD_VALUES in encountered and depth >= encountered[world_BOARD_VALUES]:
             continue
-        if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
+        else: # if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
+
         for action in actions:
             new_world, new_score, new_age = world_predict(
                 deepcopy(current_world), action, rules, customGoal)
-            new_planned_actions = planned_actions + [action]
+            new_planned_actions = [*planned_actions, action]
             if new_score < best_score or (new_score == best_score and len(new_planned_actions) < len(best_actions)):
                 best_actions = new_planned_actions
                 best_score = new_score
@@ -263,10 +267,10 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, custom
                 best_action_combination_for_revisit = new_planned_actions
                 oldest_age = new_age
             if new_score == 1.0:
-                _, robot_cnt = get_robot_position(new_world)
-                if robot_cnt == 1:
-                    # Enqueue children at the end
-                    queue.append((new_world, new_planned_actions, depth + 1))
+                # _, robot_cnt = get_robot_position(new_world)
+                # if robot_cnt == 1:
+                queue.append((new_world, new_planned_actions, depth + 1)) # Enqueue children at the end
+                
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 # LET'S SIMULATE FOR 100 STEPS
@@ -280,7 +284,7 @@ def cupIsOnTable(world):
     return False
 
 
-def airis_step(rulesin, negrules, oldworld):
+def airis_step(rulesin, negrules, oldworld: World):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     for i, rule1 in enumerate(rulesin):
@@ -321,7 +325,7 @@ def airis_step(rulesin, negrules, oldworld):
             plan = favoured_actions_for_revisit
         else:
             print("BABBLE", airis_score)
-            action = W.motorbabbling()
+            action = oldworld.motorbabbling()
     else:
         print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS",
               P.plan_prettystring(favoured_actions), airis_score)  # , rules)

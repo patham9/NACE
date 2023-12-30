@@ -1,11 +1,12 @@
 import random
 from copy import deepcopy
+import numpy as np
 from constants import *
-
+from NACE.World import World, WorldNode
 
 loc = (2, 4)
 
-world = None
+world: World = None
 observed_world = None
 slippery = False
 
@@ -76,134 +77,39 @@ def choose_world(challenge):
     if "5" in challenge:
         world = world5
         isWorld5 = True
-    world = [[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
+    world = [np.array([[*x] for x in world[1:-1].split("\n")]), tuple([0, 0])]
     if isWorld5:
-        actions = [up, down, left]
+        actions = [World.up, World.down, World.left]
     else:
-        actions = [left, right, up, down]
+        actions = [World.left, World.right, World.up, World.down]
 
     height, width = (len(world[BOARD]), len(world[BOARD][0]))
-    world.append([[float("inf") for i in range(width)] for j in range(height)])
-    observed_world = [[[" " for x in world[BOARD][i]]
-                       for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+    world.append(np.array([[float("inf") for i in range(width)] for j in range(height)]))
+    world = World(world[BOARD], world[VALUES], world[TIMES], loc, slippery, actions)
+    observed_world = WorldNode(np.array([[" " for x in world[BOARD][i]]
+                       for i in range(len(world[BOARD]))]), world[VALUES], world[TIMES], world.loc_robot)
+    # observed_world = [[[" " for x in world[BOARD][i]]
+    #                    for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
 
 # MOVE FUNCTIONS TAKING WALLS INTO ACCOUNT
-def left(loc):
-    return (loc[0]-1, loc[1])
+def left(loc): pass
+def right(loc): pass
+def up(loc): pass
+def down(loc): pass
+def move(world, action): pass
 
 
-def right(loc):
-    return (loc[0]+1, loc[1])
+left = World.left
+right = World.right
+up = World.up
+down = World.down
+move = World.move
 
 
-def up(loc):
-    return (loc[0], loc[1]-1)
-
-
-def down(loc):
-    return (loc[0], loc[1]+1)
-
-
-def move(world, action):
-    global loc
-    if slippery and random.random() > 0.9:  # agent still believes it did the proper action
-        action = random.choice(actions)  # but the world is slippery!
-    newloc = action(loc)
-    oldworld = deepcopy(world)
-    # ROBOT MOVEMENT ON FREE SPACE
-    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-    oldworld = deepcopy(world)
-    for y in range(height):
-        for x in range(width):
-            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == FREE:
-                world[BOARD][y][x-1] = BALL
-                world[BOARD][y][x] = FREE
-            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == WALL:
-                world[BOARD][y][x] = FREE
-                world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
-            if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == FREE:
-                world[BOARD][y+1][x] = ARROW_DOWN
-                world[BOARD][y][x] = FREE
-            if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == FREE:
-                world[BOARD][y-1][x] = ARROW_UP
-                world[BOARD][y][x] = FREE
-            if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == WALL:
-                world[BOARD][y][x] = ARROW_UP
-            if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == WALL:
-                world[BOARD][y][x] = ARROW_DOWN
-            if oldworld[BOARD][y][x] == CUP and oldworld[BOARD][y+1][x] == TABLE:
-                world[BOARD][y][x] = FREE
-                while True:
-                    xr, yr = (random.randint(0, width-1),
-                              random.randint(0, height-1))
-                    if oldworld[BOARD][yr][xr] == FREE:
-                        world[BOARD][yr][xr] = CUP
-                        break
-    # CUP
-    if world[BOARD][newloc[1]][newloc[0]] == CUP:  # an object the system could shift around
-        world[BOARD][loc[1]][loc[0]] = CUP
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-    # KEY
-    if world[BOARD][newloc[1]][newloc[0]] == KEY:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        # the second value +1 and the rest stays
-        world[VALUES] = tuple([world[VALUES][0]] +
-                              [world[VALUES][1] + 1] + list(world[VALUES][2:]))
-    # DOOR
-    if world[BOARD][newloc[1]][newloc[0]] == DOOR and world[VALUES][1] > 0:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        # the second value +1 and the rest stays
-        world[VALUES] = tuple([world[VALUES][0]] +
-                              [world[VALUES][1] - 1] + list(world[VALUES][2:]))
-    # BALL
-    if oldworld[BOARD][newloc[1]][newloc[0]] == BALL:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        # the first value +1 and the rest stays
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:]))
-    # BATTERY
-    if world[BOARD][newloc[1]][newloc[0]] == BATTERY:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        # the first value +1 and the rest stays
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:]))
-    # FOOD
-    if world[BOARD][newloc[1]][newloc[0]] == FOOD:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        # the first value +1 and the rest stays
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:]))
-        while True:
-            x, y = (random.randint(0, width-1), random.randint(0, height-1))
-            if world[BOARD][y][x] == FREE:
-                world[BOARD][y][x] = FOOD
-                break
-    # FREE SPACE
-    if world[BOARD][newloc[1]][newloc[0]] == FREE or world[BOARD][newloc[1]][newloc[0]] == BALL:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-    return [world[BOARD], world[VALUES], world[TIMES]]
-
-
-def motorbabbling():
-    return random.choice(actions)
-
-
-def localObserve(world):
-    global observed_world, loc
+def localObserve(world: World):
+    global observed_world
+    loc = world.loc_robot
     for y in range(VIEWDISTY*2+1):
         for x in range(VIEWDISTX*2+1):
             Y = loc[1]+y-VIEWDISTY
