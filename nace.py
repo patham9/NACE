@@ -16,9 +16,9 @@ if "debug" in sys.argv:
 else:
     print('Pass "debug" parameter for interactive debugging')
 print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
-challenge = "2" # input()
+challenge = input() # "2"
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-W.slippery = False # "y" in input()
+W.slippery = "y" in input() # False
 
 W.choose_world(challenge)
 
