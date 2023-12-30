@@ -1,9 +1,10 @@
-from narsese import *
-from environment import *
-from typing import Set
-from learner import Rule
+from constants import *
+import world as W
+import knowledge as K
 
-RuleEvidence = dict([])
+def printworld(world):
+    for line in world[BOARD]:
+        print("".join(line))
 
 
 def prettyValue(value):
@@ -33,10 +34,8 @@ def prettyValue(value):
         return "ball"
     return value
 
-
 def prettyVarValue(name, value):
     return f"<k_{value} --> {name}>"
-
 
 def prettyTriplet(triplet):
     (y, x, value) = triplet[:3]
@@ -53,33 +52,26 @@ def prettyTriplet(triplet):
         return f"<(up * {value}) --> shape>"
     return triplet
 
+def prettyPrintRule(rule):
+    actions_values_preconditions = rule[0]
+    action = prettyaction(actions_values_preconditions[0])
+    precons = actions_values_preconditions[2:]
+    print("<(", end="")
+    for i, x in enumerate(actions_values_preconditions[1]):
+        name = "keys"
+        print(f"{prettyVarValue(name, x)}", end="")
+        print(f" &| ", end="")
+    for i, x in enumerate(precons):
+        print(f"{prettyTriplet(x)}", end="")
+        if i != len(precons)-1:
+            print(f" &| ", end="")
+    scoreInc = f"<s_{rule[1][3][0]} --> scorePlus>"
+    keys = f"<k_{rule[1][3][1]} --> keys>"
+    print(") &/", action, "=/> (" + prettyTriplet(rule[1]) + " &| " + scoreInc + " &| " + keys + ")>.", K.TruthValue(K.RuleEvidence[rule]))
 
-def prettyaction(action: Action):
-    M = {Action.L: "^left", Action.R: "^right",
-         Action.U: "^up", Action.D: "^down"}
+def prettyaction(action):
+    M = {W.left: "^left", W.right: "^right", W.up: "^up", W.down: "^down"}
     return M[action]
 
-
-def AddRuleEvidence(rule, positive, w_max=20):
-    if rule not in RuleEvidence:
-        RuleEvidence[rule] = (0, 0)
-    (wp, wn) = RuleEvidence[rule]
-    if positive:
-        if wp + wn <= w_max:
-            RuleEvidence[rule] = (wp+1, wn)
-        else:
-            RuleEvidence[rule] = (wp, max(0, wn-1))
-    else:
-        if wp + wn <= w_max:
-            RuleEvidence[rule] = (wp, wn+1)
-        else:
-            RuleEvidence[rule] = (max(0, wp-1), wn)
-
-
-
-def ChoiceRule(rule1, rule2):
-    T1 = TruthValue(RuleEvidence[rule1])
-    T2 = TruthValue(RuleEvidence[rule2])
-    if Truth_Expectation(T1) > Truth_Expectation(T2):
-        return rule1
-    return rule2
+def plan_prettystring(actionlist):
+    return [prettyaction(x) for x in actionlist[1:]]

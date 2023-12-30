@@ -4,9 +4,11 @@ from copy import deepcopy
 import sys
 import time
 import random
-from environment import World, Action, WorldNode
-from learner import Learner
-from learner.Rule import prettyPrintRule
+from constants import * 
+import world as W
+import prettyprint as P
+import knowledge as K
+import learner as L
 
 print("Welcome to NACE!")
 if "debug" in sys.argv:
@@ -16,56 +18,47 @@ else:
 print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
 challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-slippery = "y" in input()
+W.slippery = "y" in input()
 
-# THE WORLD
-loc = (2,4)
-world: WorldNode  = World(challenge, loc).world
-
-agent = Learner(world)
+W.choose_world(challenge)
 
 
-
-# LET'S SIMULATE FOR 100 STEPS
-
-
-rules = set([])
-negrules = set([])
 for t in range(300):
+    W.t = t
     start_time = time.time()
-    rules, negrules, world, debuginput = agent.airis_step(rules, negrules, deepcopy(world))
+    L.rules, L.negrules, W.world, debuginput = L.airis_step(L.rules, L.negrules, deepcopy(W.world))
     end_time = time.time()
-    print("VALUES", world.values)
+    print("VALUES", W.world[VALUES])
     elapsed_time = end_time - start_time
     if elapsed_time < 1.0:
         time.sleep(1.0 - elapsed_time)
     if "debug" in sys.argv and debuginput != "" and debuginput != "w" and debuginput != "a" and debuginput != "s" and debuginput != "d" and debuginput != "l":
-        saveworld: WorldNode = deepcopy(world)
-        predworld: WorldNode = deepcopy(world)
+        saveworld = deepcopy(W.world)
+        predworld = deepcopy(W.world)
         score = 0.0
         while True:
             print("\033[1;1H\033[2J")
-            print(predworld)
+            P.printworld(predworld)
             print("score:", score)
             d = input()
             score = 0.0
             if d == 'q':
                 break
             if d == 'r':
-                predworld = deepcopy(world)
+                predworld = deepcopy(W.world)
             if d == 'a':
-                predworld, score, age = agent.world_predict(deepcopy(predworld), Action.L, rules)
+                predworld, score, age = L.world_predict(deepcopy(predworld), W.left, L.rules)
             if d == 'd':
-                predworld, score, age = agent.world_predict(deepcopy(predworld), Action.R, rules)
+                predworld, score, age = L.world_predict(deepcopy(predworld), W.right, L.rules)
             if d == 'w':
-                predworld, score, age = agent.world_predict(deepcopy(predworld), Action.U, rules)
+                predworld, score, age = L.world_predict(deepcopy(predworld), W.up, L.rules)
             if d == 's':
-                predworld, score, age = agent.world_predict(deepcopy(predworld), Action.D, rules)
+                predworld, score, age = L.world_predict(deepcopy(predworld), W.down, L.rules)
             if d == 'l':
-                for x in rules:
-                    prettyPrintRule(x)
+                for x in L.rules:
+                    P.prettyPrintRule(x)
                 input()
             if d == 'n':
-                for x in negrules:
-                    prettyPrintRule(x)
+                for x in L.negrules:
+                    P.prettyPrintRule(x)
                 input()
