@@ -2,6 +2,7 @@ from constants import *
 import world as W
 import knowledge as K
 
+
 def printworld(world):
     for line in world[BOARD]:
         print("".join(line))
@@ -34,8 +35,10 @@ def prettyValue(value):
         return "ball"
     return value
 
+
 def prettyVarValue(name, value):
     return f"<k_{value} --> {name}>"
+
 
 def prettyTriplet(triplet):
     (y, x, value) = triplet[:3]
@@ -52,6 +55,7 @@ def prettyTriplet(triplet):
         return f"<(up * {value}) --> shape>"
     return triplet
 
+
 def prettyPrintRule(rule):
     actions_values_preconditions = rule[0]
     action = prettyaction(actions_values_preconditions[0])
@@ -67,11 +71,14 @@ def prettyPrintRule(rule):
             print(f" &| ", end="")
     scoreInc = f"<s_{rule[1][3][0]} --> scorePlus>"
     keys = f"<k_{rule[1][3][1]} --> keys>"
-    print(") &/", action, "=/> (" + prettyTriplet(rule[1]) + " &| " + scoreInc + " &| " + keys + ")>.", K.TruthValue(K.RuleEvidence[rule]))
+    print(") &/", action, "=/> (" + prettyTriplet(
+        rule[1]) + " &| " + scoreInc + " &| " + keys + ")>.", K.TruthValue(K.RuleEvidence[rule]))
+
 
 def prettyaction(action):
     M = {W.left: "^left", W.right: "^right", W.up: "^up", W.down: "^down"}
     return M[action]
+
 
 def plan_prettystring(actionlist):
     return [prettyaction(x) for x in actionlist[1:]]

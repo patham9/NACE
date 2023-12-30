@@ -62,7 +62,6 @@ oooooooooooo
 """
 
 
-
 def choose_world(challenge):
     global world, actions, observed_world, width, height
     isWorld5 = False
@@ -85,8 +84,8 @@ def choose_world(challenge):
 
     height, width = (len(world[BOARD]), len(world[BOARD][0]))
     world.append([[float("inf") for i in range(width)] for j in range(height)])
-    observed_world = [[[" " for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
-
+    observed_world = [[[" " for x in world[BOARD][i]]
+                       for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
 
 # MOVE FUNCTIONS TAKING WALLS INTO ACCOUNT
@@ -199,9 +198,9 @@ def move(world, action):
     return [world[BOARD], world[VALUES], world[TIMES]]
 
 
-
 def motorbabbling():
     return random.choice(actions)
+
 
 def localObserve(world):
     global observed_world, loc
