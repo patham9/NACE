@@ -81,7 +81,7 @@ def printworld(world):
     for line in world[BOARD]:
         print("".join(line))
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
-world.append([[float("inf") for i in range(width)] for j in range(height)])
+world.append([[float("-inf") for i in range(width)] for j in range(height)])
 
 # MOVE FUNCTIONS TAKING WALLS INTO ACCOUNT
 def left(loc):
@@ -569,7 +569,7 @@ def to_tuple(lst):
     return tuple(to_tuple(i) if isinstance(i, list) else i for i in lst)
 
 # PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (TODO ALSO CONSIDER VALUE)
-def max_depth__breadth_first_search(world, rules, actions, max_depth=100, customGoal = None):
+def max_depth__breadth_first_search(world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -577,6 +577,9 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, custom
     best_action_combination_for_revisit = []
     oldest_age = 0.0
     while queue:
+        if len(queue) > max_queue_len:
+            print("Planning queue bound enforced!")
+            break
         current_world, planned_actions, depth = queue.popleft()  # Dequeue from the front
         if depth > max_depth:  # If maximum depth is reached, stop searching
             continue
