@@ -535,7 +535,7 @@ def ruleApplicable(scores, highscore, highesthighscore, rule):
     return False
 
 # APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
-def world_predict(t, oldworld, action, rules, customGoal = None):
+def world_predict(Time, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
     used_rules_amount = 0
