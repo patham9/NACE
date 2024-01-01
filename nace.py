@@ -267,7 +267,7 @@ def nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, neg
         for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
             if i != j:
                 if rule1[0] == rule2[0]:
-                    rulex = ChoiceRule(rule1, rule2)
+                    rulex = HypothesisChoice(rule1, rule2)
                     if rulex == rule1:
                         if rule2 in rules:
                             rulesExcluded.add(rule2)

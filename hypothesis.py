@@ -68,7 +68,7 @@ def ruleVariants(rule): #location symmetry (knowledge about movement operations 
     rules.append((tuple([action4, action_values_precons[1]] + conditionlist4), rule[1]))
     return rules
 
-def AddRuleEvidence(RuleEvidence, rule, positive, w_max = 20):
+def AddHypothesisEvidence(RuleEvidence, rule, positive, w_max = 20):
     if rule not in RuleEvidence:
         RuleEvidence[rule] = (0, 0)
     (wp, wn) = RuleEvidence[rule]
@@ -94,7 +94,7 @@ def Truth_Expectation(tv):
     (f, c) = tv
     return (c * (f - 0.5) + 0.5)
 
-def ChoiceRule(rule1, rule2):
+def HypothesisChoice(rule1, rule2):
     T1 = TruthValue(RuleEvidence[rule1])
     T2 = TruthValue(RuleEvidence[rule2])
     if Truth_Expectation(T1) > Truth_Expectation(T2):
@@ -103,7 +103,7 @@ def ChoiceRule(rule1, rule2):
     
 def HypothesisContradicted(RuleEvidence, ruleset, negruleset, rule):
     for r in ruleVariants(rule):
-        RuleEvidence = AddRuleEvidence(RuleEvidence, rule, False)
+        RuleEvidence = AddHypothesisEvidence(RuleEvidence, rule, False)
         if "silent" not in sys.argv:
             print("Neg. revised: ", end="");  prettyPrintRule(RuleEvidence, TruthValue, rule)
         #in a deterministic setting this would have sufficed however
@@ -117,7 +117,7 @@ def HypothesisContradicted(RuleEvidence, ruleset, negruleset, rule):
 def HypothesisConfirmed(RuleEvidence, ruleset, negruleset, rule): #try location symmetry
     variants = ruleVariants(rule)
     for rule in variants:
-        RuleEvidence = AddRuleEvidence(RuleEvidence, rule, True)
+        RuleEvidence = AddHypothesisEvidence(RuleEvidence, rule, True)
         if "silent" not in sys.argv:
             print("Pos. revised: ", end="");  prettyPrintRule(RuleEvidence, TruthValue, rule)
         if rule not in negruleset:
