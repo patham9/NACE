@@ -535,7 +535,7 @@ def ruleApplicable(scores, highscore, highesthighscore, rule):
     return False
 
 # APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
-def world_predict(oldworld, action, rules, customGoal = None):
+def world_predict(t, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
     used_rules_amount = 0
@@ -556,7 +556,7 @@ def world_predict(oldworld, action, rules, customGoal = None):
     robot_position, _ = get_robot_position(newworld)
     age = 0
     if robot_position:
-        age = (t - newworld[TIMES][robot_position[0]][robot_position[1]])
+        age = (Time - newworld[TIMES][robot_position[0]][robot_position[1]])
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
         score = float('-inf')
@@ -566,7 +566,7 @@ def to_tuple(lst):
     return tuple(to_tuple(i) if isinstance(i, list) else i for i in lst)
 
 # PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (TODO ALSO CONSIDER VALUE)
-def max_depth__breadth_first_search(world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
+def max_depth__breadth_first_search(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -586,7 +586,7 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, max_qu
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
-            new_world, new_score, new_age = world_predict(deepcopy(current_world), action, rules, customGoal)
+            new_world, new_score, new_age = world_predict(Time, deepcopy(current_world), action, rules, customGoal)
             new_planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_planned_actions) < len(best_actions)):
                 best_actions = new_planned_actions
@@ -601,7 +601,7 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, max_qu
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 # LET'S SIMULATE FOR 100 STEPS
-def localObserve(loc, observed_world, world):
+def localObserve(Time, loc, observed_world, world):
     for y in range(VIEWDISTY*2+1):
         for x in range(VIEWDISTX*2+1):
             Y = loc[1]+y-VIEWDISTY
@@ -609,7 +609,7 @@ def localObserve(loc, observed_world, world):
             if Y >= 0 and Y < height and \
                X >= 0 and X < width:
                 observed_world[BOARD][Y][X] = world[BOARD][Y][X]
-                observed_world[TIMES][Y][X] = t
+                observed_world[TIMES][Y][X] = Time
     observed_world[VALUES] = deepcopy(world[VALUES])
     return observed_world
 
@@ -627,7 +627,7 @@ def cupIsOnTable(world):
                 return True
     return False
 
-def nace_step(RuleEvidence, worldchange, loc, observed_world, rulesin, negrules, oldworld):
+def nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     for i, rule1 in enumerate(rulesin):
@@ -649,8 +649,8 @@ def nace_step(RuleEvidence, worldchange, loc, observed_world, rulesin, negrules,
                             rulesExcluded.add(rule1)
                             rules.remove(rule1)
                             #print("excluded", end=''); prettyPrintRule(rule1)
-    observed_world = localObserve(loc, observed_world, oldworld)
-    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = max_depth__breadth_first_search(observed_world, rules, actions, customGoal = cupIsOnTable)
+    observed_world = localObserve(Time, loc, observed_world, oldworld)
+    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = max_depth__breadth_first_search(Time, observed_world, rules, actions, customGoal = cupIsOnTable)
     debuginput = ""
     if "debug" in sys.argv:
         debuginput = input()
@@ -683,16 +683,16 @@ def nace_step(RuleEvidence, worldchange, loc, observed_world, rulesin, negrules,
         input()
     loc, newworld = move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
-    observed_world = localObserve(loc, observed_world, newworld)
-    predicted_world, _, __ = world_predict(deepcopy(observed_world_old), action, rules)
-    print(f"\033[0mWorld t={t} beliefs={len(rules)}:\033[97;40m")
+    observed_world = localObserve(Time, loc, observed_world, newworld)
+    predicted_world, _, __ = world_predict(Time, deepcopy(observed_world_old), action, rules)
+    print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
     printworld(newworld)
     print("\033[0mMental map:\033[97;44m")
     printworld(observed_world)
     print("\033[0mPredicted end:\033[97;41m")
     planworld = deepcopy(predicted_world)
     for i in range(1, len(plan)):
-        planworld, _, __ = world_predict(deepcopy(planworld), plan[i], rules)
+        planworld, _, __ = world_predict(Time, deepcopy(planworld), plan[i], rules)
     printworld(planworld)
     print("\033[0m")
     RuleEvidence, worldchange, newrules, newnegrules = world_observe(RuleEvidence, worldchange, observed_world_old, action, observed_world, rules, negrules, predicted_world)
@@ -706,9 +706,9 @@ negrules = set([])
 worldchange = set([])
 RuleEvidence = dict([])
 observed_world = [[[" " for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
-for t in range(300):
+for Time in range(300):
     start_time = time.time()
-    RuleEvidence, worldchange, loc, observed_world, rules, negrules, world, debuginput = nace_step(RuleEvidence, worldchange, loc, observed_world, rules, negrules, deepcopy(world))
+    RuleEvidence, worldchange, loc, observed_world, rules, negrules, world, debuginput = nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rules, negrules, deepcopy(world))
     end_time = time.time()
     print("VALUES", world[VALUES])
     elapsed_time = end_time - start_time
@@ -729,13 +729,13 @@ for t in range(300):
             if d == 'r':
                 predworld = deepcopy(world)
             if d == 'a':
-                predworld, score, age = world_predict(deepcopy(predworld), left, rules)
+                predworld, score, age = world_predict(Time, deepcopy(predworld), left, rules)
             if d == 'd':
-                predworld, score, age = world_predict(deepcopy(predworld), right, rules)
+                predworld, score, age = world_predict(Time, deepcopy(predworld), right, rules)
             if d == 'w':
-                predworld, score, age = world_predict(deepcopy(predworld), up, rules)
+                predworld, score, age = world_predict(Time, deepcopy(predworld), up, rules)
             if d == 's':
-                predworld, score, age = world_predict(deepcopy(predworld), down, rules)
+                predworld, score, age = world_predict(Time, deepcopy(predworld), down, rules)
             if d == 'l':
                 for x in rules:
                     prettyPrintRule(x)
