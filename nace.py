@@ -226,7 +226,7 @@ def prettyTriplet(triplet):
         return f"<(up * {value}) --> shape>"
     return triplet
 
-def prettyPrintRule(rule):
+def prettyPrintRule(RuleEvidence, rule):
     actions_values_preconditions = rule[0]
     action = prettyaction(actions_values_preconditions[0])
     precons = actions_values_preconditions[2:]
@@ -325,7 +325,7 @@ def RemoveRule(RuleEvidence, ruleset, negruleset, rule):
     for r in ruleVariants(rule):
         RuleEvidence = AddRuleEvidence(RuleEvidence, rule, False)
         if "silent" not in sys.argv:
-            print("Neg. revised: ", end="");  prettyPrintRule(rule)
+            print("Neg. revised: ", end="");  prettyPrintRule(RuleEvidence, rule)
         #in a deterministic setting this would have sufficed however
         #simply excluding rules does not work in non-deterministic ones
         #if rule in ruleset:
@@ -356,7 +356,7 @@ def AddRule(RuleEvidence, ruleset, negruleset, rule): #try location symmetry
     for rule in variants:
         RuleEvidence = AddRuleEvidence(RuleEvidence, rule, True)
         if "silent" not in sys.argv:
-            print("Pos. revised: ", end="");  prettyPrintRule(rule)
+            print("Pos. revised: ", end="");  prettyPrintRule(RuleEvidence, rule)
         if rule not in negruleset:
             if rule not in ruleset:
                 #print("RULE ADDITION: ", end=""); prettyPrintRule(rule)
@@ -395,7 +395,7 @@ def world_observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrule
                 RuleEvidence, newrules = AddRule(RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
-    (positionscores, highesthighscore) = rule_positionscores(oldworld, action, rules)
+    (positionscores, highesthighscore) = rule_positionscores(oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
             if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
@@ -679,7 +679,7 @@ def nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, neg
         action = right
     if debuginput == 'l':
         for x in rules:
-            prettyPrintRule(x)
+            prettyPrintRule(RuleEvidence, x)
         input()
     loc, newworld = move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
@@ -738,7 +738,7 @@ for Time in range(300):
                 predworld, score, age = world_predict(Time, deepcopy(predworld), down, rules)
             if d == 'l':
                 for x in rules:
-                    prettyPrintRule(x)
+                    prettyPrintRule(RuleEvidence, x)
                 input()
             if d == 'n':
                 for x in negrules:
