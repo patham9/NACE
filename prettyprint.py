@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  * """
 
-def Prettyprint_plan(actionlist):
+def Prettyprint_Plan(actionlist):
     return [_prettyaction(x) for x in actionlist[1:]]
 
 def Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule):

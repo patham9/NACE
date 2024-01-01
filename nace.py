@@ -60,7 +60,7 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
                             rules.reWorld_Move(rule1)
                             #print("excluded", end=''); Prettyprint_rule(rule1)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
-    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
+    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     debuginput = ""
     if "debug" in sys.argv:
         debuginput = input()
@@ -69,14 +69,14 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
     plan = []
     if airis_score >= 1.0 or babble or len(favoured_actions) == 0:
         if not babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
-            print("EXPLORE", Prettyprint_plan(favoured_actions_for_revisit), oldest_age)
+            print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), oldest_age)
             action = favoured_actions_for_revisit[0]
             plan = favoured_actions_for_revisit
         else:
             print("BABBLE", airis_score)
             action = random.choice(actions) #motorbabbling
     else:
-        print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_plan(favoured_actions), airis_score)#, rules)
+        print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), airis_score)#, rules)
         action = favoured_actions[0]
         plan = favoured_actions
     if debuginput == "w":
@@ -94,7 +94,7 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
-    predicted_world, _, __ = _predict(Time, deepcopy(observed_world_old), action, rules)
+    predicted_world, _, __ = NACE_Predict(Time, deepcopy(observed_world_old), action, rules)
     print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
     World_Print(newworld)
     print("\033[0mMental map:\033[97;44m")
@@ -102,16 +102,44 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
     print("\033[0mPredicted end:\033[97;41m")
     planworld = deepcopy(predicted_world)
     for i in range(1, len(plan)):
-        planworld, _, __ = _predict(Time, deepcopy(planworld), plan[i], rules)
+        planworld, _, __ = NACE_Predict(Time, deepcopy(planworld), plan[i], rules)
     World_Print(planworld)
     print("\033[0m")
-    RuleEvidence, worldchange, newrules, newnegrules = _observe(RuleEvidence, worldchange, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+    RuleEvidence, worldchange, newrules, newnegrules = _Observe(RuleEvidence, worldchange, observed_world_old, action, observed_world, rules, negrules, predicted_world)
     for rule in rulesExcluded: #add again so we won't loose them
         newrules.add(rule)
     return RuleEvidence, worldchange, loc, observed_world, newrules, newnegrules, newworld, debuginput
 
+# APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
+def NACE_Predict(Time, oldworld, action, rules, customGoal = None):
+    newworld = deepcopy(oldworld)
+    used_rules_sumscore = 0.0
+    used_rules_amount = 0
+    (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, rules)
+    for y in range(height):
+        for x in range(width):
+            if (y,x) not in positionscores:
+                continue
+            scores, highscore = positionscores[(y,x)]
+            for rule in rules:
+                if _RuleApplicable(scores, highscore, highesthighscore, rule):
+                    if highscore == 1.0:
+                        newworld[VALUES] = rule[1][3]
+                    newworld[BOARD][y][x] = rule[1][2]
+                    used_rules_sumscore += scores.get(rule, 0.0)
+                    used_rules_amount += 1
+    score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
+    robot_position, _ = World_GetRobotPosition(newworld)
+    age = 0
+    if robot_position:
+        age = (Time - newworld[TIMES][robot_position[0]][robot_position[1]])
+    #but if the predicted world has higher value, then set prediction score to the best it can be
+    if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
+        score = float('-inf')
+    return newworld, score, age
+
 # PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (max depth & max queue size obeying breadth first search)
-def _plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
+def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -131,50 +159,22 @@ def _plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
-            new_world, new_score, new_age = _predict(Time, deepcopy(current_world), action, rules, customGoal)
-            new_planned_actions = planned_actions + [action]
-            if new_score < best_score or (new_score == best_score and len(new_planned_actions) < len(best_actions)):
-                best_actions = new_planned_actions
+            new_world, new_score, new_age = NACE_Predict(Time, deepcopy(current_world), action, rules, customGoal)
+            new_Planned_actions = planned_actions + [action]
+            if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
+                best_actions = new_Planned_actions
                 best_score = new_score
-            if new_age > oldest_age or (new_age == oldest_age and len(new_planned_actions) < len(best_action_combination_for_revisit)):
-                best_action_combination_for_revisit = new_planned_actions
+            if new_age > oldest_age or (new_age == oldest_age and len(new_Planned_actions) < len(best_action_combination_for_revisit)):
+                best_action_combination_for_revisit = new_Planned_actions
                 oldest_age = new_age
             if new_score == 1.0:
                 _, robot_cnt = World_GetRobotPosition(new_world)
                 if robot_cnt == 1:
-                    queue.append((new_world, new_planned_actions, depth + 1))  # Enqueue children at the end
+                    queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
-# APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
-def _predict(Time, oldworld, action, rules, customGoal = None):
-    newworld = deepcopy(oldworld)
-    used_rules_sumscore = 0.0
-    used_rules_amount = 0
-    (positionscores, highesthighscore) = _matchHypotheses(oldworld, action, rules)
-    for y in range(height):
-        for x in range(width):
-            if (y,x) not in positionscores:
-                continue
-            scores, highscore = positionscores[(y,x)]
-            for rule in rules:
-                if _ruleApplicable(scores, highscore, highesthighscore, rule):
-                    if highscore == 1.0:
-                        newworld[VALUES] = rule[1][3]
-                    newworld[BOARD][y][x] = rule[1][2]
-                    used_rules_sumscore += scores.get(rule, 0.0)
-                    used_rules_amount += 1
-    score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
-    robot_position, _ = World_GetRobotPosition(newworld)
-    age = 0
-    if robot_position:
-        age = (Time - newworld[TIMES][robot_position[0]][robot_position[1]])
-    #but if the predicted world has higher value, then set prediction score to the best it can be
-    if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
-        score = float('-inf')
-    return newworld, score, age 
-
 # EXTRACT NEW RULES FROM THE OBSERVATIONS
-def _observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
+def _Observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
     robot_position, _ = World_GetRobotPosition(newworld)
@@ -205,7 +205,7 @@ def _observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
                 RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
-    (positionscores, highesthighscore) = _matchHypotheses(oldworld, action, newrules)
+    (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
             if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
@@ -215,7 +215,7 @@ def _observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
                 continue
             scores, highscore = positionscores[(y,x)]
             for rule in oldrules:
-                if _ruleApplicable(scores, highscore, highesthighscore, rule):
+                if _RuleApplicable(scores, highscore, highesthighscore, rule):
                     if rule[1][2] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] == newworld[BOARD][y][x] and rule in scores and scores[rule] == highesthighscore:
                         (precondition, consequence) = rule
                         action_score_and_preconditions = list(precondition)
@@ -283,7 +283,7 @@ def _observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
     worldchange = deepcopy(changesets[0])
     return RuleEvidence, worldchange, newrules, newnegrules
 
-def _matchHypotheses(oldworld, action, rules):
+def _MatchHypotheses(oldworld, action, rules):
     positionscores = dict([])
     highesthighscore = 0.0
     robot_position, robotcnt = World_GetRobotPosition(oldworld)
@@ -329,7 +329,7 @@ def _matchHypotheses(oldworld, action, rules):
                 highesthighscore = highscore
     return (positionscores, highesthighscore)
 
-def _ruleApplicable(scores, highscore, highesthighscore, rule):
+def _RuleApplicable(scores, highscore, highesthighscore, rule):
     if highscore > 0.0 and scores.get(rule, 0.0) == highesthighscore:
         return True
     return False
