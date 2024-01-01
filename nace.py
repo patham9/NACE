@@ -48,7 +48,7 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
         for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
             if i != j:
                 if rule1[0] == rule2[0]:
-                    rulex = Hypothesis_Choice(rule1, rule2)
+                    rulex = Hypothesis_Choice(RuleEvidence, rule1, rule2)
                     if rulex == rule1:
                         if rule2 in rules:
                             rulesExcluded.add(rule2)

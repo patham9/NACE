@@ -40,7 +40,7 @@ def Hypothesis_TruthExpectation(tv):
     (f, c) = tv
     return (c * (f - 0.5) + 0.5)
 
-def Hypothesis_Choice(rule1, rule2):
+def Hypothesis_Choice(RuleEvidence, rule1, rule2):
     T1 = Hypothesis_TruthValue(RuleEvidence[rule1])
     T2 = Hypothesis_TruthValue(RuleEvidence[rule2])
     if Hypothesis_TruthExpectation(T1) > Hypothesis_TruthExpectation(T2):
