@@ -26,11 +26,11 @@ oooooooooooo
 """
 world3 = """
 oooooooooooo
-o  k  o    o
-o     D b ko
+o  k  o   ko
+o     D b  o
 o     oooooo
-o x   D b ko
-o     o    o
+o x   D b  o
+o     o   ko
 oooooooooooo
 """
 world4 = """
