@@ -12,7 +12,7 @@ o x        o
 o       u  o
 oooooooooooo
 """
-world2 = """
+_world2 = """
 oooooooooooo
 o          o
 o   u      o
@@ -21,16 +21,16 @@ o x        o
 o          o
 oooooooooooo
 """
-world3 = """
+_world3 = """
 oooooooooooo
-o  k  o   ko
+o   k o   ko
 o     D b  o
 o     oooooo
 o x   D b  o
 o     o   ko
 oooooooooooo
 """
-world4 = """
+_world4 = """
 oooooooooooo
 o   o   f  o
 o          o
@@ -39,7 +39,7 @@ o x v      o
 o       u  o
 oooooooooooo
 """
-world5 = """
+_world5 = """
 oooooooooooo
 oo          
 oo          
@@ -50,19 +50,19 @@ oooooooooooo
 """
 
 print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
-challenge = input()
+_challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-slippery = "y" in input()
-isWorld5 = False
-if "2" in challenge:
-    world = world2
-if "3" in challenge:
-    world = world3
-if "4" in challenge:
-    world = world4
-if "5" in challenge:
-    world = world5
-    isWorld5 = True
+_slippery = "y" in input()
+_isWorld5 = False
+if "2" in _challenge:
+    world = _world2
+if "3" in _challenge:
+    world = _world3
+if "4" in _challenge:
+    world = _world4
+if "5" in _challenge:
+    world = _world5
+    _isWorld5 = True
 
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
@@ -85,8 +85,8 @@ def up(loc):
 def down(loc):
     return (loc[0],   loc[1]+1)
 
-def move(loc, world, action):
-    if slippery and random.random() > 0.9: #agent still believes it did the proper action
+def World_Move(loc, world, action):
+    if _slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
     newloc = action(loc)
     oldworld = deepcopy(world)
@@ -168,7 +168,7 @@ def move(loc, world, action):
         world[BOARD][loc[1]][loc[0]] = ROBOT
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
 
-def get_robot_position(world):
+def World_GetRobotPosition(world):
     robotcnt = 0
     robot_position = None
     for y in range(height):
@@ -178,17 +178,32 @@ def get_robot_position(world):
                 robotcnt += 1
     return robot_position, robotcnt
 
-def cupIsOnTable(world):
+def World_CupIsOnTable(world):
     for x in range(width):
         for y in range(height-1):
             if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
                 return True
     return False
 
-def printworld(world):
+def World_Print(world):
     for line in world[BOARD]:
         print("".join(line))
 
+def World_FieldOfView(Time, loc, observed_world, world):
+    for y in range(VIEWDISTY*2+1):
+        for x in range(VIEWDISTX*2+1):
+            Y = loc[1]+y-VIEWDISTY
+            X = loc[0]+x-VIEWDISTX
+            if Y >= 0 and Y < height and \
+               X >= 0 and X < width:
+                observed_world[BOARD][Y][X] = world[BOARD][Y][X]
+                observed_world[TIMES][Y][X] = Time
+    observed_world[VALUES] = deepcopy(world[VALUES])
+    return observed_world
+
+def World_AsTuple(worldpart):
+    return tuple(World_AsTuple(i) if isinstance(i, list) else i for i in worldpart)
+
 actions = [left, right, up, down]
-if isWorld5:
+if _isWorld5:
     actions = [up, down, left]
