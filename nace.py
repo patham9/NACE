@@ -601,7 +601,7 @@ def max_depth__breadth_first_search(world, rules, actions, max_depth=100, max_qu
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 # LET'S SIMULATE FOR 100 STEPS
-def localObserve(observed_world, world):
+def localObserve(loc, observed_world, world):
     for y in range(VIEWDISTY*2+1):
         for x in range(VIEWDISTX*2+1):
             Y = loc[1]+y-VIEWDISTY
@@ -649,7 +649,7 @@ def nace_step(RuleEvidence, worldchange, loc, observed_world, rulesin, negrules,
                             rulesExcluded.add(rule1)
                             rules.remove(rule1)
                             #print("excluded", end=''); prettyPrintRule(rule1)
-    observed_world = localObserve(observed_world, oldworld)
+    observed_world = localObserve(loc, observed_world, oldworld)
     favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = max_depth__breadth_first_search(observed_world, rules, actions, customGoal = cupIsOnTable)
     debuginput = ""
     if "debug" in sys.argv:
@@ -683,7 +683,7 @@ def nace_step(RuleEvidence, worldchange, loc, observed_world, rulesin, negrules,
         input()
     loc, newworld = move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
-    observed_world = localObserve(observed_world, newworld)
+    observed_world = localObserve(loc, observed_world, newworld)
     predicted_world, _, __ = world_predict(deepcopy(observed_world_old), action, rules)
     print(f"\033[0mWorld t={t} beliefs={len(rules)}:\033[97;40m")
     printworld(newworld)
