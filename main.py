@@ -1,7 +1,6 @@
 #Author: Patrick Hammer
 import sys
 import time
-import random
 print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, q to exit imagined world')
