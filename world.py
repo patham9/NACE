@@ -48,7 +48,6 @@ oox
 oo          
 oooooooooooo
 """
-loc = (2,4)
 
 print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
 challenge = input()
@@ -65,25 +64,27 @@ if "5" in challenge:
     world = world5
     isWorld5 = True
 
+loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
-def printworld(world):
-    for line in world[BOARD]:
-        print("".join(line))
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
 world.append([[float("-inf") for i in range(width)] for j in range(height)])
 
 # MOVE FUNCTIONS TAKING WALLS INTO ACCOUNT
 def left(loc):
     return (loc[0]-1, loc[1])
+
 def right(loc):
     return (loc[0]+1, loc[1])
+
 def up(loc):
     return (loc[0],   loc[1]-1)
+
 def down(loc):
     return (loc[0],   loc[1]+1)
+
 def move(loc, world, action):
     if slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
@@ -167,14 +168,6 @@ def move(loc, world, action):
         world[BOARD][loc[1]][loc[0]] = ROBOT
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
 
-actions = [left, right, up, down]
-
-if isWorld5:
-    actions = [up, down, left]
-
-def MovementOps():
-    return [left, right, up, down]
-
 def get_robot_position(world):
     robotcnt = 0
     robot_position = None
@@ -191,3 +184,11 @@ def cupIsOnTable(world):
             if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
                 return True
     return False
+
+def printworld(world):
+    for line in world[BOARD]:
+        print("".join(line))
+
+actions = [left, right, up, down]
+if isWorld5:
+    actions = [up, down, left]
