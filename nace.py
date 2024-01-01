@@ -1,369 +1,22 @@
-#Author: Patrick Hammer
-from collections import deque
 from copy import deepcopy
+from collections import deque
+from hypothesis import *
+from world import *
 import sys
-import time
-import random
 
-# THE WORLD
-world = """
-oooooooooooo
-o   o   f  o
-o          o
-o   oooooooo
-o x        o
-o       u  o
-oooooooooooo
-"""
-world2 = """
-oooooooooooo
-o          o
-o   u      o
-o     ooooTo
-o x        o
-o          o
-oooooooooooo
-"""
-world3 = """
-oooooooooooo
-o  k  o   ko
-o     D b  o
-o     oooooo
-o x   D b  o
-o     o   ko
-oooooooooooo
-"""
-world4 = """
-oooooooooooo
-o   o   f  o
-o          o
-o   oooooooo
-o x v      o
-o       u  o
-oooooooooooo
-"""
-world5 = """
-oooooooooooo
-oo          
-oo          
-oo         c
-oox         
-oo          
-oooooooooooo
-"""
+if "NoMovementOpAssumptions" not in sys.argv: #if we want the system to exploit assumptions about space (the default)
+    UseMovementOpAssumptions(left, right, up, down)
 
-print("Welcome to NACE!")
-if "debug" in sys.argv:
-    print('Debugger: enter to let agent move, w/a/s/d for manual movement in simulated world, v for switching to imagined world, l to list hypotheses, q to exit imagined world')
-else:
-    print('Pass "debug" parameter for interactive debugging')
-print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
-challenge = input()
-print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-slippery = "y" in input()
-isWorld5 = False
-if "2" in challenge:
-    world = world2
-if "3" in challenge:
-    world = world3
-if "4" in challenge:
-    world = world4
-if "5" in challenge:
-    world = world5
-    isWorld5 = True
-
-VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c')
-world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
-BOARD, VALUES, TIMES = (0, 1, 2)
-def printworld(world):
-    for line in world[BOARD]:
-        print("".join(line))
-height, width = (len(world[BOARD]), len(world[BOARD][0]))
-world.append([[float("-inf") for i in range(width)] for j in range(height)])
-
-# MOVE FUNCTIONS TAKING WALLS INTO ACCOUNT
-def left(loc):
-    return (loc[0]-1, loc[1])
-def right(loc):
-    return (loc[0]+1, loc[1])
-def up(loc):
-    return (loc[0],   loc[1]-1)
-def down(loc):
-    return (loc[0],   loc[1]+1)
-def move(loc, world, action):
-    if slippery and random.random() > 0.9: #agent still believes it did the proper action
-        action = random.choice(actions)    #but the world is slippery!
-    newloc = action(loc)
-    oldworld = deepcopy(world)
-    #ROBOT MOVEMENT ON FREE SPACE
-    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-    oldworld = deepcopy(world)
-    for y in range(height):
-        for x in range(width):
-            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == FREE:
-                world[BOARD][y][x-1] = BALL
-                world[BOARD][y][x] = FREE
-            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == WALL:
-                world[BOARD][y][x] = FREE
-                world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
-            if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == FREE:
-                world[BOARD][y+1][x] = ARROW_DOWN
-                world[BOARD][y][x] = FREE
-            if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == FREE:
-                world[BOARD][y-1][x] = ARROW_UP
-                world[BOARD][y][x] = FREE
-            if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == WALL:
-                world[BOARD][y][x] = ARROW_UP
-            if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == WALL:
-                world[BOARD][y][x] = ARROW_DOWN
-            if oldworld[BOARD][y][x] == CUP and oldworld[BOARD][y+1][x] == TABLE:
-                world[BOARD][y][x] = FREE
-                while True:
-                    xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
-                    if oldworld[BOARD][yr][xr] == FREE:
-                        world[BOARD][yr][xr] = CUP
-                        break
-    #CUP
-    if world[BOARD][newloc[1]][newloc[0]] == CUP: #an object the system could shift around
-        world[BOARD][loc[1]][loc[0]] = CUP
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-    #KEY
-    if world[BOARD][newloc[1]][newloc[0]] == KEY:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] + 1] + list(world[VALUES][2:])) #the second value +1 and the rest stays
-    #DOOR
-    if world[BOARD][newloc[1]][newloc[0]] == DOOR and world[VALUES][1] > 0:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] - 1] + list(world[VALUES][2:])) #the second value +1 and the rest stays
-    #BALL
-    if oldworld[BOARD][newloc[1]][newloc[0]] == BALL:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
-    #BATTERY
-    if world[BOARD][newloc[1]][newloc[0]] == BATTERY:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
-    #FOOD
-    if world[BOARD][newloc[1]][newloc[0]] == FOOD:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
-        while True:
-            x, y = (random.randint(0, width-1), random.randint(0, height-1))
-            if world[BOARD][y][x] == FREE:
-                world[BOARD][y][x] = FOOD
-                break
-    #FREE SPACE
-    if world[BOARD][newloc[1]][newloc[0]] == FREE or world[BOARD][newloc[1]][newloc[0]] == BALL:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-    return loc, [world[BOARD], world[VALUES], world[TIMES]]
-
-actions = [left, right, up, down]
-if isWorld5:
-    actions = [up, down, left]
+rules = set([])
+negrules = set([])
+worldchange = set([])
+RuleEvidence = dict([])
+observed_world = [[[" " for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
 def motorbabbling():
     return random.choice(actions)
 
-def prettyValue(value):
-    if value == FREE:
-        return "free"
-    if value == FOOD:
-        return "food"
-    if value == TABLE:
-        return "table"
-    if value == CUP:
-        return "cup"
-    if value == ROBOT:
-        return "robot"
-    if value == WALL:
-        return "wall"
-    if value == KEY:
-        return "key"
-    if value == DOOR:
-        return "door"
-    if value == BATTERY:
-        return "battery"
-    if value == ARROW_UP:
-        return "arrowup"
-    if value == ARROW_DOWN:
-        return "arrowdown"
-    if value == BALL:
-        return "ball"
-    return value
-
-def prettyVarValue(name, value):
-    return f"<k_{value} --> {name}>"
-
-def prettyTriplet(triplet):
-    (y, x, value) = triplet[:3]
-    value = prettyValue(value)
-    if x == 0 and y == 0:
-        return f"<(mid * {value}) --> shape>"
-    if x == 1 and y == 0:
-        return f"<(right * {value}) --> shape>"
-    if x == -1 and y == 0:
-        return f"<(left * {value}) --> shape>"
-    if x == 0 and y == 1:
-        return f"<(down * {value}) --> shape>"
-    if x == 0 and y == -1:
-        return f"<(up * {value}) --> shape>"
-    return triplet
-
-def prettyPrintRule(RuleEvidence, rule):
-    actions_values_preconditions = rule[0]
-    action = prettyaction(actions_values_preconditions[0])
-    precons = actions_values_preconditions[2:]
-    print("<(", end="")
-    for i, x in enumerate(actions_values_preconditions[1]):
-        name = "keys"
-        print(f"{prettyVarValue(name, x)}", end="")
-        print(f" &| ", end="")
-    for i, x in enumerate(precons):
-        print(f"{prettyTriplet(x)}", end="")
-        if i != len(precons)-1:
-            print(f" &| ", end="")
-    scoreInc = f"<s_{rule[1][3][0]} --> scorePlus>"
-    keys = f"<k_{rule[1][3][1]} --> keys>"
-    print(") &/", action, "=/> (" + prettyTriplet(rule[1]) + " &| " + scoreInc + " &| " + keys + ")>.", TruthValue(RuleEvidence[rule]))
-
-def OpRotate(op):
-    if op == right:
-        return down
-    if op == down:
-        return left
-    if op == left:
-        return up
-    if op == up:
-        return right
-
-def ConditionRotate(cond):
-    (y, x, v) = cond
-    if y == 0 and x == -1: #left
-        return (-1, 0, v)  #up
-    if y == -1 and x == 0: #up
-        return (0, 1, v)   #right
-    if y == 0 and x == 1:  #right
-        return (1, 0, v)   #down
-    if y == 1 and x == 0:  #down
-        return (0, -1, v)  #left
-    if x == 0 and y == 0:
-        return (0, 0, v)
-
-def validCondition(cond):  #restrict to neighbours (CA assumption)
-    (y, x, v) = cond
-    if y == 0 and x == 0: #self
-        return True
-    if y == 0 and x == -1: #left
-        return True
-    if y == -1 and x == 0: #up
-        return True
-    if y == 0 and x == 1:  #right
-        return True
-    if y == 1 and x == 0:  #down
-        return True
-    if x == 0 and y == 0: #mid stays same
-        return True
-    return False
-
-def ruleVariants(rule): #location symmetry (knowledge about movement operations for faster learning)
-    action_values_precons = rule[0]
-    conditions = action_values_precons[2:]
-    action = action_values_precons[0]
-    for (y,x,v) in conditions: #unnecessary
-        if (action == left or action == right) and y != 0:
-            return []
-        if (action == up or action == down) and x != 0:
-            return []
-    rules = [rule]
-    if action != left and action != right and action != down and action != up: #not such an op where symmetry would apply
-        return rules
-    conditionlist2 = sorted([ConditionRotate(x) for x in conditions])
-    conditionlist3 = sorted([ConditionRotate(x) for x in conditionlist2])
-    conditionlist4 = sorted([ConditionRotate(x) for x in conditionlist3])
-    action2 = OpRotate(action)
-    action3 = OpRotate(action2)
-    action4 = OpRotate(action3)
-    rules.append((tuple([action2, action_values_precons[1]] + conditionlist2), rule[1]))
-    rules.append((tuple([action3, action_values_precons[1]] + conditionlist3), rule[1]))
-    rules.append((tuple([action4, action_values_precons[1]] + conditionlist4), rule[1]))
-    return rules
-
-def AddRuleEvidence(RuleEvidence, rule, positive, w_max = 20):
-    if rule not in RuleEvidence:
-        RuleEvidence[rule] = (0, 0)
-    (wp, wn) = RuleEvidence[rule]
-    if positive:
-        if wp + wn <= w_max:
-            RuleEvidence[rule] = (wp+1, wn)
-        else:
-            RuleEvidence[rule] = (wp, max(0, wn-1))
-    else:
-        if wp + wn <= w_max:
-            RuleEvidence[rule] = (wp, wn+1)
-        else:
-            RuleEvidence[rule] = (max(0, wp-1), wn)
-    return RuleEvidence
-
-def RemoveRule(RuleEvidence, ruleset, negruleset, rule):
-    for r in ruleVariants(rule):
-        RuleEvidence = AddRuleEvidence(RuleEvidence, rule, False)
-        if "silent" not in sys.argv:
-            print("Neg. revised: ", end="");  prettyPrintRule(RuleEvidence, rule)
-        #in a deterministic setting this would have sufficed however
-        #simply excluding rules does not work in non-deterministic ones
-        #if rule in ruleset:
-        #    print("RULE REMOVAL: ", end=""); prettyPrintRule(rule)
-        #    ruleset.remove(rule)
-        #negruleset.add(rule)
-    return RuleEvidence, ruleset, negruleset
-
-def TruthValue(wpn):
-    (wp, wn) = wpn
-    frequency = wp / (wp + wn)
-    confidende = (wp + wn) / (wp + wn + 1)
-    return (frequency, confidende)
-
-def Truth_Expectation(tv):
-    (f, c) = tv
-    return (c * (f - 0.5) + 0.5)
-
-def ChoiceRule(rule1, rule2):
-    T1 = TruthValue(RuleEvidence[rule1])
-    T2 = TruthValue(RuleEvidence[rule2])
-    if Truth_Expectation(T1) > Truth_Expectation(T2):
-        return rule1
-    return rule2
-
-def AddRule(RuleEvidence, ruleset, negruleset, rule): #try location symmetry
-    variants = ruleVariants(rule)
-    for rule in variants:
-        RuleEvidence = AddRuleEvidence(RuleEvidence, rule, True)
-        if "silent" not in sys.argv:
-            print("Pos. revised: ", end="");  prettyPrintRule(RuleEvidence, rule)
-        if rule not in negruleset:
-            if rule not in ruleset:
-                #print("RULE ADDITION: ", end=""); prettyPrintRule(rule)
-                ruleset.add(rule)
-    return RuleEvidence, ruleset
-
-# APPLY MOVE TO THE REAL WORLD AND EXTRACT NEW RULES FROM THE OBSERVATIONS
+# EXTRACT NEW RULES FROM THE OBSERVATIONS
 def world_observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
@@ -392,7 +45,7 @@ def world_observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrule
                 action_values_precondition.append(pr)
             rule = (tuple(action_values_precondition), (0, 0, newworld[BOARD][y1_abs][x1_abs], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))))
             if len(preconditions) == 2:
-                RuleEvidence, newrules = AddRule(RuleEvidence, newrules, newnegrules, rule)
+                RuleEvidence, newrules = HypothesisConfirmed(RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
     (positionscores, highesthighscore) = rule_positionscores(oldworld, action, newrules)
@@ -430,7 +83,7 @@ def world_observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrule
                                    + corrected_preconditions), tuple([rule[1][0], rule[1][1], newworld[BOARD][y][x], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))]))
                         if has_robot_condition:
                             #print("RULE CORRECTION ", y, x, loc, worldchange); prettyPrintRule(rule); prettyPrintRule(rule_new)
-                            RuleEvidence, newrules = AddRule(RuleEvidence, newrules, newnegrules, rule_new)
+                            RuleEvidence, newrules = HypothesisConfirmed(RuleEvidence, newrules, newnegrules, rule_new)
                         break
     #CRISP MATCH: REMOVE CONTRADICTING RULES FROM RULE SET
     for y in range(height):
@@ -459,17 +112,17 @@ def world_observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrule
                 if CONTINUE:
                     continue
                 if rule[1][3][0] != newworld[VALUES][0] - oldworld[VALUES][0]:
-                    RuleEvidence, newrules, newnegrules = RemoveRule(RuleEvidence, newrules, newnegrules, rule) #score increase did not happen
+                    RuleEvidence, newrules, newnegrules = HypothesisContradicted(RuleEvidence, newrules, newnegrules, rule) #score increase did not happen
                     continue
                 for k in range(1, len(rule[1][3])): #wrong value prediction
                     if rule[1][3][k] != newworld[VALUES][k]:
-                        RuleEvidence, newrules, newnegrules = RemoveRule(RuleEvidence, newrules, newnegrules, rule)
+                        RuleEvidence, newrules, newnegrules = HypothesisContradicted(RuleEvidence, newrules, newnegrules, rule)
                         CONTINUE = True
                         break
                 if CONTINUE:
                     continue
                 if rule[1][2] != newworld[BOARD][y][x]:
-                    RuleEvidence, newrules, newnegrules = RemoveRule(RuleEvidence, newrules, newnegrules, rule)
+                    RuleEvidence, newrules, newnegrules = HypothesisContradicted(RuleEvidence, newrules, newnegrules, rule)
     worldchange = deepcopy(changesets[0])
     return RuleEvidence, worldchange, newrules, newnegrules
 
@@ -518,16 +171,6 @@ def rule_positionscores(oldworld, action, rules):
             if highscore > highesthighscore:
                 highesthighscore = highscore
     return (positionscores, highesthighscore)
-
-def get_robot_position(world):
-    robotcnt = 0
-    robot_position = None
-    for y in range(height):
-        for x in range(width):
-            if world[BOARD][y][x] == ROBOT:
-                robot_position = (y, x)
-                robotcnt += 1
-    return robot_position, robotcnt
 
 def ruleApplicable(scores, highscore, highesthighscore, rule):
     if highscore > 0.0 and scores.get(rule, 0.0) == highesthighscore:
@@ -613,20 +256,6 @@ def localObserve(Time, loc, observed_world, world):
     observed_world[VALUES] = deepcopy(world[VALUES])
     return observed_world
 
-def prettyaction(action):
-    M = {left: "^left", right: "^right", up: "^up", down: "^down"}
-    return M[action]
-
-def plan_prettystring(actionlist):
-    return [prettyaction(x) for x in actionlist[1:]]
-
-def cupIsOnTable(world):
-    for x in range(width):
-        for y in range(height-1):
-            if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
-                return True
-    return False
-
 def nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
@@ -679,7 +308,7 @@ def nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, neg
         action = right
     if debuginput == 'l':
         for x in rules:
-            prettyPrintRule(RuleEvidence, x)
+            prettyPrintRule(RuleEvidence, TruthValue, x)
         input()
     loc, newworld = move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
@@ -699,48 +328,3 @@ def nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, neg
     for rule in rulesExcluded: #add again so we won't loose them
         newrules.add(rule)
     return RuleEvidence, worldchange, loc, observed_world, newrules, newnegrules, newworld, debuginput
-
-loc = (2,4)
-rules = set([])
-negrules = set([])
-worldchange = set([])
-RuleEvidence = dict([])
-observed_world = [[[" " for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
-for Time in range(300):
-    start_time = time.time()
-    RuleEvidence, worldchange, loc, observed_world, rules, negrules, world, debuginput = nace_step(Time, RuleEvidence, worldchange, loc, observed_world, rules, negrules, deepcopy(world))
-    end_time = time.time()
-    print("VALUES", world[VALUES])
-    elapsed_time = end_time - start_time
-    if elapsed_time < 1.0:
-        time.sleep(1.0 - elapsed_time)
-    if "debug" in sys.argv and debuginput != "" and debuginput != "w" and debuginput != "a" and debuginput != "s" and debuginput != "d" and debuginput != "l":
-        saveworld = deepcopy(world)
-        predworld = deepcopy(world)
-        score = 0.0
-        while True:
-            print("\033[1;1H\033[2J")
-            printworld(predworld)
-            print("score:", score)
-            d = input()
-            score = 0.0
-            if d == 'q':
-                break
-            if d == 'r':
-                predworld = deepcopy(world)
-            if d == 'a':
-                predworld, score, age = world_predict(Time, deepcopy(predworld), left, rules)
-            if d == 'd':
-                predworld, score, age = world_predict(Time, deepcopy(predworld), right, rules)
-            if d == 'w':
-                predworld, score, age = world_predict(Time, deepcopy(predworld), up, rules)
-            if d == 's':
-                predworld, score, age = world_predict(Time, deepcopy(predworld), down, rules)
-            if d == 'l':
-                for x in rules:
-                    prettyPrintRule(RuleEvidence, x)
-                input()
-            if d == 'n':
-                for x in negrules:
-                    prettyPrintRule(x)
-                input()
