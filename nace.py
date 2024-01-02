@@ -248,7 +248,7 @@ def _Observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
             if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
                x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
                 continue
-            for rule in oldrules: #find rules which don't work, and reWorld_Move them adding them to newnegrules
+            for rule in oldrules: #find rules which don't work, and remove them adding them to newnegrules
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
                 values = action_score_and_preconditions[1]
