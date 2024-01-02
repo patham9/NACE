@@ -84,8 +84,6 @@ def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
         return True
     if y == 1 and x == 0:  #down
         return True
-    if x == 0 and y == 0: #mid stays same
-        return True
     return False
 
 def _OpRotate(op):
