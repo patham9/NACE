@@ -86,6 +86,28 @@ def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
         return True
     return False
 
+def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin):
+    for i, rule1 in enumerate(rulesin):
+        if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
+            if rule1 in rules:
+                rulesExcluded.add(rule1)
+                rules.remove(rule1)
+        for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
+            if i != j:
+                if rule1[0] == rule2[0]:
+                    rulex = Hypothesis_Choice(RuleEvidence, rule1, rule2)
+                    if rulex == rule1:
+                        if rule2 in rules:
+                            rulesExcluded.add(rule2)
+                            rules.remove(rule2)
+                            #print("excluded ", end=''); Prettyprint_rule(rule2)
+                    else:
+                        if rule1 in rules:
+                            rulesExcluded.add(rule1)
+                            rules.remove(rule1)
+                            #print("excluded", end=''); Prettyprint_rule(rule1)
+    return rules, rulesExcluded
+
 def _OpRotate(op):
     if op == right:
         return down

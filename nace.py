@@ -41,25 +41,7 @@ observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
-    for i, rule1 in enumerate(rulesin):
-        if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
-            if rule1 in rules:
-                rulesExcluded.add(rule1)
-                rules.remove(rule1)
-        for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
-            if i != j:
-                if rule1[0] == rule2[0]:
-                    rulex = Hypothesis_Choice(RuleEvidence, rule1, rule2)
-                    if rulex == rule1:
-                        if rule2 in rules:
-                            rulesExcluded.add(rule2)
-                            rules.remove(rule2)
-                            #print("excluded ", end=''); Prettyprint_rule(rule2)
-                    else:
-                        if rule1 in rules:
-                            rulesExcluded.add(rule1)
-                            rules.remove(rule1)
-                            #print("excluded", end=''); Prettyprint_rule(rule1)
+    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
     favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     debuginput = ""
@@ -139,7 +121,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     return newworld, score, age
 
 # PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
+def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=2000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
