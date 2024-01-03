@@ -31,7 +31,7 @@ import sys
 if "NoMovementOpAssumptions" not in sys.argv: #if we want the system to exploit assumptions about space (the default)
     Hypothesis_UseMovementOpAssumptions(left, right, up, down)
 
-FocusSet = set([])
+FocusSet = dict([])
 rules = set([])
 negrules = set([])
 worldchange = set([])
@@ -99,12 +99,15 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     used_rules_sumscore = 0.0
     used_rules_amount = 0
     (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, rules)
+    max_focus = None
+    if len(FocusSet) > 0:
+        max_focus = max(FocusSet, key=lambda k: FocusSet[k])
     age = 0
     for y in range(height):
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if oldworld[BOARD][y][x] in FocusSet and oldworld[BOARD][y][x] == 'x':
+            if max_focus and oldworld[BOARD][y][x] in FocusSet and oldworld[BOARD][y][x] == max_focus:
                 age = max(age, (Time - newworld[TIMES][y][x]))
             scores, highscore = positionscores[(y,x)]
             for rule in rules:
@@ -170,8 +173,12 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
         for x in range(width):
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[0].add((y, x))
-                if valuecount[oldworld[BOARD][y][x]] == 1: #unique
-                    FocusSet.add(oldworld[BOARD][y][x])
+                val = oldworld[BOARD][y][x]
+                if valuecount[val] == 1: #unique
+                    if val not in FocusSet:
+                        FocusSet[val] = 1
+                    else:
+                        FocusSet[val] += 1
             if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[1].add((y, x))
     for changeset in changesets:
