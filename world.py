@@ -55,10 +55,10 @@ oooooooooooo
 """
 _world4 = """
 oooooooooooo
-o   o   f  o
+o  vo   f  o
 o          o
 o   oooooooo
-o x v      o
+o x        o
 o       u  o
 oooooooooooo
 """
@@ -190,16 +190,6 @@ def World_Move(loc, world, action):
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
-
-def World_GetRobotPosition(world):
-    robotcnt = 0
-    robot_position = None
-    for y in range(height):
-        for x in range(width):
-            if world[BOARD][y][x] == ROBOT:
-                robot_position = (y, x)
-                robotcnt += 1
-    return robot_position, robotcnt
 
 def World_CupIsOnTable(world):
     for x in range(width):

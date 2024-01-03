@@ -31,34 +31,17 @@ import sys
 if "NoMovementOpAssumptions" not in sys.argv: #if we want the system to exploit assumptions about space (the default)
     Hypothesis_UseMovementOpAssumptions(left, right, up, down)
 
+FocusSet = dict([])
 rules = set([])
 negrules = set([])
 worldchange = set([])
 RuleEvidence = dict([])
-observed_world = [[[" " for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
-def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, negrules, oldworld):
+def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
-    for i, rule1 in enumerate(rulesin):
-        if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
-            if rule1 in rules:
-                rulesExcluded.add(rule1)
-                rules.remove(rule1)
-        for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
-            if i != j:
-                if rule1[0] == rule2[0]:
-                    rulex = Hypothesis_Choice(RuleEvidence, rule1, rule2)
-                    if rulex == rule1:
-                        if rule2 in rules:
-                            rulesExcluded.add(rule2)
-                            rules.remove(rule2)
-                            #print("excluded ", end=''); Prettyprint_rule(rule2)
-                    else:
-                        if rule1 in rules:
-                            rulesExcluded.add(rule1)
-                            rules.remove(rule1)
-                            #print("excluded", end=''); Prettyprint_rule(rule1)
+    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
     favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     debuginput = ""
@@ -94,7 +77,7 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
-    predicted_world, _, __ = NACE_Predict(Time, deepcopy(observed_world_old), action, rules)
+    predicted_world, _, __ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
     print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
     World_Print(newworld)
     print("\033[0mMental map:\033[97;44m")
@@ -102,24 +85,30 @@ def NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rulesin, ne
     print("\033[0mPredicted end:\033[97;41m")
     planworld = deepcopy(predicted_world)
     for i in range(1, len(plan)):
-        planworld, _, __ = NACE_Predict(Time, deepcopy(planworld), plan[i], rules)
+        planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
     World_Print(planworld)
     print("\033[0m")
-    RuleEvidence, worldchange, newrules, newnegrules = _Observe(RuleEvidence, worldchange, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+    FocusSet, RuleEvidence, newrules, newnegrules = _Observe(FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
     for rule in rulesExcluded: #add again so we won't loose them
         newrules.add(rule)
-    return RuleEvidence, worldchange, loc, observed_world, newrules, newnegrules, newworld, debuginput
+    return FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
 
 # APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
-def NACE_Predict(Time, oldworld, action, rules, customGoal = None):
+def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
     used_rules_amount = 0
-    (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, rules)
+    (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, rules)
+    max_focus = None
+    if len(FocusSet) > 0:
+        max_focus = max(FocusSet, key=lambda k: FocusSet[k])
+    age = 0
     for y in range(height):
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
+            if max_focus and oldworld[BOARD][y][x] in FocusSet and oldworld[BOARD][y][x] == max_focus:
+                age = max(age, (Time - newworld[TIMES][y][x]))
             scores, highscore = positionscores[(y,x)]
             for rule in rules:
                 if _RuleApplicable(scores, highscore, highesthighscore, rule):
@@ -129,10 +118,6 @@ def NACE_Predict(Time, oldworld, action, rules, customGoal = None):
                     used_rules_sumscore += scores.get(rule, 0.0)
                     used_rules_amount += 1
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
-    robot_position, _ = World_GetRobotPosition(newworld)
-    age = 0
-    if robot_position:
-        age = (Time - newworld[TIMES][robot_position[0]][robot_position[1]])
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
         score = float('-inf')
@@ -159,7 +144,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
-            new_world, new_score, new_age = NACE_Predict(Time, deepcopy(current_world), action, rules, customGoal)
+            new_world, new_score, new_age = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
                 best_actions = new_Planned_actions
@@ -168,24 +153,32 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 best_action_combination_for_revisit = new_Planned_actions
                 oldest_age = new_age
             if new_score == 1.0:
-                _, robot_cnt = World_GetRobotPosition(new_world)
-                if robot_cnt == 1:
-                    queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
+                queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 # EXTRACT NEW RULES FROM THE OBSERVATIONS
-def _Observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
+def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
-    robot_position, _ = World_GetRobotPosition(newworld)
     changesets = [set([]), set([])]
-    for y, line in enumerate(newworld[BOARD]):
-        for x, char in enumerate(line):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                   continue
+    valuecount = dict([])
+    for y in range(height):
+        for x in range(width):
+            val = oldworld[BOARD][y][x]
+            if val not in valuecount:
+                valuecount[val] = 1
+            else:
+                valuecount[val] += 1
+    for y in range(height):
+        for x in range(width):
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[0].add((y, x))
+                val = oldworld[BOARD][y][x]
+                if valuecount[val] == 1: #unique
+                    if val not in FocusSet:
+                        FocusSet[val] = 1
+                    else:
+                        FocusSet[val] += 1
             if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[1].add((y, x))
     for changeset in changesets:
@@ -205,12 +198,9 @@ def _Observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
                 RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
-    (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, newrules)
+    (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                continue
             if (y,x) not in positionscores:
                 continue
             scores, highscore = positionscores[(y,x)]
@@ -222,32 +212,25 @@ def _Observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
                         values = action_score_and_preconditions[1]
                         corrected_preconditions = []
                         CONTINUE = False
-                        has_condition_in_worldchange = False
-                        has_robot_condition = False #TODO!!!
+                        has_focus_set_condition = False #TODO!!!
                         for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
                             if y+y_rel >= height or y+y_rel < 0 or x+x_rel >= width or x+x_rel < 0:
                                 CONTINUE = True
                                 break
-                            if (y+y_rel, x+x_rel) in worldchange:
-                                has_condition_in_worldchange = True
-                            if oldworld[BOARD][y+y_rel][x+x_rel] == ROBOT:
-                                has_robot_condition = True
+                            if oldworld[BOARD][y+y_rel][x+x_rel] in FocusSet:
+                                has_focus_set_condition = True
                             corrected_preconditions.append((y_rel, x_rel, oldworld[BOARD][y+y_rel][x+x_rel]))
                         corrected_preconditions = sorted(corrected_preconditions)
-                        if CONTINUE or not has_condition_in_worldchange or not has_robot_condition:
+                        if CONTINUE or not has_focus_set_condition:
                             continue
                         rule_new = (tuple([action_score_and_preconditions[0], action_score_and_preconditions[1]]
                                    + corrected_preconditions), tuple([rule[1][0], rule[1][1], newworld[BOARD][y][x], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))]))
-                        if has_robot_condition:
-                            #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
-                            RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule_new)
+                        #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
+                        RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule_new)
                         break
     #CRISP MATCH: REMOVE CONTRADICTING RULES FROM RULE SET
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                continue
             for rule in oldrules: #find rules which don't work, and remove them adding them to newnegrules
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
@@ -280,21 +263,24 @@ def _Observe(RuleEvidence, worldchange, oldworld, action, newworld, oldrules, ol
                     continue
                 if rule[1][2] != newworld[BOARD][y][x]:
                     RuleEvidence, newrules, newnegrules = Hypothesis_Contradicted(RuleEvidence, newrules, newnegrules, rule)
-    worldchange = deepcopy(changesets[0])
-    return RuleEvidence, worldchange, newrules, newnegrules
+    return FocusSet, RuleEvidence, newrules, newnegrules
 
-def _MatchHypotheses(oldworld, action, rules):
+def _MatchHypotheses(FocusSet, oldworld, action, rules):
     positionscores = dict([])
     highesthighscore = 0.0
-    robot_position, robotcnt = World_GetRobotPosition(oldworld)
-    if not robot_position or robotcnt != 1: #OPTIONAL SPEEDUP HACK!
-        return (positionscores, 0.0)
+    AttendPositions = set([])
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                continue #DISABLES PREDICTION OUTSIDE OF VIEW RELATED TO PREDICTED POSITION OF ROBOT
-            if robot_position and (abs(robot_position[0]-y) > 1 or abs(robot_position[1]-x) > 1): #OPTIONAL SPEEDUP HACK!
+            if oldworld[BOARD][y][x] in FocusSet:
+                AttendPositions.add((y,x))
+                for rule in rules:
+                    (precondition, consequence) = rule
+                    action_score_and_preconditions = list(precondition)
+                    for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
+                        AttendPositions.add((y+y_rel, x+x_rel))
+    for y in range(height):
+        for x in range(width):
+            if (y,x) not in AttendPositions:
                 continue
             scores = dict([])
             positionscores[(y,x)] = scores

@@ -34,9 +34,9 @@ from nace import *
 if __name__ == "__main__":
     for Time in range(300):
         start_time = time.time()
-        RuleEvidence, worldchange, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rules, negrules, deepcopy(world))
+        FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
         end_time = time.time()
-        print("VALUES", world[VALUES])
+        print("VALUES", world[VALUES], "FOCUS SET", FocusSet)
         elapsed_time = end_time - start_time
         if elapsed_time < 1.0:
             time.sleep(1.0 - elapsed_time)
@@ -55,13 +55,13 @@ if __name__ == "__main__":
                 if d == 'r':
                     predworld = deepcopy(world)
                 if d == 'a':
-                    predworld, score, age = NACE_Predict(Time, deepcopy(predworld), left, rules)
+                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, rules)
                 if d == 'd':
-                    predworld, score, age = NACE_Predict(Time, deepcopy(predworld), right, rules)
+                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), right, rules)
                 if d == 'w':
-                    predworld, score, age = NACE_Predict(Time, deepcopy(predworld), up, rules)
+                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, rules)
                 if d == 's':
-                    predworld, score, age = NACE_Predict(Time, deepcopy(predworld), down, rules)
+                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, rules)
                 if d == 'l':
                     for x in rules:
                         Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
