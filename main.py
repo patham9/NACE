@@ -34,7 +34,7 @@ from nace import *
 if __name__ == "__main__":
     for Time in range(300):
         start_time = time.time()
-        RuleEvidence, worldchange, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, RuleEvidence, worldchange, loc, observed_world, rules, negrules, deepcopy(world))
+        FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
         end_time = time.time()
         print("VALUES", world[VALUES])
         elapsed_time = end_time - start_time
