@@ -95,7 +95,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
-    predicted_world, _, __ = NACE_Predict(Time, deepcopy(observed_world_old), action, rules)
+    predicted_world, _, __ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
     print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
     World_Print(newworld)
     print("\033[0mMental map:\033[97;44m")
@@ -103,7 +103,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[0mPredicted end:\033[97;41m")
     planworld = deepcopy(predicted_world)
     for i in range(1, len(plan)):
-        planworld, _, __ = NACE_Predict(Time, deepcopy(planworld), plan[i], rules)
+        planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
     World_Print(planworld)
     print("\033[0m")
     FocusSet, RuleEvidence, newrules, newnegrules = _Observe(FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
@@ -112,15 +112,18 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     return FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
 
 # APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
-def NACE_Predict(Time, oldworld, action, rules, customGoal = None):
+def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
     used_rules_amount = 0
     (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, rules)
+    age = 0
     for y in range(height):
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
+            if oldworld[BOARD][y][x] in FocusSet:
+                age = age + (Time - newworld[TIMES][y][x])
             scores, highscore = positionscores[(y,x)]
             for rule in rules:
                 if _RuleApplicable(scores, highscore, highesthighscore, rule):
@@ -130,10 +133,6 @@ def NACE_Predict(Time, oldworld, action, rules, customGoal = None):
                     used_rules_sumscore += scores.get(rule, 0.0)
                     used_rules_amount += 1
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
-    robot_position, _ = World_GetRobotPosition(newworld)
-    age = 0
-    if robot_position:
-        age = (Time - newworld[TIMES][robot_position[0]][robot_position[1]])
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
         score = float('-inf')
@@ -160,7 +159,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
-            new_world, new_score, new_age = NACE_Predict(Time, deepcopy(current_world), action, rules, customGoal)
+            new_world, new_score, new_age = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
                 best_actions = new_Planned_actions
