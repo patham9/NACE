@@ -36,7 +36,7 @@ rules = set([])
 negrules = set([])
 worldchange = set([])
 RuleEvidence = dict([])
-observed_world = [[[" " for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
@@ -169,16 +169,13 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 best_action_combination_for_revisit = new_Planned_actions
                 oldest_age = new_age
             if new_score == 1.0:
-                _, robot_cnt = World_GetRobotPosition(new_world)
-                if robot_cnt == 1:
-                    queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
+                queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 # EXTRACT NEW RULES FROM THE OBSERVATIONS
 def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
-    robot_position, _ = World_GetRobotPosition(newworld)
     changesets = [set([]), set([])]
     valuecount = dict([])
     for y in range(height):
@@ -190,9 +187,6 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
                 valuecount[val] += 1
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                   continue
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[0].add((y, x))
                 if valuecount[oldworld[BOARD][y][x]] == 1: #unique
@@ -219,9 +213,6 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
     (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                continue
             if (y,x) not in positionscores:
                 continue
             scores, highscore = positionscores[(y,x)]
@@ -252,9 +243,6 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
     #CRISP MATCH: REMOVE CONTRADICTING RULES FROM RULE SET
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                continue
             for rule in oldrules: #find rules which don't work, and remove them adding them to newnegrules
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
@@ -292,16 +280,11 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
 def _MatchHypotheses(oldworld, action, rules):
     positionscores = dict([])
     highesthighscore = 0.0
-    robot_position, robotcnt = World_GetRobotPosition(oldworld)
-    if not robot_position or robotcnt != 1: #OPTIONAL SPEEDUP HACK!
+    _, robotcnt = World_GetRobotPosition(oldworld)
+    if robotcnt != 1: #OPTIONAL SPEEDUP HACK!
         return (positionscores, 0.0)
     for y in range(height):
         for x in range(width):
-            if y < robot_position[0] - (VIEWDISTY - 1) or y > robot_position[0] + (VIEWDISTY - 1) or \
-               x < robot_position[1] - (VIEWDISTX - 1) or x > robot_position[1] + (VIEWDISTX - 1):
-                continue #DISABLES PREDICTION OUTSIDE OF VIEW RELATED TO PREDICTED POSITION OF ROBOT
-            if robot_position and (abs(robot_position[0]-y) > 1 or abs(robot_position[1]-x) > 1): #OPTIONAL SPEEDUP HACK!
-                continue
             scores = dict([])
             positionscores[(y,x)] = scores
             highscore = 0.0
