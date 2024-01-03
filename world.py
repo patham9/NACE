@@ -55,10 +55,10 @@ oooooooooooo
 """
 _world4 = """
 oooooooooooo
-o   o   f  o
+o  vo   f  o
 o          o
 o   oooooooo
-o x v      o
+o x        o
 o       u  o
 oooooooooooo
 """

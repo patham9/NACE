@@ -55,7 +55,7 @@ def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
         #in a deterministic setting this would have sufficed however
         #simply excluding rules does not work in non-deterministic ones
         #if rule in ruleset:
-        #    print("RULE REMOVAL: ", end=""); Prettyprint_rule(rule)
+        #    print("RULE REMOVAL: ", end=""); Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule)
         #    ruleset.remove(rule)
         #negruleset.add(rule)
     return RuleEvidence, ruleset, negruleset

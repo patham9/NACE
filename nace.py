@@ -104,7 +104,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if oldworld[BOARD][y][x] in FocusSet:
+            if oldworld[BOARD][y][x] in FocusSet and oldworld[BOARD][y][x] == 'x':
                 age = max(age, (Time - newworld[TIMES][y][x]))
             scores, highscore = positionscores[(y,x)]
             for rule in rules:
@@ -121,7 +121,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     return newworld, score, age
 
 # PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=2000, customGoal = None):
+def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
