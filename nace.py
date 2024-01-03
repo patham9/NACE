@@ -116,14 +116,14 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
     used_rules_amount = 0
-    (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, rules)
+    (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, rules)
     age = 0
     for y in range(height):
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
             if oldworld[BOARD][y][x] in FocusSet:
-                age = age + (Time - newworld[TIMES][y][x])
+                age = max(age, (Time - newworld[TIMES][y][x]))
             scores, highscore = positionscores[(y,x)]
             for rule in rules:
                 if _RuleApplicable(scores, highscore, highesthighscore, rule):
@@ -209,7 +209,7 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
                 RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
-    (positionscores, highesthighscore) = _MatchHypotheses(oldworld, action, newrules)
+    (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
             if (y,x) not in positionscores:
@@ -276,14 +276,23 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
                     RuleEvidence, newrules, newnegrules = Hypothesis_Contradicted(RuleEvidence, newrules, newnegrules, rule)
     return FocusSet, RuleEvidence, newrules, newnegrules
 
-def _MatchHypotheses(oldworld, action, rules):
+def _MatchHypotheses(FocusSet, oldworld, action, rules):
     positionscores = dict([])
     highesthighscore = 0.0
-    _, robotcnt = World_GetRobotPosition(oldworld)
-    if robotcnt != 1: #OPTIONAL SPEEDUP HACK!
-        return (positionscores, 0.0)
+    AttendPositions = set([])
     for y in range(height):
         for x in range(width):
+            if oldworld[BOARD][y][x] in FocusSet:
+                AttendPositions.add((y,x))
+                for rule in rules:
+                    (precondition, consequence) = rule
+                    action_score_and_preconditions = list(precondition)
+                    for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
+                        AttendPositions.add((y+y_rel, x+x_rel))
+    for y in range(height):
+        for x in range(width):
+            if (y,x) not in AttendPositions:
+                continue
             scores = dict([])
             positionscores[(y,x)] = scores
             highscore = 0.0
