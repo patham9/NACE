@@ -45,10 +45,11 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     if "debug" in sys.argv:
         debuginput = input()
     print("\033[1;1H\033[2J")
-    babble = random.random() > 1.0
+    exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+    explore_babble = random.random() > 0.9 if "DisableOpSymmetryAssumption" in sys.argv else 1.0 #since it might not know yet about all ops, exploring then can be limited
     plan = []
-    if airis_score >= 1.0 or babble or len(favoured_actions) == 0:
-        if not babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
+    if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
+        if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
             print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), oldest_age)
             action = favoured_actions_for_revisit[0]
             plan = favoured_actions_for_revisit
