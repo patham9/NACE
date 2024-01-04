@@ -31,6 +31,7 @@ else:
     print('Pass "debug" parameter for interactive debugging')
 from nace import *
 
+Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAssumption" in sys.argv)
 if __name__ == "__main__":
     for Time in range(300):
         start_time = time.time()

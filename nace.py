@@ -28,9 +28,6 @@ from hypothesis import *
 from world import *
 import sys
 
-if "NoMovementOpAssumptions" not in sys.argv: #if we want the system to exploit assumptions about space (the default)
-    Hypothesis_UseMovementOpAssumptions(left, right, up, down)
-
 FocusSet = dict([])
 rules = set([])
 negrules = set([])

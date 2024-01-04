@@ -25,10 +25,9 @@
 import sys
 from prettyprint import *
 
-left, right, up, down = (None, None, None, None)
-def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp):
-    global left, right, up, down
-    left, right, up, down = (leftOp, rightOp, upOp, downOp)
+def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag):
+    global left, right, up, down, DisableOpSymmetryAssumption
+    left, right, up, down, DisableOpSymmetryAssumption = (leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag)
 
 def Hypothesis_TruthValue(wpn):
     (wp, wn) = wpn
@@ -141,6 +140,8 @@ def _Variants(rule): #location symmetry (knowledge about World_Movement operatio
         if (action == up or action == down) and x != 0:
             return []
     rules = [rule]
+    if DisableOpSymmetryAssumption:
+        return rules
     if action != left and action != right and action != down and action != up: #not such an op where symmetry would apply
         return rules
     conditionlist2 = sorted([_ConditionRotate(x) for x in conditions])
