@@ -87,9 +87,10 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     World_Print(planworld)
     print("\033[0m")
     FocusSet, RuleEvidence, newrules, newnegrules = _Observe(FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+    usedRules = deepcopy(newrules)
     for rule in rulesExcluded: #add again so we won't loose them
         newrules.add(rule)
-    return FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
+    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
 
 # APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
 def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):

@@ -136,11 +136,6 @@ def _Variants(rule): #location symmetry (knowledge about World_Movement operatio
     action_values_precons = rule[0]
     conditions = action_values_precons[2:]
     action = action_values_precons[0]
-    for (y,x,v) in conditions: #unnecessary
-        if (action == left or action == right) and y != 0:
-            return []
-        if (action == up or action == down) and x != 0:
-            return []
     rules = [rule]
     if DisableOpSymmetryAssumption:
         return rules
