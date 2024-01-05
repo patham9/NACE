@@ -47,10 +47,9 @@ def Hypothesis_Choice(RuleEvidence, rule1, rule2):
     return rule2
 
 def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
-    for r in _Variants(rule):
-        RuleEvidence = _AddEvidence(RuleEvidence, r, False)
-        if "silent" not in sys.argv:
-            print("Neg. revised: ", end="");  Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule)
+    RuleEvidence = _AddEvidence(RuleEvidence, rule, False)
+    if "silent" not in sys.argv:
+        print("Neg. revised: ", end="");  Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule)
         #in a deterministic setting this would have sufficed however
         #simply excluding rules does not work in non-deterministic ones
         #if rule in ruleset:
@@ -61,7 +60,10 @@ def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
 
 def Hypothesis_Confirmed(RuleEvidence, ruleset, negruleset, rule): #try location symmetry
     variants = _Variants(rule)
-    for r in variants:
+    for i, r in enumerate(variants):
+        if i>0: #abduced hypotheses
+            if r in RuleEvidence: #this derived hypothesis already exists
+                continue
         RuleEvidence = _AddEvidence(RuleEvidence, r, True)
         if "silent" not in sys.argv:
             print("Pos. revised: ", end="");  Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, r)
