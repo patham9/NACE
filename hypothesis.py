@@ -48,7 +48,7 @@ def Hypothesis_Choice(RuleEvidence, rule1, rule2):
 
 def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
     for r in _Variants(rule):
-        RuleEvidence = _AddEvidence(RuleEvidence, rule, False)
+        RuleEvidence = _AddEvidence(RuleEvidence, r, False)
         if "silent" not in sys.argv:
             print("Neg. revised: ", end="");  Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule)
         #in a deterministic setting this would have sufficed however
@@ -61,14 +61,14 @@ def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
 
 def Hypothesis_Confirmed(RuleEvidence, ruleset, negruleset, rule): #try location symmetry
     variants = _Variants(rule)
-    for rule in variants:
-        RuleEvidence = _AddEvidence(RuleEvidence, rule, True)
+    for r in variants:
+        RuleEvidence = _AddEvidence(RuleEvidence, r, True)
         if "silent" not in sys.argv:
-            print("Pos. revised: ", end="");  Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule)
-        if rule not in negruleset:
-            if rule not in ruleset:
+            print("Pos. revised: ", end="");  Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, r)
+        if r not in negruleset:
+            if r not in ruleset:
                 #print("RULE ADDITION: ", end=""); Prettyprint_rule(rule)
-                ruleset.add(rule)
+                ruleset.add(r)
     return RuleEvidence, ruleset
 
 def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
