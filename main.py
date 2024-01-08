@@ -42,8 +42,7 @@ if __name__ == "__main__":
         if elapsed_time < 1.0:
             time.sleep(1.0 - elapsed_time)
         if "debug" in sys.argv and debuginput != "" and debuginput != "w" and debuginput != "a" and debuginput != "s" and debuginput != "d" and debuginput != "l":
-            saveworld = deepcopy(world)
-            predworld = deepcopy(world)
+            predworld = deepcopy(observed_world)
             score = 0.0
             while True:
                 print("\033[1;1H\033[2J")
@@ -54,7 +53,7 @@ if __name__ == "__main__":
                 if d == 'q':
                     break
                 if d == 'r':
-                    predworld = deepcopy(world)
+                    predworld = deepcopy(observed_world)
                 if d == 'a':
                     predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, usedRules)
                 if d == 'd':

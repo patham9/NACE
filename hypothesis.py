@@ -58,8 +58,8 @@ def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
         #negruleset.add(rule)
     return RuleEvidence, ruleset, negruleset
 
-def Hypothesis_Confirmed(RuleEvidence, ruleset, negruleset, rule): #try location symmetry
-    variants = _Variants(rule)
+def Hypothesis_Confirmed(FocusSet, RuleEvidence, ruleset, negruleset, rule): #try location symmetry
+    variants = _Variants(FocusSet, rule)
     for i, r in enumerate(variants):
         if i>0: #abduced hypotheses
             if r in RuleEvidence: #this derived hypothesis already exists
@@ -132,16 +132,32 @@ def _ConditionRotate(cond):
     if x == 0 and y == 0:
         return (0, 0, v)
 
-def _Variants(rule): #location symmetry (knowledge about World_Movement operations for faster learning)
+def _Variants(FocusSet, rule): #location symmetry (knowledge about World_Movement operations for faster learning)
     action_values_precons = rule[0]
     conditions = action_values_precons[2:]
     action = action_values_precons[0]
-    for (y,x,v) in conditions: #unnecessary
+    max_focus = None
+    max_focus_val = False
+    if len(FocusSet) > 0:
+        max_focus = max(FocusSet, key=lambda k: FocusSet[k])
+    if max_focus is not None:
+        for (x,y,val) in action_values_precons[2:]:
+            if val == max_focus or rule[1][2] == max_focus:
+                max_focus_val = True
+    for (y,x,v) in conditions:
         if (action == left or action == right) and y != 0:
             return []
         if (action == up or action == down) and x != 0:
             return []
     rules = [rule]
+    action2 = _OpRotate(action)
+    action3 = _OpRotate(action2)
+    action4 = _OpRotate(action3)
+    if not max_focus_val:
+        rules.append((tuple([left, action_values_precons[1]] + list(conditions)), rule[1]))
+        rules.append((tuple([right, action_values_precons[1]] + list(conditions)), rule[1]))
+        rules.append((tuple([up, action_values_precons[1]] + list(conditions)), rule[1]))
+        rules.append((tuple([down, action_values_precons[1]] + list(conditions)), rule[1]))
     if DisableOpSymmetryAssumption:
         return rules
     if action != left and action != right and action != down and action != up: #not such an op where symmetry would apply
@@ -149,12 +165,10 @@ def _Variants(rule): #location symmetry (knowledge about World_Movement operatio
     conditionlist2 = sorted([_ConditionRotate(x) for x in conditions])
     conditionlist3 = sorted([_ConditionRotate(x) for x in conditionlist2])
     conditionlist4 = sorted([_ConditionRotate(x) for x in conditionlist3])
-    action2 = _OpRotate(action)
-    action3 = _OpRotate(action2)
-    action4 = _OpRotate(action3)
-    rules.append((tuple([action2, action_values_precons[1]] + conditionlist2), rule[1]))
-    rules.append((tuple([action3, action_values_precons[1]] + conditionlist3), rule[1]))
-    rules.append((tuple([action4, action_values_precons[1]] + conditionlist4), rule[1]))
+    if max_focus_val:
+        rules.append((tuple([action2, action_values_precons[1]] + conditionlist2), rule[1]))
+        rules.append((tuple([action3, action_values_precons[1]] + conditionlist3), rule[1]))
+        rules.append((tuple([action4, action_values_precons[1]] + conditionlist4), rule[1]))
     return rules
 
 def _AddEvidence(RuleEvidence, rule, positive, w_max = 20):

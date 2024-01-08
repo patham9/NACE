@@ -86,7 +86,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
     World_Print(planworld)
     print("\033[0m")
-    FocusSet, RuleEvidence, newrules, newnegrules = _Observe(FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+    FocusSet, RuleEvidence, newrules, newnegrules = _Observe(Time, FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
     usedRules = deepcopy(newrules)
     for rule in rulesExcluded: #add again so we won't loose them
         newrules.add(rule)
@@ -137,7 +137,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
         current_world, planned_actions, depth = queue.popleft()  # Dequeue from the front
         if depth > max_depth:  # If maximum depth is reached, stop searching
             continue
-        world_BOARD_VALUES = World_AsTuple([current_world[BOARD]]) #, current_world[VALUES][1:]]) #-- 1!!!
+        world_BOARD_VALUES = World_AsTuple([current_world[BOARD], current_world[VALUES][1:]])
         if world_BOARD_VALUES in encountered and depth >= encountered[world_BOARD_VALUES]:
             continue
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
@@ -155,8 +155,11 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
+def present(Time, world, y, x):
+    return Time - world[TIMES][y][x] == 0
+
 # EXTRACT NEW RULES FROM THE OBSERVATIONS
-def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
+def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
     changesets = [set([]), set([])]
@@ -170,6 +173,8 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
                 valuecount[val] += 1
     for y in range(height):
         for x in range(width):
+            if not present(Time, newworld, y, x):
+                continue
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[0].add((y, x))
                 val = oldworld[BOARD][y][x]
@@ -186,6 +191,8 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
             preconditions = []
             for (y2_abs, x2_abs) in changeset:
                 (y2_rel, x2_rel) = (y2_abs-y1_abs, x2_abs-x1_abs)
+                if abs(y2_rel) + abs(x2_rel) > 1:
+                    continue
                 condition = (y2_rel, x2_rel, oldworld[BOARD][y2_abs][x2_abs])
                 if Hypothesis_ValidCondition(condition):
                     preconditions.append(condition)
@@ -194,13 +201,15 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
                 action_values_precondition.append(pr)
             rule = (tuple(action_values_precondition), (0, 0, newworld[BOARD][y1_abs][x1_abs], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))))
             if len(preconditions) == 2:
-                RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule)
+                RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
     (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
             if (y,x) not in positionscores:
+                continue
+            if not present(Time, newworld, y, x):
                 continue
             scores, highscore = positionscores[(y,x)]
             for rule in oldrules:
@@ -225,11 +234,13 @@ def _Observe(FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldne
                         rule_new = (tuple([action_score_and_preconditions[0], action_score_and_preconditions[1]]
                                    + corrected_preconditions), tuple([rule[1][0], rule[1][1], newworld[BOARD][y][x], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))]))
                         #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
-                        RuleEvidence, newrules = Hypothesis_Confirmed(RuleEvidence, newrules, newnegrules, rule_new)
+                        RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule_new)
                         break
     #CRISP MATCH: REMOVE CONTRADICTING RULES FROM RULE SET
     for y in range(height):
         for x in range(width):
+            if not present(Time, newworld, y, x):
+                continue
             for rule in oldrules: #find rules which don't work, and remove them adding them to newnegrules
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
