@@ -89,6 +89,7 @@ if "5" in _challenge:
 
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
+VIEWDISTX_R, VIEWDISTY_R = (VIEWDISTX*2+1, VIEWDISTY*2+1)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
@@ -195,7 +196,7 @@ def World_CupIsOnTable(world):
     for x in range(width):
         for y in range(height-1):
             if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
-                return True
+                return False
     return False
 
 def World_Print(world):
@@ -203,8 +204,8 @@ def World_Print(world):
         print("".join(line))
 
 def World_FieldOfView(Time, loc, observed_world, world):
-    for y in range(VIEWDISTY*2+1):
-        for x in range(VIEWDISTX*2+1):
+    for y in range(VIEWDISTY_R):
+        for x in range(VIEWDISTX_R):
             Y = loc[1]+y-VIEWDISTY
             X = loc[0]+x-VIEWDISTX
             if Y >= 0 and Y < height and \

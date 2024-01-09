@@ -35,7 +35,7 @@ Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAss
 if __name__ == "__main__":
     for Time in range(300):
         start_time = time.time()
-        usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
+        usedRules, Snapshots, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, Snapshots, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
         end_time = time.time()
         print("VALUES", world[VALUES], "FOCUS SET", FocusSet)
         elapsed_time = end_time - start_time
@@ -55,13 +55,13 @@ if __name__ == "__main__":
                 if d == 'r':
                     predworld = deepcopy(observed_world)
                 if d == 'a':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, usedRules)
+                    predworld, score, age, certainty = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(predworld), left, usedRules)
                 if d == 'd':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), right, usedRules)
+                    predworld, score, age, certainty = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(predworld), right, usedRules)
                 if d == 'w':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, usedRules)
+                    predworld, score, age, certainty = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(predworld), up, usedRules)
                 if d == 's':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, usedRules)
+                    predworld, score, age, certainty = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(predworld), down, usedRules)
                 if d == 'l':
                     for x in rules:
                         Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)

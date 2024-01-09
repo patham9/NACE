@@ -28,6 +28,7 @@ from hypothesis import *
 from world import *
 import sys
 
+Snapshots = dict([])
 FocusSet = dict([])
 rules = set([])
 negrules = set([])
@@ -35,18 +36,18 @@ worldchange = set([])
 RuleEvidence = dict([])
 observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
-def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
+def NACE_Cycle(Time, Snapshots, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
-    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
+    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, Snapshots, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     debuginput = ""
     if "debug" in sys.argv:
         debuginput = input()
     print("\033[1;1H\033[2J")
-    exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
-    explore_babble = random.random() > (0.9 if "DisableOpSymmetryAssumption" in sys.argv else 1.0) #since it might not know yet about all ops, exploring then can be limited
+    exploit_babble = random.random() > 0.8 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+    explore_babble = random.random() > (0.9 if "DisableOpSymmetryAssumption" in sys.argv else 0.8) #since it might not know yet about all ops, exploring then can be limited
     plan = []
     if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
         if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
@@ -75,7 +76,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
-    predicted_world, _, __ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
+    predicted_world, _, __, ___ = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(observed_world_old), action, rules)
     print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
     World_Print(newworld)
     print("\033[0mMental map:\033[97;44m")
@@ -83,17 +84,17 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[0mPredicted end:\033[97;41m")
     planworld = deepcopy(predicted_world)
     for i in range(1, len(plan)):
-        planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
+        planworld, _, __, ____ = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(planworld), plan[i], rules)
     World_Print(planworld)
     print("\033[0m")
-    FocusSet, RuleEvidence, newrules, newnegrules = _Observe(Time, FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+    Snapshots, FocusSet, RuleEvidence, newrules, newnegrules = _Observe(Time, Snapshots, FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
     usedRules = deepcopy(newrules)
     for rule in rulesExcluded: #add again so we won't loose them
         newrules.add(rule)
-    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
+    return usedRules, Snapshots, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
 
 # APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
-def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
+def NACE_Predict(Time, Snapshots, FocusSet, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
     used_rules_amount = 0
@@ -116,14 +117,33 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
                     newworld[BOARD][y][x] = rule[1][2]
                     used_rules_sumscore += scores.get(rule, 0.0)
                     used_rules_amount += 1
+    snapshot = extract_snapshot(Time, newworld)
+    best_snapmatch = 0.0
+    best_snapscore = 0.0
+    for snapshot2 in Snapshots:
+        if len(snapshot) != len(snapshot2):
+            #print("DIMENSION ISSUE", len(snapshot), len(snapshot2)); exit(0) TODO
+            continue
+        #print("DIMENSION MATCHES", len(snapshot))
+        snapmatch = 0
+        for i in range(len(snapshot)):
+            if snapshot[i] == snapshot2[i]:
+                snapmatch += 1
+        snapmatch /= len(snapshot)
+        if snapmatch > best_snapmatch:
+            best_snapmatch = snapmatch
+            best_snapscore = Snapshots[snapshot2][0] #first value is score"""
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
     #but if the predicted world has higher value, then set prediction score to the best it can be
-    if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
+    if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)) or best_snapmatch == 1.0 and best_snapscore > 0:
         score = float('-inf')
-    return newworld, score, age
+    certainty = score == 1.0
+    if score == 1.0:
+        score = best_snapmatch #use this for curiosity
+    return newworld, score, age, certainty
 
 # PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
+def _Plan(Time, Snapshots, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -143,7 +163,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
-            new_world, new_score, new_age = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
+            new_world, new_score, new_age, new_certainty = NACE_Predict(Time, Snapshots, FocusSet, deepcopy(current_world), action, rules, customGoal)
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
                 best_actions = new_Planned_actions
@@ -151,15 +171,35 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
             if new_age > oldest_age or (new_age == oldest_age and len(new_Planned_actions) < len(best_action_combination_for_revisit)):
                 best_action_combination_for_revisit = new_Planned_actions
                 oldest_age = new_age
-            if new_score == 1.0:
+            if new_certainty == 1.0:
                 queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 def present(Time, world, y, x):
     return Time - world[TIMES][y][x] == 0
 
+def extract_snapshot(Time, newworld):
+    snapshot = []
+    ycnt = 0
+    for y in range(height):
+        xcnt = 0
+        for x in range(width):
+            if present(Time, newworld, y, x):
+                xcnt += 1
+                snapshot.append(newworld[BOARD][y][x])
+        while xcnt < VIEWDISTX_R: #prop up as we are at screen border
+            snapshot.append('.')
+            xcnt += 1
+        if xcnt > 0:
+            ycnt += 1
+    while ycnt < VIEWDISTY_R:
+        for k in len(VIEWDISTX_R):
+            snapshot.append('.')
+        ycnt += 1
+    return tuple(snapshot)
+
 # EXTRACT NEW RULES FROM THE OBSERVATIONS
-def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
+def _Observe(Time, Snapshots, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
     changesets = [set([]), set([])]
@@ -185,6 +225,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                         FocusSet[val] += 1
             if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[1].add((y, x))
+    #create local view snapshot
+    snapshot = extract_snapshot(Time, newworld)
+    Snapshots[snapshot] = tuple(newworld[VALUES])
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
             action_values_precondition = [action, oldworld[VALUES][1:]]
@@ -273,7 +316,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                     continue
                 if rule[1][2] != newworld[BOARD][y][x]:
                     RuleEvidence, newrules, newnegrules = Hypothesis_Contradicted(RuleEvidence, newrules, newnegrules, rule)
-    return FocusSet, RuleEvidence, newrules, newnegrules
+    return Snapshots, FocusSet, RuleEvidence, newrules, newnegrules
 
 def _MatchHypotheses(FocusSet, oldworld, action, rules):
     positionscores = dict([])
