@@ -155,7 +155,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
-def present(Time, world, y, x):
+def _IsPresentlyObserved(Time, world, y, x):
     return Time - world[TIMES][y][x] == 0
 
 # EXTRACT NEW RULES FROM THE OBSERVATIONS
@@ -173,7 +173,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 valuecount[val] += 1
     for y in range(height):
         for x in range(width):
-            if not present(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x):
                 continue
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[0].add((y, x))
@@ -209,7 +209,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if not present(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x):
                 continue
             scores, highscore = positionscores[(y,x)]
             for rule in oldrules:
@@ -236,10 +236,10 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                         #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
                         RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule_new)
                         break
-    #CRISP MATCH: REMOVE CONTRADICTING RULES FROM RULE SET
+    #CRISP MATCH: ADD NEG. EVIDENCE FOR RULES WHICH PREDICTION CONTRADICTS OBSERVATON (WAS: REMOVE CONTRADICTING RULES FROM RULE SET)
     for y in range(height):
         for x in range(width):
-            if not present(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x):
                 continue
             for rule in oldrules: #find rules which don't work, and remove them adding them to newnegrules
                 (precondition, consequence) = rule
