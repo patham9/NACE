@@ -191,8 +191,6 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             preconditions = []
             for (y2_abs, x2_abs) in changeset:
                 (y2_rel, x2_rel) = (y2_abs-y1_abs, x2_abs-x1_abs)
-                if abs(y2_rel) + abs(x2_rel) > 1:
-                    continue
                 condition = (y2_rel, x2_rel, oldworld[BOARD][y2_abs][x2_abs])
                 if Hypothesis_ValidCondition(condition):
                     preconditions.append(condition)
