@@ -185,6 +185,16 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                         FocusSet[val] += 1
             if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[1].add((y, x))
+    if len(changesets[0]) == 1 and newworld[VALUES] != oldworld[VALUES]: #if we moved to an element and a value changed (TODO, egg example)
+        (y,x) = list(changesets[0])[0]
+        if action == right and x>0 and newworld[BOARD][y][x-1] in FocusSet and newworld[BOARD][y][x-1] == oldworld[BOARD][y][x-1]:
+            changesets[0].add((y,x-1))
+        if action == left and x<width-1 and newworld[BOARD][y][x+1] in FocusSet and newworld[BOARD][y][x+1] == oldworld[BOARD][y][x+1]:
+            changesets[0].add((y,x+1))
+        if action == down and y>0 and newworld[BOARD][y-1][x] in FocusSet and newworld[BOARD][y-1][x] == oldworld[BOARD][y-1][x]:
+            changesets[0].add((y-1,x))
+        if action == up and y<height-1 and newworld[BOARD][y+1][x] in FocusSet and newworld[BOARD][y+1][x] == oldworld[BOARD][y+1][x]:
+            changesets[0].add((y+1,x))
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
             action_values_precondition = [action, oldworld[VALUES][1:]]

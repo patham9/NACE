@@ -71,8 +71,17 @@ oox
 oo          
 oooooooooooo
 """
+_world6 = """
+oooooooooooo
+o O  4  O  o
+o          o
+o          o
+o x  O  O  o
+o          o
+oooooooooooo
+"""
 
-print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), input "1", "2", "3", "4", or "5":')
+print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), input "1", "2", "3", "4", "5", or "6":')
 _challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
 _slippery = "y" in input()
@@ -86,10 +95,12 @@ if "4" in _challenge:
 if "5" in _challenge:
     world = _world5
     _isWorld5 = True
+if "6" in _challenge:
+    world = _world6
 
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c')
+WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c', 'O', '_', '4')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
@@ -189,6 +200,16 @@ def World_Move(loc, world, action):
         world[BOARD][loc[1]][loc[0]] = FREE
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
+    #EGG
+    if world[BOARD][newloc[1]][newloc[0]] == EGG and world[VALUES][1] == 0: #can only carry 1
+        world[BOARD][newloc[1]][newloc[0]] = EGGPLACE
+        world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] + 1] + list(world[VALUES][2:]))
+    elif world[BOARD][newloc[1]][newloc[0]] == EGGPLACE and world[VALUES][1] > 0:
+        world[BOARD][newloc[1]][newloc[0]] = EGG
+        world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] - 1] + list(world[VALUES][2:]))
+    elif world[BOARD][newloc[1]][newloc[0]] == CHICKEN and world[VALUES][1] > 0:
+        world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] - 1] + list(world[VALUES][2:]))
+        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) # 1 food
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
 
 def World_CupIsOnTable(world):
