@@ -77,13 +77,13 @@ def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
     (y, x, v) = cond
     if y == 0 and x == 0: #self
         return True
-    if y == 0 and x == -1: #left
+    if y == 0 and (x == -1 or x == -2): #left
         return True
-    if y == -1 and x == 0: #up
+    if (y == -1 or y == -2) and x == 0: #up
         return True
-    if y == 0 and x == 1:  #right
+    if y == 0 and (x == 1 or x == 2):  #right
         return True
-    if y == 1 and x == 0:  #down
+    if (y == 1 or y == 2) and x == 0:  #down
         return True
     return False
 
@@ -123,12 +123,20 @@ def _ConditionRotate(cond):
     (y, x, v) = cond
     if y == 0 and x == -1: #left
         return (-1, 0, v)  #up
+    if y == 0 and x == -2: #left
+        return (-2, 0, v)  #up
     if y == -1 and x == 0: #up
         return (0, 1, v)   #right
+    if y == -2 and x == 0: #up
+        return (0, 2, v)   #right
     if y == 0 and x == 1:  #right
         return (1, 0, v)   #down
+    if y == 0 and x == 2:  #right
+        return (2, 0, v)   #down
     if y == 1 and x == 0:  #down
         return (0, -1, v)  #left
+    if y == 2 and x == 0:  #down
+        return (0, -2, v)  #left
     if x == 0 and y == 0:
         return (0, 0, v)
 
