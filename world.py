@@ -80,8 +80,17 @@ o x  O  O  o
 o          o
 oooooooooooo
 """
+_world7 = """
+oooooooooooo
+o          o
+o  0 0     o
+o       T  o
+o x  0     o
+o          o
+oooooooooooo
+"""
 
-print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), input "1", "2", "3", "4", "5", or "6":')
+print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), input "1", "2", "3", "4", "5", "6", or "7":')
 _challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
 _slippery = "y" in input()
@@ -97,10 +106,12 @@ if "5" in _challenge:
     _isWorld5 = True
 if "6" in _challenge:
     world = _world6
+if "7" in _challenge:
+    world = _world7
 
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c', 'O', '_', '4')
+WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
@@ -154,6 +165,14 @@ def World_Move(loc, world, action):
                     xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
                     if oldworld[BOARD][yr][xr] == FREE:
                         world[BOARD][yr][xr] = CUP
+                        break
+            if oldworld[BOARD][y][x] == SBALL and (oldworld[BOARD][y+1][x] == TABLE or oldworld[BOARD][y-1][x] == TABLE or oldworld[BOARD][y][x-1] == TABLE or oldworld[BOARD][y][x+1] == TABLE):
+                world[BOARD][y][x] = FREE
+                world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
+                while True:
+                    xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
+                    if oldworld[BOARD][yr][xr] == FREE and xr > 1 and yr > 1 and xr < width-2 and yr < height-2:
+                        world[BOARD][yr][xr] = SBALL
                         break
     #CUP
     if world[BOARD][newloc[1]][newloc[0]] == CUP: #an object the system could shift around
@@ -210,6 +229,15 @@ def World_Move(loc, world, action):
     elif world[BOARD][newloc[1]][newloc[0]] == CHICKEN and world[VALUES][1] > 0:
         world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] - 1] + list(world[VALUES][2:]))
         world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) # 1 food
+    #Football
+    crateloc = action(newloc)
+    if crateloc[1] < height and crateloc[0] < width and crateloc[1] >= 0 and crateloc[0] >= 0:
+        if world[BOARD][crateloc[1]][crateloc[0]] == FREE:
+            if world[BOARD][newloc[1]][newloc[0]] == SBALL:
+                world[BOARD][loc[1]][loc[0]] = FREE
+                loc = newloc
+                world[BOARD][loc[1]][loc[0]] = ROBOT
+                world[BOARD][crateloc[1]][crateloc[0]] = SBALL
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
 
 def World_CupIsOnTable(world):

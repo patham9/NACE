@@ -108,14 +108,14 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
                 continue
             if max_focus and oldworld[BOARD][y][x] in FocusSet and oldworld[BOARD][y][x] == max_focus:
                 age = max(age, (Time - newworld[TIMES][y][x]))
-            scores, highscore = positionscores[(y,x)]
-            for rule in rules:
-                if _RuleApplicable(scores, highscore, highesthighscore, rule):
-                    if highscore == 1.0:
-                        newworld[VALUES] = rule[1][3]
-                    newworld[BOARD][y][x] = rule[1][2]
-                    used_rules_sumscore += scores.get(rule, 0.0)
-                    used_rules_amount += 1
+            scores, highscore, rule = positionscores[(y,x)]
+            #for rule in rules:
+            if _RuleApplicable(scores, highscore, highesthighscore, rule):
+                if highscore == 1.0:
+                    newworld[VALUES] = rule[1][3]
+                newworld[BOARD][y][x] = rule[1][2]
+                used_rules_sumscore += scores.get(rule, 0.0)
+                used_rules_amount += 1
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
@@ -216,7 +216,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for pr in preconditions:
                 action_values_precondition.append(pr)
             rule = (tuple(action_values_precondition), (0, 0, newworld[BOARD][y1_abs][x1_abs], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))))
-            if len(preconditions) == 2:
+            if len(preconditions) >= 2:
                 RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #build a more specialized rule which has the precondition and conclusion corrected!
@@ -227,31 +227,31 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 continue
             if not _IsPresentlyObserved(Time, newworld, y, x):
                 continue
-            scores, highscore = positionscores[(y,x)]
-            for rule in oldrules:
-                if _RuleApplicable(scores, highscore, highesthighscore, rule):
-                    if rule[1][2] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] == newworld[BOARD][y][x] and rule in scores and scores[rule] == highesthighscore:
-                        (precondition, consequence) = rule
-                        action_score_and_preconditions = list(precondition)
-                        values = action_score_and_preconditions[1]
-                        corrected_preconditions = []
-                        CONTINUE = False
-                        has_focus_set_condition = False #TODO!!!
-                        for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
-                            if y+y_rel >= height or y+y_rel < 0 or x+x_rel >= width or x+x_rel < 0:
-                                CONTINUE = True
-                                break
-                            if oldworld[BOARD][y+y_rel][x+x_rel] in FocusSet:
-                                has_focus_set_condition = True
-                            corrected_preconditions.append((y_rel, x_rel, oldworld[BOARD][y+y_rel][x+x_rel]))
-                        corrected_preconditions = sorted(corrected_preconditions)
-                        if CONTINUE or not has_focus_set_condition:
-                            continue
-                        rule_new = (tuple([action_score_and_preconditions[0], action_score_and_preconditions[1]]
-                                   + corrected_preconditions), tuple([rule[1][0], rule[1][1], newworld[BOARD][y][x], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))]))
-                        #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
-                        RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule_new)
-                        break
+            scores, highscore, rule = positionscores[(y,x)]
+            #for rule in oldrules:
+            if _RuleApplicable(scores, highscore, highesthighscore, rule):
+                if rule[1][2] != newworld[BOARD][y][x] and rule in scores and scores[rule] == highesthighscore:
+                    (precondition, consequence) = rule
+                    action_score_and_preconditions = list(precondition)
+                    values = action_score_and_preconditions[1]
+                    corrected_preconditions = []
+                    CONTINUE = False
+                    has_focus_set_condition = False #TODO!!!
+                    for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
+                        if y+y_rel >= height or y+y_rel < 0 or x+x_rel >= width or x+x_rel < 0:
+                            CONTINUE = True
+                            break
+                        if oldworld[BOARD][y+y_rel][x+x_rel] in FocusSet:
+                            has_focus_set_condition = True
+                        corrected_preconditions.append((y_rel, x_rel, oldworld[BOARD][y+y_rel][x+x_rel]))
+                    corrected_preconditions = sorted(corrected_preconditions)
+                    if CONTINUE or not has_focus_set_condition:
+                        continue
+                    rule_new = (tuple([action_score_and_preconditions[0], action_score_and_preconditions[1]]
+                               + corrected_preconditions), tuple([rule[1][0], rule[1][1], newworld[BOARD][y][x], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))]))
+                    #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
+                    RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule_new)
+                    break
     #CRISP MATCH: ADD NEG. EVIDENCE FOR RULES WHICH PREDICTION CONTRADICTS OBSERVATON (WAS: REMOVE CONTRADICTING RULES FROM RULE SET)
     for y in range(height):
         for x in range(width):
@@ -311,6 +311,7 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
             scores = dict([])
             positionscores[(y,x)] = scores
             highscore = 0.0
+            highscorerule = None
             for rule in rules:
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
@@ -334,9 +335,10 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                 if CONTINUE:
                     continue
                 scores[rule] /= (len(precondition)-2)
-                if scores[rule] > 0.0 and scores[rule] > highscore:
+                if scores[rule] > 0.0 and scores[rule] > highscore or (scores[rule] == highscore and highscorerule is not None and len(rule[0]) > len(highscorerule[0])):
                     highscore = scores.get(rule, 0.0)
-            positionscores[(y,x)] = (scores, highscore)
+                    highscorerule = rule
+            positionscores[(y,x)] = (scores, highscore, highscorerule)
             if highscore > highesthighscore:
                 highesthighscore = highscore
     return (positionscores, highesthighscore)
