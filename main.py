@@ -31,7 +31,9 @@ else:
     print('Pass "debug" parameter for interactive debugging')
 from nace import *
 
+#Configure hypotheses to use euclidean space properties if desired
 Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAssumption" in sys.argv)
+#Run the simulation in a loop for up to k steps:
 if __name__ == "__main__":
     for Time in range(300):
         start_time = time.time()
