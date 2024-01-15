@@ -46,10 +46,13 @@ if __name__ == "__main__":
         if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p"]:
             predworld = deepcopy(observed_world)
             score = 0.0
+            values = []
             while True:
                 print("\033[1;1H\033[2J")
+                print("\033[0mImagined map:\033[97;43m")
                 World_Print(predworld)
-                print("score:", score)
+                print("\033[0m")
+                print("score:", -score, "values", values)
                 d = input()
                 score = 0.0
                 if d == 'q':
@@ -57,13 +60,13 @@ if __name__ == "__main__":
                 if d == 'r':
                     predworld = deepcopy(observed_world)
                 if d == 'a':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, usedRules)
+                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, usedRules)
                 if d == 'd':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), right, usedRules)
+                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), right, usedRules)
                 if d == 'w':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, usedRules)
+                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, usedRules)
                 if d == 's':
-                    predworld, score, age = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, usedRules)
+                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, usedRules)
                 if d == 'l':
                     for x in rules:
                         Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
