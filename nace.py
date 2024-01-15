@@ -56,14 +56,14 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         plan = []
         if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
-                print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), oldest_age)
+                print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), "age:", oldest_age)
                 action = favoured_actions_for_revisit[0]
                 plan = favoured_actions_for_revisit
             else:
-                print("BABBLE", airis_score)
+                print("BABBLE", "score:", airis_score)
                 action = random.choice(actions) #motorbabbling
         else:
-            print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), airis_score)#, rules)
+            print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), "score:", -airis_score)#, rules)
             action = favoured_actions[0]
             plan = favoured_actions
     else:
@@ -84,7 +84,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
-    predicted_world, _, __ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
+    predicted_world, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
     if "manual" not in sys.argv:
         print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
         World_Print(newworld)
@@ -96,7 +96,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         print("\033[0mPredicted end:\033[97;41m")
         planworld = deepcopy(predicted_world)
         for i in range(1, len(plan)):
-            planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
+            planworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
             if show_plansteps:
                 World_Print(planworld)
         if not show_plansteps:
@@ -139,7 +139,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
         score = float('-inf')
-    return newworld, score, age
+    return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
 def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
@@ -162,7 +162,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
-            new_world, new_score, new_age = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
+            new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
                 best_actions = new_Planned_actions
