@@ -28,6 +28,7 @@ from hypothesis import *
 from world import *
 import sys
 
+#Initializing the memory of the AI
 FocusSet = dict([])
 rules = set([])
 negrules = set([])
@@ -35,31 +36,38 @@ worldchange = set([])
 RuleEvidence = dict([])
 observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
+#One observe-learn-plan-action cycle of the AI system
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
-    favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
+    if "manual" not in sys.argv:
+        favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
+    else:
+        observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
     debuginput = ""
-    if "debug" in sys.argv:
+    if "debug" in sys.argv or "manual" in sys.argv:
         debuginput = input()
     print("\033[1;1H\033[2J")
-    exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
-    explore_babble = random.random() > (0.9 if "DisableOpSymmetryAssumption" in sys.argv else 1.0) #since it might not know yet about all ops, exploring then can be limited
-    plan = []
-    if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
-        if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
-            print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), oldest_age)
-            action = favoured_actions_for_revisit[0]
-            plan = favoured_actions_for_revisit
+    if "manual" not in sys.argv:
+        exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+        explore_babble = random.random() > (0.9 if "DisableOpSymmetryAssumption" in sys.argv else 1.0) #since it might not know yet about all ops, exploring then can be limited
+        plan = []
+        if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
+            if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
+                print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), oldest_age)
+                action = favoured_actions_for_revisit[0]
+                plan = favoured_actions_for_revisit
+            else:
+                print("BABBLE", airis_score)
+                action = random.choice(actions) #motorbabbling
         else:
-            print("BABBLE", airis_score)
-            action = random.choice(actions) #motorbabbling
+            print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), airis_score)#, rules)
+            action = favoured_actions[0]
+            plan = favoured_actions
     else:
-        print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), airis_score)#, rules)
-        action = favoured_actions[0]
-        plan = favoured_actions
+        action = up
     if debuginput == "w":
         action = up
     if debuginput == "s":
@@ -72,27 +80,38 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         for x in rules:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
         input()
+    show_plansteps = debuginput == 'p'
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
     predicted_world, _, __ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
-    print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
-    World_Print(newworld)
-    print("\033[0mMental map:\033[97;44m")
+    if "manual" not in sys.argv:
+        print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
+        World_Print(newworld)
+        print("\033[0mMental map:\033[97;44m")
+    else:
+        print("\033[0mObserved map:\033[97;45m")
     World_Print(observed_world)
-    print("\033[0mPredicted end:\033[97;41m")
-    planworld = deepcopy(predicted_world)
-    for i in range(1, len(plan)):
-        planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
-    World_Print(planworld)
+    if "manual" not in sys.argv:
+        print("\033[0mPredicted end:\033[97;41m")
+        planworld = deepcopy(predicted_world)
+        for i in range(1, len(plan)):
+            planworld, _, __ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
+            if show_plansteps:
+                World_Print(planworld)
+        if not show_plansteps:
+            World_Print(planworld)
     print("\033[0m")
-    FocusSet, RuleEvidence, newrules, newnegrules = _Observe(Time, FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
-    usedRules = deepcopy(newrules)
-    for rule in rulesExcluded: #add again so we won't loose them
-        newrules.add(rule)
+    if "manual" not in sys.argv:
+        FocusSet, RuleEvidence, newrules, newnegrules = _Observe(Time, FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+        usedRules = deepcopy(newrules)
+        for rule in rulesExcluded: #add again so we won't loose them
+            newrules.add(rule)
+    else:
+        usedRules = newrules = newnegrules = rules
     return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
 
-# APPLY MOVE TO THE WORLD MODEL WHEREBY WE USE THE EXISTING RULES TO DECIDE HOW A GRID ELEMENT CHANGES
+# Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely
 def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     newworld = deepcopy(oldworld)
     used_rules_sumscore = 0.0
@@ -122,7 +141,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
         score = float('-inf')
     return newworld, score, age
 
-# PLAN FORWARD SEARCHING FOR SITUATIONS OF HIGHEST UNCERTAINTY (max depth & max queue size obeying breadth first search)
+# Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
 def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
@@ -155,10 +174,11 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
+#Whether the grid cell has been observed now (not all have been, due to partial observability)
 def _IsPresentlyObserved(Time, world, y, x):
     return Time - world[TIMES][y][x] == 0
 
-# EXTRACT NEW RULES FROM THE OBSERVATIONS
+#Extract new rules from the observations by looking only for observed changes and prediction-observation mismatches
 def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
@@ -195,6 +215,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             changesets[0].add((y-1,x))
         if action == up and y<height-1 and newworld[BOARD][y+1][x] in FocusSet and newworld[BOARD][y+1][x] == oldworld[BOARD][y+1][x]:
             changesets[0].add((y+1,x))
+    #Build rules based on changes and prediction-observation mismatches
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
             action_values_precondition = [action, oldworld[VALUES][1:]]
@@ -219,7 +240,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             if len(preconditions) >= 2:
                 RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
-    #build a more specialized rule which has the precondition and conclusion corrected!
+    #if rule conditions are only partly met or the predicted outcome is different than observed, build a specialized rule which has the precondition and conclusion corrected!
     (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
@@ -252,12 +273,12 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                     #print("RULE CORRECTION ", y, x, loc, worldchange); Prettyprint_rule(rule); Prettyprint_rule(rule_new)
                     RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule_new)
                     break
-    #CRISP MATCH: ADD NEG. EVIDENCE FOR RULES WHICH PREDICTION CONTRADICTS OBSERVATON (WAS: REMOVE CONTRADICTING RULES FROM RULE SET)
+    #Crisp match: Add negative evidence for rules which prediction contradicts observation (in a classical AIRIS implementation restricted to deterministic worlds: this part would remove contradicting rules from the rule set and would ensure they can't be re-induced)
     for y in range(height):
         for x in range(width):
             if not _IsPresentlyObserved(Time, newworld, y, x):
                 continue
-            for rule in oldrules: #find rules which don't work, and remove them adding them to newnegrules
+            for rule in oldrules: #find rules which don't work, and add negative evidence for them (classical AIRIS: remove them and add them to newnegrules)
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
                 values = action_score_and_preconditions[1]
@@ -291,6 +312,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                     RuleEvidence, newrules, newnegrules = Hypothesis_Contradicted(RuleEvidence, newrules, newnegrules, rule)
     return FocusSet, RuleEvidence, newrules, newnegrules
 
+#Match hypotheses (rules) preconditions to the world, calculating how AIRIS-confident the prediction would be:
 def _MatchHypotheses(FocusSet, oldworld, action, rules):
     positionscores = dict([])
     highesthighscore = 0.0
@@ -343,6 +365,7 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                 highesthighscore = highscore
     return (positionscores, highesthighscore)
 
+#Whether a rule is applicable: only if it matches better than not at all, and as well as the best matching rule
 def _RuleApplicable(scores, highscore, highesthighscore, rule):
     if highscore > 0.0 and scores.get(rule, 0.0) == highesthighscore:
         return True

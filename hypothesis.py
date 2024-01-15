@@ -25,20 +25,24 @@
 import sys
 from prettyprint import *
 
+#Register operations in case euclidean space operation alignment assumptions should be exploited which helps data efficiency
 def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag):
     global left, right, up, down, DisableOpSymmetryAssumption
     left, right, up, down, DisableOpSymmetryAssumption = (leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag)
 
+#The truth value of a hypothesis can be obtained directly from the positive and negative evidence counter
 def Hypothesis_TruthValue(wpn):
     (wp, wn) = wpn
     frequency = wp / (wp + wn)
     confidende = (wp + wn) / (wp + wn + 1)
     return (frequency, confidende)
 
+#The truth expectation calculation based on the truth value (frequency, confidence) tuple
 def Hypothesis_TruthExpectation(tv):
     (f, c) = tv
     return (c * (f - 0.5) + 0.5)
 
+#When two hypotheses predict a different outcome for the same conditions, the higher truth exp one is chosen
 def Hypothesis_Choice(RuleEvidence, rule1, rule2):
     T1 = Hypothesis_TruthValue(RuleEvidence[rule1])
     T2 = Hypothesis_TruthValue(RuleEvidence[rule2])
@@ -46,6 +50,7 @@ def Hypothesis_Choice(RuleEvidence, rule1, rule2):
         return rule1
     return rule2
 
+#Negative evidence was found for the hypothesis/rule
 def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
     RuleEvidence = _AddEvidence(RuleEvidence, rule, False)
     if "silent" not in sys.argv:
@@ -58,6 +63,7 @@ def Hypothesis_Contradicted(RuleEvidence, ruleset, negruleset, rule):
         #negruleset.add(rule)
     return RuleEvidence, ruleset, negruleset
 
+#Positive evidence was found for the hypothesis/rule
 def Hypothesis_Confirmed(FocusSet, RuleEvidence, ruleset, negruleset, rule): #try location symmetry
     variants = _Variants(FocusSet, rule)
     for i, r in enumerate(variants):
@@ -73,6 +79,7 @@ def Hypothesis_Confirmed(FocusSet, RuleEvidence, ruleset, negruleset, rule): #tr
                 ruleset.add(r)
     return RuleEvidence, ruleset
 
+#Valid condition predicate defining the accepted neighbourhood between conclusion and condition cells
 def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
     (y, x, v) = cond
     if y == 0 and x == 0: #self
@@ -87,6 +94,7 @@ def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
         return True
     return False
 
+#We exclude rules which have more negative evidence than positive, and choose the highest truth-exp ones whenever a different outcome would be predicted for the same conditions
 def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin):
     for i, rule1 in enumerate(rulesin):
         if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
@@ -109,6 +117,7 @@ def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin):
                             #print("excluded", end=''); Prettyprint_rule(rule1)
     return rules, rulesExcluded
 
+#Rotate the operation in euclidean space if euclidean op assumptions are allowed to be used
 def _OpRotate(op):
     if op == right:
         return down
@@ -119,6 +128,7 @@ def _OpRotate(op):
     if op == up:
         return right
 
+#Rotate the conditions as well if euclidean op assumptions are allowed to be utilized
 def _ConditionRotate(cond):
     (y, x, v) = cond
     if y == 0 and x == -1: #left
@@ -140,7 +150,8 @@ def _ConditionRotate(cond):
     if x == 0 and y == 0:
         return (0, 0, v)
 
-def _Variants(FocusSet, rule): #location symmetry (knowledge about World_Movement operations for faster learning)
+#The rule variants, including hypothetical abduced variations for different directions based on euclidean space rotation and "operation-independence" hypotheses
+def _Variants(FocusSet, rule): #explots euclidean space properties (knowledge about World_Movement operations for faster learning)
     action_values_precons = rule[0]
     conditions = action_values_precons[2:]
     action = action_values_precons[0]
@@ -179,6 +190,7 @@ def _Variants(FocusSet, rule): #location symmetry (knowledge about World_Movemen
         rules.append((tuple([action4, action_values_precons[1]] + conditionlist4), rule[1]))
     return rules
 
+#Add positive or negative evidence for a rule, with a certain max. amount of evidence so that non-stationary environments can be handled too
 def _AddEvidence(RuleEvidence, rule, positive, w_max = 20):
     if rule not in RuleEvidence:
         RuleEvidence[rule] = (0, 0)

@@ -25,7 +25,7 @@
 import random
 from copy import deepcopy
 
-# THE WORLD
+#The worlds:
 world = """
 oooooooooooo
 o   o   f  o
@@ -90,6 +90,7 @@ o          o
 oooooooooooo
 """
 
+#Description for world choice
 print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), input "1", "2", "3", "4", "5", "6", or "7":')
 _challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
@@ -109,6 +110,7 @@ if "6" in _challenge:
 if "7" in _challenge:
     world = _world7
 
+#World states:
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0')
@@ -117,7 +119,7 @@ BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
 world.append([[float("-inf") for i in range(width)] for j in range(height)])
 
-# MOVE FUNCTIONS TAKING WALLS INTO ACCOUNT
+#Move operations to move the agent in the world:
 def left(loc):
     return (loc[0]-1, loc[1])
 
@@ -130,6 +132,7 @@ def up(loc):
 def down(loc):
     return (loc[0],   loc[1]+1)
 
+#Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
     if _slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
@@ -240,6 +243,7 @@ def World_Move(loc, world, action):
                 world[BOARD][crateloc[1]][crateloc[0]] = SBALL
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
 
+#Whether there is a cup on the table (user-given goal demo)
 def World_CupIsOnTable(world):
     for x in range(width):
         for y in range(height-1):
@@ -247,10 +251,12 @@ def World_CupIsOnTable(world):
                 return True
     return False
 
+#Print the world into the terminal
 def World_Print(world):
     for line in world[BOARD]:
         print("".join(line))
 
+#The limited field of view the agent can observe dependent on view distance (partial observability)
 def World_FieldOfView(Time, loc, observed_world, world):
     for y in range(VIEWDISTY*2+1):
         for x in range(VIEWDISTX*2+1):
@@ -263,9 +269,11 @@ def World_FieldOfView(Time, loc, observed_world, world):
     observed_world[VALUES] = deepcopy(world[VALUES])
     return observed_world
 
+#The world component represented as an immutable tuple
 def World_AsTuple(worldpart):
     return tuple(World_AsTuple(i) if isinstance(i, list) else i for i in worldpart)
 
+#The actions the agent can take dependent on the chosen world:
 actions = [left, right, up, down]
 if _isWorld5:
     actions = [up, down, left]
