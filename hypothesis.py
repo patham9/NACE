@@ -161,13 +161,13 @@ def _Variants(FocusSet, rule): #location symmetry (knowledge about World_Movemen
     action2 = _OpRotate(action)
     action3 = _OpRotate(action2)
     action4 = _OpRotate(action3)
+    if DisableOpSymmetryAssumption:
+        return rules
     if not max_focus_val:
         rules.append((tuple([left, action_values_precons[1]] + list(conditions)), rule[1]))
         rules.append((tuple([right, action_values_precons[1]] + list(conditions)), rule[1]))
         rules.append((tuple([up, action_values_precons[1]] + list(conditions)), rule[1]))
         rules.append((tuple([down, action_values_precons[1]] + list(conditions)), rule[1]))
-    if DisableOpSymmetryAssumption:
-        return rules
     if action != left and action != right and action != down and action != up: #not such an op where symmetry would apply
         return rules
     conditionlist2 = sorted([_ConditionRotate(x) for x in conditions])

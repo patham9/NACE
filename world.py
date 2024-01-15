@@ -83,10 +83,10 @@ oooooooooooo
 _world7 = """
 oooooooooooo
 o          o
-o  0    0  o
+o  0 0     o
+o       T  o
+o x  0     o
 o          o
-o x  0   ooo
-o         To
 oooooooooooo
 """
 
