@@ -60,10 +60,10 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
                 action = favoured_actions_for_revisit[0]
                 plan = favoured_actions_for_revisit
             else:
-                print("BABBLE", "score:", airis_score)
+                print("BABBLE")
                 action = random.choice(actions) #motorbabbling
         else:
-            print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), "score:", -airis_score)#, rules)
+            print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
             action = favoured_actions[0]
             plan = favoured_actions
     else:
@@ -84,7 +84,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
-    predicted_world, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
+    predicted_world, _, __, values = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
     if "manual" not in sys.argv:
         print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
         World_Print(newworld)
@@ -109,7 +109,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
             newrules.add(rule)
     else:
         usedRules = newrules = newnegrules = rules
-    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput
+    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely
 def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
@@ -370,3 +370,10 @@ def _RuleApplicable(scores, highscore, highesthighscore, rule):
     if highscore > 0.0 and scores.get(rule, 0.0) == highesthighscore:
         return True
     return False
+
+#Print score value taking its semantics regarding its value range semantics for planning into account
+def NACE_PrintScore(score):
+    if score >= 0.0 and score <= 1.0:
+        print("certainty:", score)
+    else:
+        print("desired: True")

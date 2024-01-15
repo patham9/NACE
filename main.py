@@ -37,7 +37,7 @@ Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAss
 if __name__ == "__main__":
     for Time in range(300):
         start_time = time.time()
-        usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
+        usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
         end_time = time.time()
         print("VALUES", world[VALUES], "FOCUS SET", FocusSet)
         elapsed_time = end_time - start_time
@@ -46,13 +46,13 @@ if __name__ == "__main__":
         if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p"]:
             predworld = deepcopy(observed_world)
             score = 0.0
-            values = []
             while True:
                 print("\033[1;1H\033[2J")
                 print("\033[0mImagined map:\033[97;43m")
                 World_Print(predworld)
                 print("\033[0m")
-                print("score:", -score, "values", values)
+                NACE_PrintScore(score)
+                print("values:", values)
                 d = input()
                 score = 0.0
                 if d == 'q':

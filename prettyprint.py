@@ -31,7 +31,7 @@ def Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule):
     precons = actions_values_preconditions[2:]
     print("<(", end="")
     for i, x in enumerate(actions_values_preconditions[1]):
-        name = "keys"
+        name = "var" + str(i)
         print(f"{_prettyVarValue(name, x)}", end="")
         print(f" &| ", end="")
     for i, x in enumerate(precons):
@@ -39,7 +39,7 @@ def Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule):
         if i != len(precons)-1:
             print(f" &| ", end="")
     scoreInc = f"<s_{rule[1][3][0]} --> scorePlus>"
-    keys = f"<k_{rule[1][3][1]} --> keys>"
+    keys = f"<k_{rule[1][3][1]} --> var0>"
     print(") &/", action, "=/> (" + _prettyTriplet(rule[1]) + " &| " + scoreInc + " &| " + keys + ")>.", Hypothesis_TruthValue(RuleEvidence[rule]))
 
 def _prettyVarValue(name, value):
