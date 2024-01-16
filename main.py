@@ -28,7 +28,7 @@ print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, p to look through the predicted plan step-wise, q to exit imagined world')
 else:
-    print('Pass "debug" parameter for interactive debugging')
+    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, and "manual" for trying the environment as a human.')
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
