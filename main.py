@@ -60,13 +60,13 @@ if __name__ == "__main__":
                 if d == 'r':
                     predworld = deepcopy(observed_world)
                 if d == 'a':
-                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, usedRules)
+                    predworld, score, age, values, _ = NACE_Predict(Time, FocusSet, deepcopy(predworld), left, usedRules)
                 if d == 'd':
-                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), right, usedRules)
+                    predworld, score, age, values, _ = NACE_Predict(Time, FocusSet, deepcopy(predworld), right, usedRules)
                 if d == 'w':
-                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, usedRules)
+                    predworld, score, age, values, _ = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, usedRules)
                 if d == 's':
-                    predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, usedRules)
+                    predworld, score, age, values, _ = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, usedRules)
                 if d == 'l':
                     for x in rules:
                         Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
