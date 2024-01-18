@@ -163,6 +163,8 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
+            if new_world == current_world:
+                continue
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
                 best_actions = new_Planned_actions
