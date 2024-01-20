@@ -142,18 +142,25 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None):
-    queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
+def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, customGoal = None, planForAnyReward=True, planForAnyUncertainty=False, subgoalGuidance=True):
+    queue = [(float("inf"), world, [], 0)]  # Initialize list with "inf" goal distance, world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
     best_actions = []
     best_action_combination_for_revisit = []
     oldest_age = 0.0
+    goals = []
+    if subgoalGuidance:
+        for rule in rules:
+            if rule[1][3][0] > 0: #if rule predicts score increase
+                (y1,x1,v1) = rule[0][2] #action, values, preconditions
+                (y2,x2,v2) = rule[0][3] #action, values, preconditions
+                goals.append((v1, v2))
     while queue:
         if len(queue) > max_queue_len:
             print("Planning queue bound enforced!")
             break
-        current_world, planned_actions, depth = queue.popleft()  # Dequeue from the front
+        _, current_world, planned_actions, depth = queue.pop(0)  # Dequeue from the front
         if depth > max_depth:  # If maximum depth is reached, stop searching
             continue
         world_BOARD_VALUES = World_AsTuple([current_world[BOARD], current_world[VALUES][1:]])
@@ -161,6 +168,7 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
             continue
         if world_BOARD_VALUES not in encountered or depth < encountered[world_BOARD_VALUES]:
             encountered[world_BOARD_VALUES] = depth
+        BREAK = False
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
             if new_world == current_world:
@@ -173,7 +181,26 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 best_action_combination_for_revisit = new_Planned_actions
                 oldest_age = new_age
             if new_score == 1.0:
-                queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
+                goal_distance = float("inf")
+                for (v1, v2) in goals:
+                    for y1 in range(height):
+                        for x1 in range(width):
+                            if world[BOARD][y1][x1] == v1:
+                                for y2 in range(height):
+                                    for x2 in range(width):
+                                        if world[BOARD][y2][x2] == v2:
+                                            goal_distance = min(goal_distance, abs(y1 - y2) + abs(x2 - x2))
+                queue.append((goal_distance, new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
+                queue.sort(key=lambda item: item[0]) #goal distance
+            else:
+                if new_score >= 0 and new_score <1:
+                    if planForAnyUncertainty:
+                        BREAK = True
+                elif new_score == float("-inf"):
+                    if planForAnyReward:
+                        BREAK = True
+        if BREAK:
+            break
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 #Whether the grid cell has been observed now (not all have been, due to partial observability)
