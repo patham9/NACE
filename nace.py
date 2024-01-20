@@ -130,8 +130,9 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in rules:
             if _RuleApplicable(scores, highscore, highesthighscore, rule):
-                if highscore == 1.0:
-                    newworld[VALUES] = rule[1][3]
+                if highscore < 1.0 and rule[1][3][0] > 0:
+                    continue #only use a rule that predicts score increase when certain!
+                newworld[VALUES] = rule[1][3]
                 newworld[BOARD][y][x] = rule[1][2]
                 used_rules_sumscore += scores.get(rule, 0.0)
                 used_rules_amount += 1
@@ -359,7 +360,7 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                 if CONTINUE:
                     continue
                 scores[rule] /= (len(precondition)-2)
-                if scores[rule] > 0.0 and scores[rule] > highscore or (scores[rule] == highscore and highscorerule is not None and len(rule[0]) > len(highscorerule[0])):
+                if scores[rule] > 0.0 and (scores[rule] > highscore or (scores[rule] == highscore and highscorerule is not None and len(rule[0]) > len(highscorerule[0]))):
                     highscore = scores.get(rule, 0.0)
                     highscorerule = rule
             positionscores[(y,x)] = (scores, highscore, highscorerule)

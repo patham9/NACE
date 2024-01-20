@@ -174,7 +174,9 @@ def World_Move(loc, world, action):
                 world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
                 while True:
                     xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
-                    if oldworld[BOARD][yr][xr] == FREE and xr > 1 and yr > 1 and xr < width-2 and yr < height-2:
+                    if oldworld[BOARD][yr][xr] == FREE and xr > 1 and yr > 1 and xr < width-2 and yr < height-2 and \
+                       oldworld[BOARD][yr+1][xr] == FREE and oldworld[BOARD][yr-1][xr] == FREE and \
+                       oldworld[BOARD][yr][xr+1] == FREE and oldworld[BOARD][yr][xr-1] == FREE:
                         world[BOARD][yr][xr] = SBALL
                         break
     #CUP
