@@ -95,9 +95,10 @@ def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
     return False
 
 #We exclude rules which have more negative evidence than positive, and choose the highest truth-exp ones whenever a different outcome would be predicted for the same conditions
-def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin):
+def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin, confidence_threshold):
     for i, rule1 in enumerate(rulesin):
-        if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
+        (f, c) = Hypothesis_TruthValue(RuleEvidence[rule1])
+        if Hypothesis_TruthExpectation((f, c)) <= 0.5 or c <= confidence_threshold: #exclude rules which are not better than exp (only 0.5+ makes sense here)
             if rule1 in rules:
                 rulesExcluded.add(rule1)
                 rules.remove(rule1)

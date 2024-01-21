@@ -40,11 +40,18 @@ observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
-    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
+    confidence_threshold = 0.4
     if "manual" not in sys.argv:
-        favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
-    else:
+        airis_score = 1.0
+        while airis_score == 1.0:
+            confidence_threshold += 0.1
+            Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin, confidence_threshold)
+            favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
+            print(oldest_age)
+            if confidence_threshold > 0.9 or oldest_age > 10:
+                break
+    if "manual" in sys.argv:
         observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
     debuginput = ""
     if "debug" in sys.argv or "manual" in sys.argv:
@@ -86,7 +93,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
     predicted_world, _, __, values = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
     if "manual" not in sys.argv:
-        print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
+        print(f"\033[0mWorld t={Time} beliefs={len(rules)} confidence_threshold={confidence_threshold}:\033[97;40m")
         World_Print(newworld)
         print("\033[0mMental map:\033[97;44m")
     else:
