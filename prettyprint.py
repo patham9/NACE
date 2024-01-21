@@ -35,7 +35,7 @@ def Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule):
         print(f"{_prettyTriplet(x)}", end="")
         if i != len(precons)-1:
             print(f", ", end="")
-    scoreInc = f"reward={rule[1][3][0]}"
+    scoreInc = f"scoreGain={rule[1][3][0]}"
     keys = f"vars={list(rule[1][3][1:])}"
     if action == "^up": #print actions with same width
         action += "   "

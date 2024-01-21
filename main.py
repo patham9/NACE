@@ -39,7 +39,7 @@ if __name__ == "__main__":
         start_time = time.time()
         usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
         end_time = time.time()
-        print("VALUES", world[VALUES], "FOCUS SET", FocusSet)
+        print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:]))+",", "focus="+str(FocusSet))
         elapsed_time = end_time - start_time
         if elapsed_time < 1.0:
             time.sleep(1.0 - elapsed_time)
