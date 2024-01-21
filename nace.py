@@ -40,8 +40,8 @@ observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
-    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
+    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
     if "manual" not in sys.argv:
         favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     else:

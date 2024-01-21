@@ -101,8 +101,8 @@ def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin):
             if rule1 in rules:
                 rulesExcluded.add(rule1)
                 rules.remove(rule1)
-        for j, rule2 in enumerate(rulesin): #exclude rules which are worse by truth value
-            if i != j:
+        for j, rule2 in enumerate(rulesin):
+            if i != j:  #exclude rules of same precondition which are worse by truth value
                 if rule1[0] == rule2[0]:
                     rulex = Hypothesis_Choice(RuleEvidence, rule1, rule2)
                     if rulex == rule1:
