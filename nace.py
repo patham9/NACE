@@ -29,7 +29,7 @@ from world import *
 import sys
 
 #Initializing the memory of the AI
-FocusSet = dict([])
+FocusSet = {'T': 0}
 rules = set([])
 negrules = set([])
 worldchange = set([])
@@ -175,6 +175,8 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=1000, custom
                 oldest_age = new_age
             if new_score == 1.0:
                 queue.append((new_world, new_Planned_actions, depth + 1))  # Enqueue children at the end
+            if new_score == float("-inf"):
+                queue = []; break
     return best_actions, best_score, best_action_combination_for_revisit, oldest_age
 
 #Whether the grid cell has been observed now (not all have been, due to partial observability)
@@ -208,16 +210,17 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                         FocusSet[val] += 1
             if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[1].add((y, x))
-    if len(changesets[0]) == 1 and newworld[VALUES] != oldworld[VALUES]: #if we moved to an element and a value changed (TODO, egg example)
-        (y,x) = list(changesets[0])[0]
-        if action == right and x>0 and newworld[BOARD][y][x-1] in FocusSet and newworld[BOARD][y][x-1] == oldworld[BOARD][y][x-1]:
+    #a change next to an unchanged focus set item
+    """chgset = deepcopy(changesets[0])
+    for (y,x) in chgset:
+        if x>0 and newworld[BOARD][y][x-1] in FocusSet and newworld[BOARD][y][x-1] == oldworld[BOARD][y][x-1]:
             changesets[0].add((y,x-1))
-        if action == left and x<width-1 and newworld[BOARD][y][x+1] in FocusSet and newworld[BOARD][y][x+1] == oldworld[BOARD][y][x+1]:
+        if x<width-1 and newworld[BOARD][y][x+1] in FocusSet and newworld[BOARD][y][x+1] == oldworld[BOARD][y][x+1]:
             changesets[0].add((y,x+1))
-        if action == down and y>0 and newworld[BOARD][y-1][x] in FocusSet and newworld[BOARD][y-1][x] == oldworld[BOARD][y-1][x]:
+        if y>0 and newworld[BOARD][y-1][x] in FocusSet and newworld[BOARD][y-1][x] == oldworld[BOARD][y-1][x]:
             changesets[0].add((y-1,x))
-        if action == up and y<height-1 and newworld[BOARD][y+1][x] in FocusSet and newworld[BOARD][y+1][x] == oldworld[BOARD][y+1][x]:
-            changesets[0].add((y+1,x))
+        if y<height-1 and newworld[BOARD][y+1][x] in FocusSet and newworld[BOARD][y+1][x] == oldworld[BOARD][y+1][x]:
+            changesets[0].add((y+1,x))"""
     #Build rules based on changes and prediction-observation mismatches
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
@@ -228,6 +231,8 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for (y2_abs, x2_abs) in changeset:
                 (y2_rel, x2_rel) = (y2_abs-y1_abs, x2_abs-x1_abs)
                 condition = (y2_rel, x2_rel, oldworld[BOARD][y2_abs][x2_abs])
+                #if condition[2] == '.': #unknown map part cannot be considered
+                #    continue
                 if Hypothesis_ValidCondition(condition):
                     preconditions.append(condition)
                     if y2_rel == 0 and x2_rel == 0:
