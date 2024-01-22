@@ -169,16 +169,6 @@ def World_Move(loc, world, action):
                     if oldworld[BOARD][yr][xr] == FREE:
                         world[BOARD][yr][xr] = CUP
                         break
-            if oldworld[BOARD][y][x] == SBALL and (oldworld[BOARD][y+1][x] == TABLE or oldworld[BOARD][y-1][x] == TABLE or oldworld[BOARD][y][x-1] == TABLE or oldworld[BOARD][y][x+1] == TABLE):
-                world[BOARD][y][x] = FREE
-                world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
-                while True:
-                    xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
-                    if oldworld[BOARD][yr][xr] == FREE and xr > 1 and yr > 1 and xr < width-2 and yr < height-2 and \
-                       oldworld[BOARD][yr+1][xr] == FREE and oldworld[BOARD][yr-1][xr] == FREE and \
-                       oldworld[BOARD][yr][xr+1] == FREE and oldworld[BOARD][yr][xr-1] == FREE:
-                        world[BOARD][yr][xr] = SBALL
-                        break
     #CUP
     if world[BOARD][newloc[1]][newloc[0]] == CUP: #an object the system could shift around
         world[BOARD][loc[1]][loc[0]] = CUP
@@ -243,6 +233,18 @@ def World_Move(loc, world, action):
                 loc = newloc
                 world[BOARD][loc[1]][loc[0]] = ROBOT
                 world[BOARD][crateloc[1]][crateloc[0]] = SBALL
+        if world[BOARD][crateloc[1]][crateloc[0]] == TABLE and world[BOARD][newloc[1]][newloc[0]] == SBALL:
+            world[BOARD][loc[1]][loc[0]] = FREE
+            loc = newloc
+            world[BOARD][newloc[1]][newloc[0]] = ROBOT
+            world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
+            while True:
+                xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
+                if oldworld[BOARD][yr][xr] == FREE and xr > 1 and yr > 1 and xr < width-2 and yr < height-2 and \
+                   oldworld[BOARD][yr+1][xr] == FREE and oldworld[BOARD][yr-1][xr] == FREE and \
+                   oldworld[BOARD][yr][xr+1] == FREE and oldworld[BOARD][yr][xr-1] == FREE:
+                    world[BOARD][yr][xr] = SBALL
+                    break
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
 
 #Whether there is a cup on the table (user-given goal demo)
