@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  * """
 
+import sys
 import random
 from copy import deepcopy
 
@@ -91,7 +92,10 @@ oooooooooooo
 """
 
 #Description for world choice
-print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), input "1", "2", "3", "4", "5", "6", or "7":')
+if "manual" in sys.argv:
+    print("Enter one of 1-7 to try a world:")
+else:
+    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), input "1", "2", "3", "4", "5", "6", or "7":')
 _challenge = input()
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
 _slippery = "y" in input()
@@ -124,6 +128,8 @@ def left(loc):
     return (loc[0]-1, loc[1])
 
 def right(loc):
+    if _isWorld5:
+        return loc
     return (loc[0]+1, loc[1])
 
 def up(loc):
