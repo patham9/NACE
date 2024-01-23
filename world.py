@@ -85,7 +85,7 @@ _world7 = """
 oooooooooooo
 o          o
 o  0 0     o
-o       T  o
+o       H  o
 o x  0     o
 o          o
 oooooooooooo
@@ -117,7 +117,7 @@ if "7" in _challenge:
 #World states:
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0')
+WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
@@ -239,7 +239,7 @@ def World_Move(loc, world, action):
                 loc = newloc
                 world[BOARD][loc[1]][loc[0]] = ROBOT
                 world[BOARD][crateloc[1]][crateloc[0]] = SBALL
-        if world[BOARD][crateloc[1]][crateloc[0]] == TABLE and world[BOARD][newloc[1]][newloc[0]] == SBALL:
+        if world[BOARD][crateloc[1]][crateloc[0]] == GOAL and world[BOARD][newloc[1]][newloc[0]] == SBALL:
             world[BOARD][loc[1]][loc[0]] = FREE
             loc = newloc
             world[BOARD][newloc[1]][newloc[0]] = ROBOT
