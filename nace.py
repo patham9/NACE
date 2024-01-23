@@ -29,7 +29,7 @@ from world import *
 import sys
 
 #Initializing the memory of the AI
-FocusSet = {"T":0}
+FocusSet = dict([])
 rules = set([])
 negrules = set([])
 worldchange = set([])
@@ -188,7 +188,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
     changesets = [set([]), set([])]
-    valuecount = dict([])
+    valuecount, valuecount_remembered = (dict([]), dict([]))
     for y in range(height):
         for x in range(width):
             val = oldworld[BOARD][y][x]
@@ -200,9 +200,15 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
         for x in range(width):
             if not _IsPresentlyObserved(Time, newworld, y, x):
                 continue
+            val = oldworld[BOARD][y][x]
+            if valuecount[val] == 1 and val not in FocusSet:
+                if x>0 and oldworld[BOARD][y][x-1] in FocusSet or \
+                   x<width-1 and oldworld[BOARD][y][x+1] in FocusSet or \
+                   y<height-1 and oldworld[BOARD][y+1][x] in FocusSet or \
+                   y>0 and oldworld[BOARD][y-1][x] in FocusSet:
+                    FocusSet[val] = 0
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
                 changesets[0].add((y, x))
-                val = oldworld[BOARD][y][x]
                 if valuecount[val] == 1: #unique
                     if val not in FocusSet:
                         FocusSet[val] = 1
