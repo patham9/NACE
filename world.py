@@ -158,6 +158,10 @@ def World_Move(loc, world, action):
             if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == WALL:
                 world[BOARD][y][x] = FREE
                 world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
+            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == ROBOT:
+                world[BOARD][y][x] = FREE
+                world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
+                world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
             if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == FREE:
                 world[BOARD][y+1][x] = ARROW_DOWN
                 world[BOARD][y][x] = FREE
@@ -287,3 +291,4 @@ def World_AsTuple(worldpart):
 actions = [left, right, up, down]
 if _isWorld5:
     actions = [up, down, left]
+    VIEWDISTX, VIEWDISTY = (4, 3)
