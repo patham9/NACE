@@ -41,7 +41,7 @@ if __name__ == "__main__":
         end_time = time.time()
         print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:]))+",", "focus="+str(FocusSet))
         elapsed_time = end_time - start_time
-        if elapsed_time < 1.0 and "nosleep" not in sys.argv:
+        if elapsed_time < 1.0 and "nosleep" not in sys.argv and "debug" not in sys.argv and "manual" not in sys.argv:
             time.sleep(1.0 - elapsed_time)
         if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p"]:
             predworld = deepcopy(observed_world)

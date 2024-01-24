@@ -253,6 +253,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #if rule conditions are only partly met or the predicted outcome is different than observed, build a specialized rule which has the precondition and conclusion corrected!
+    max_focus = None
+    if len(FocusSet) > 0:
+        max_focus = max(FocusSet, key=lambda k: FocusSet[k])
     (positionscores, highesthighscore) = _MatchHypotheses(FocusSet, oldworld, action, newrules)
     for y in range(height):
         for x in range(width):
@@ -274,7 +277,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                         if y+y_rel >= height or y+y_rel < 0 or x+x_rel >= width or x+x_rel < 0:
                             CONTINUE = True
                             break
-                        if oldworld[BOARD][y+y_rel][x+x_rel] in FocusSet:
+                        if oldworld[BOARD][y+y_rel][x+x_rel] == max_focus:
                             has_focus_set_condition = True
                         corrected_preconditions.append((y_rel, x_rel, oldworld[BOARD][y+y_rel][x+x_rel]))
                     corrected_preconditions = sorted(corrected_preconditions)
