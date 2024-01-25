@@ -266,7 +266,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in oldrules:
             if _RuleApplicable(scores, highscore, highesthighscore, rule):
-                if rule[1][2] != newworld[BOARD][y][x] and rule in scores and scores[rule] == highesthighscore:
+                if rule[1][2] != newworld[BOARD][y][x]:
                     (precondition, consequence) = rule
                     action_score_and_preconditions = list(precondition)
                     values = action_score_and_preconditions[1]
