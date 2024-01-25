@@ -23,7 +23,9 @@
  * """
 
 import sys
+from copy import deepcopy
 from prettyprint import *
+import random
 
 #Register operations in case euclidean space operation alignment assumptions should be exploited which helps data efficiency
 def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag):
@@ -95,12 +97,18 @@ def Hypothesis_ValidCondition(cond):  #restrict to neighbours (CA assumption)
     return False
 
 #We exclude rules which have more negative evidence than positive, and choose the highest truth-exp ones whenever a different outcome would be predicted for the same conditions
-def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin):
+def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence):
+    rulesin = deepcopy(rules)
     for i, rule1 in enumerate(rulesin):
-        if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
+        #if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
+        if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5 or \
+           random.random()*random.random() > Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) or \
+           RuleEvidence[rule1][1] > 0:
             if rule1 in rules:
                 rulesExcluded.add(rule1)
                 rules.remove(rule1)
+    rulesin = deepcopy(rules)
+    for i, rule1 in enumerate(rulesin):
         for j, rule2 in enumerate(rulesin):
             if i != j:  #exclude rules of same precondition which are worse by truth value
                 if rule1[0] == rule2[0]:
