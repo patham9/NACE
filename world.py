@@ -86,7 +86,7 @@ oooooooooooo
 o          o
 o  0 0     o
 o       H  o
-o x  0     o
+o x0 0     o
 o          o
 oooooooooooo
 """
