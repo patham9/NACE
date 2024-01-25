@@ -41,7 +41,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
-    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, rulesin)
+    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence)
     if "manual" not in sys.argv:
         favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     else:
@@ -52,7 +52,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[1;1H\033[2J")
     if "manual" not in sys.argv:
         exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
-        explore_babble = random.random() > (0.9 if "DisableOpSymmetryAssumption" in sys.argv else 1.0) #since it might not know yet about all ops, exploring then can be limited
+        explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
         plan = []
         if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
@@ -266,7 +266,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in oldrules:
             if _RuleApplicable(scores, highscore, highesthighscore, rule):
-                if rule[1][2] != newworld[BOARD][y][x] and rule in scores and scores[rule] == highesthighscore:
+                if rule[1][2] != newworld[BOARD][y][x]:
                     (precondition, consequence) = rule
                     action_score_and_preconditions = list(precondition)
                     values = action_score_and_preconditions[1]
