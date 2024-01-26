@@ -28,7 +28,7 @@ print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, p to look through the predicted plan step-wise, q to exit imagined world')
 else:
-    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to renove simulation visualization delay.')
+    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay.')
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
@@ -39,7 +39,11 @@ if __name__ == "__main__":
         start_time = time.time()
         usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world))
         end_time = time.time()
-        print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:]))+",", "focus="+str(FocusSet))
+        print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:])), end="")
+        if "manual" in sys.argv:
+            print()
+        else:
+            print(",", "focus="+str(FocusSet))
         elapsed_time = end_time - start_time
         if elapsed_time < 1.0 and "nosleep" not in sys.argv and "debug" not in sys.argv and "manual" not in sys.argv:
             time.sleep(1.0 - elapsed_time)
