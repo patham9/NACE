@@ -37,7 +37,7 @@ RuleEvidence = dict([])
 observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
 #One observe-learn-plan-action cycle of the AI system
-def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
+def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld, inject_key=""):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
@@ -46,8 +46,8 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     else:
         observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
-    debuginput = ""
-    if "debug" in sys.argv or "manual" in sys.argv:
+    debuginput = inject_key
+    if "debug" in sys.argv or "manual" in sys.argv and inject_key == "":
         debuginput = input()
     print("\033[1;1H\033[2J")
     if "manual" not in sys.argv:
