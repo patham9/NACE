@@ -91,14 +91,28 @@ o          o
 oooooooooooo
 """
 
+_challenge_input = ""
+for arg in sys.argv:
+    if arg.startswith("world="):
+        _challenge_input = arg.split("world=")[1]
+_slippery_input = ""
+for arg in sys.argv:
+    if arg.startswith("slippery="):
+        _slippery_input = arg.split("slippery=")[1]
 #Description for world choice
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
 else:
     print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), input "1", "2", "3", "4", "5", "6", or "7":')
-_challenge = input()
+if _challenge_input == "":
+    _challenge = input()
+else:
+    _challenge = _challenge_input
 print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-_slippery = "y" in input()
+if _slippery_input == "":
+    _slippery = "y" in input()
+else:
+    _slippery = "y" in _slippery_input
 _isWorld5 = False
 if "2" in _challenge:
     world = _world2

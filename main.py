@@ -86,6 +86,8 @@ def Step(inject_key=""):
 if "nogui" in sys.argv:
     for Time in range(300):
         Step()
+if "nogui" in sys.argv:
+    exit()
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -194,7 +196,7 @@ def plot_pattern(pattern, values):
                         color = lighten_color(color, 1.2)
             ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
     ax.set_aspect('equal', adjustable='box')
-    ax.set_xticks(range(cols))
+    ax.set_xticks(range(cols+1))
     ax.set_yticks(range(-rows+1, 1))
     ax.set_xticklabels([])
     ax.set_yticklabels([])
