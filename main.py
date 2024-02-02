@@ -36,11 +36,12 @@ from nace import *
 Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAssumption" in sys.argv)
 #Run the simulation in a loop for up to k steps:
 Time = -1
+behavior = "BABBLE"
 def Step(inject_key=""):
-    global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, Time
+    global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, planworld, behavior, Time
     Time+=1
     start_time = time.time()
-    usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
+    usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, planworld, behavior = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     end_time = time.time()
     print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:])), end="")
     if "manual" in sys.argv:
@@ -88,148 +89,112 @@ if "nogui" in sys.argv:
         Step()
 if "nogui" in sys.argv:
     exit()
-
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
-
-pattern = [
-    "............",
-    "............",
-    "............",
-    "............",
-    "............",
-    "............",
-    "............"
-]
-
-colors = {
-    ' ': 'white',
-    ROBOT: 'red',
-    '.': 'gray',
-
-    #food level
-    WALL: 'blue',
-    FOOD: 'green',
-    
-    ARROW_DOWN: 'purple',
-    ARROW_UP: 'darkblue',
-    
-    #cup table level
-    CUP: 'cyan', #purple
-    TABLE: 'orange',
-    
-    #door key battery level
-    DOOR: 'cyan', 
-    KEY: 'magenta',
-    BATTERY: 'green',
-        
-    #pong
-    BALL: 'green',
-        
-    #egg level:
-    EGG: 'orange',
-    EGGPLACE: 'cyan',
-    CHICKEN: 'green',
-    
-    #soccer:
-    GOAL: 'green',
-    SBALL: 'orange',
-    #GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL
-    
-    
-}
-
-fig, ax = plt.subplots()
-
-def F(i,j):
-    return True
-
-def makedark(color):
-    if color == "white":
-        return "gray"
-    return "dark"+color
-
-def lighten_color(color, amount=0.5):
-    """
-    Lightens the given color by multiplying (1-luminosity) by the given amount.
-    Input can be matplotlib color string, hex string, or RGB tuple.
-
-    Examples:
-    >> lighten_color('g', 0.3)
-    >> lighten_color('#F034A3', 0.6)
-    >> lighten_color((.3,.55,.1), 0.5)
-    """
+else:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
     import matplotlib.colors as mc
+    from nace import _IsPresentlyObserved
     import colorsys
-    try:
-        c = mc.cnames[color]
-    except:
-        c = color
-    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
-    return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
-"""
-import matplotlib
-import colorsys
-def scale_lightness(color, scale_l):
-    # convert rgb to hls
-    rgb = matplotlib.colors.ColorConverter.to_rgb("navy")
-    h, l, s = colorsys.rgb_to_hls(*rgb)
-    # manipulate h, l, s values and return as rgb
-    return colorsys.hls_to_rgb(h, min(1, l * scale_l), s = s)
-"""
-from nace import _IsPresentlyObserved
-def plot_pattern(pattern, values):
-    rows = len(pattern)
-    cols = len(pattern[0])
-    ax.clear()
-    for i in range(rows):
-        for j in range(cols):
-            color = colors.get(pattern[i][j], 'white')
-            if "manual" not in sys.argv:
-                if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
-                    if color == "white":
-                        color = "lightgray"
-                    else:
-                        color = lighten_color(color, 1.2)
-            ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
-    ax.set_aspect('equal', adjustable='box')
-    ax.set_xticks(range(cols+1))
-    ax.set_yticks(range(-rows+1, 1))
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
-    ax.grid(False)
-    plt.title("score=" + str(values[0]) + " vars="+str(list(values[1:])))
-    plt.draw()
+    def lighten_color(color, amount=0.5):
+        try:
+            c = mc.cnames[color]
+        except:
+            c = color
+        c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+        return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
-def on_key(event):
-    #if event.key == 'r':
-        # Example: Rotate the pattern 90 degrees clockwise
-    if event.key in ["w", "s", "a", "d"]:
-        Step(inject_key = event.key)
-            #global pattern
-            #pattern = [''.join(row) for row in zip(*pattern[::-1])]
+    def plot_pattern(pattern, values):
+        rows = len(pattern)
+        cols = len(pattern[0])
+        ax.clear()
+        for i in range(rows):
+            for j in range(cols):
+                color = colors.get(pattern[i][j], 'white')
+                if "manual" not in sys.argv:
+                    if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
+                        if color == "white":
+                            color = "lightgray"
+                        else:
+                            color = lighten_color(color, 1.2)
+                ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
+                if observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
+                    color = colors.get(planworld[BOARD][i][j], 'white')
+                    if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
+                        if color == "white":
+                            color = "lightgray"
+                        else:
+                            color = lighten_color(color, 1.2)
+                    ax.add_patch(Rectangle((j+0.4, -i+0.4), 0.2, 0.2, facecolor=color, edgecolor='none'))
+                
+        ax.set_aspect('equal', adjustable='box')
+        ax.set_xticks(range(cols+1))
+        ax.set_yticks(range(-rows+1, 1))
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.grid(False)
+        plt.title(behavior + " score=" + str(values[0]) + " vars="+str(list(values[1:])))
+        plt.draw()
+
+    def on_key(event):
+        #if event.key == 'r':
+            # Example: Rotate the pattern 90 degrees clockwise
+        if event.key in ["w", "s", "a", "d"]:
+            Step(inject_key = event.key)
+                #global pattern
+                #pattern = [''.join(row) for row in zip(*pattern[::-1])]
+            plot_pattern(observed_world[BOARD], observed_world[VALUES])
+        if event.key == "s":
+            event.stop = True
+
+    def update(wat):
+        Step()
         plot_pattern(observed_world[BOARD], observed_world[VALUES])
-    if event.key == "s":
-        event.stop = True
 
-def update(wat):
-    Step()
-    plot_pattern(observed_world[BOARD], observed_world[VALUES])
-
-plt.rcParams['keymap.save'].remove('s')
-plt.rcParams['keymap.quit'].remove('q')
-plot_pattern(pattern, [0, 0])
-#plt.rcParams['keymap.save'] = ''
-fig.canvas.mpl_connect('key_press_event', on_key)
-#plot_pattern(pattern, [])
-# Set up the animation
-if "manual" not in sys.argv and "debug" not in sys.argv:
-    ani = FuncAnimation(fig, update, interval=1000)  # Update every 1000 milliseconds (1 second)
-
-
-
-plt.show()
+    planworld = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+    pattern = [
+        "............",
+        "............",
+        "............",
+        "............",
+        "............",
+        "............",
+        "............"
+    ]
+    colors = {
+        ' ': 'white',
+        ROBOT: 'red',
+        '.': 'gray',
+        #food level:
+        WALL: 'blue',
+        FOOD: 'green',
+        ARROW_DOWN: 'purple',
+        ARROW_UP: 'darkblue',
+        #cup table level:
+        CUP: 'cyan', #purple
+        TABLE: 'orange',
+        #door key battery level:
+        DOOR: 'cyan', 
+        KEY: 'magenta',
+        BATTERY: 'green',
+        #pong
+        BALL: 'green',
+        #egg level:
+        EGG: 'orange',
+        EGGPLACE: 'cyan',
+        CHICKEN: 'green',
+        #soccer:
+        GOAL: 'green',
+        SBALL: 'orange',
+    }
+    fig, ax = plt.subplots()
+    plt.rcParams['keymap.save'].remove('s')
+    plt.rcParams['keymap.quit'].remove('q')
+    plot_pattern(pattern, [0, 0])
+    fig.canvas.mpl_connect('key_press_event', on_key)
+    if "manual" not in sys.argv and "debug" not in sys.argv:
+        ani = FuncAnimation(fig, update, interval=1000)  # Update every 1000 milliseconds (1 second)
+    plt.show()
 
