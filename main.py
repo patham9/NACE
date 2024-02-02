@@ -29,7 +29,7 @@ print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, p to look through the predicted plan step-wise, q to exit imagined world')
 else:
-    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "hidepredictions" to hide prediction rectangles, "nogui" to hide GUI.')
+    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "nopredictions" to hide prediction rectangles, "nogui" to hide GUI, "notextures" to not render textures in GUI.')
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
@@ -97,6 +97,7 @@ else:
     import matplotlib.colors as mc
     from nace import _IsPresentlyObserved
     import colorsys
+    import os
 
     def lighten_color(color, amount=0.5):
         try:
@@ -107,6 +108,7 @@ else:
         return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
     def plot_pattern(pattern, values):
+        global loc
         rows = len(pattern)
         cols = len(pattern[0])
         ax.clear()
@@ -120,15 +122,23 @@ else:
                         else:
                             color = lighten_color(color, 1.2)
                 ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
-                if "manual" not in sys.argv and "hidepredictions" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
+                if "manual" not in sys.argv and "nopredictions" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
                     color = colors.get(planworld[BOARD][i][j], 'white')
                     if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
                         if color == "white":
                             color = "lightgray"
                         else:
                             color = lighten_color(color, 1.2)
-                    ax.add_patch(Rectangle((j+0.4, -i+0.4), 0.2, 0.2, facecolor=color, edgecolor='none'))
+                    ax.add_patch(Rectangle((j+0.4, -i+0.4), 0.2, 0.2, facecolor=color, edgecolor='none',zorder=50))
+                patt = pattern[i][j]
+                if (direction == "right" and patt == 'x') or patt.isupper():
+                    patt += "2"
+                if "notextures" not in sys.argv and patt in M:
+                    # Display the texture inside the rectangle using imshow
+                    ax.imshow(M[patt], extent=(j, j + 1, -i, -i + 1), zorder=10)
                 
+        ax.set_xlim(0, width)  # Set the desired x-axis limits
+        ax.set_ylim(-rows+1, 1)  # Set the desired y-axis limits
         ax.set_aspect('equal', adjustable='box')
         ax.set_xticks(range(cols+1))
         ax.set_yticks(range(-rows+1, 1))
@@ -138,21 +148,40 @@ else:
         plt.title(behavior + " score=" + str(values[0]) + " vars="+str(list(values[1:])))
         plt.draw()
 
+    def updateloc(key=""):
+        global lastloc, direction
+        if loc[0] > lastloc[0] or key == "d":
+            direction = "right"
+        if loc[0] < lastloc[0] or key == "a":
+            direction = "left"
+
     def on_key(event):
-        #if event.key == 'r':
-            # Example: Rotate the pattern 90 degrees clockwise
         if event.key in ["w", "s", "a", "d"]:
             Step(inject_key = event.key)
-                #global pattern
-                #pattern = [''.join(row) for row in zip(*pattern[::-1])]
+            updateloc(event.key)
             plot_pattern(observed_world[BOARD], observed_world[VALUES])
         if event.key == "s":
             event.stop = True
 
     def update(wat):
+        global lastloc, direction
         Step()
+        updateloc()
         plot_pattern(observed_world[BOARD], observed_world[VALUES])
+        lastloc = loc
 
+    lastloc = loc
+    direction = "right"
+    M = {}
+    if "notextures" not in sys.argv:
+        # Iterate through files in the folder
+        for filename in os.listdir("textures"):
+            # Check if the file has a ".png" extension
+            if filename.endswith(".png"):
+                # Remove the ".png" extension to get the key
+                key = os.path.splitext(filename)[0]
+                # Add to dictionary M
+                M[key] = plt.imread('textures/' + filename)
     planworld = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
     pattern = [
         "............",
