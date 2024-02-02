@@ -37,17 +37,18 @@ RuleEvidence = dict([])
 observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 
 #One observe-learn-plan-action cycle of the AI system
-def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld):
+def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld, inject_key=""):
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
     Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence)
+    behavior = ""
     if "manual" not in sys.argv:
         favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
     else:
         observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
-    debuginput = ""
-    if "debug" in sys.argv or "manual" in sys.argv:
+    debuginput = inject_key
+    if "debug" in sys.argv or "manual" in sys.argv and inject_key == "":
         debuginput = input()
     print("\033[1;1H\033[2J")
     if "manual" not in sys.argv:
@@ -56,14 +57,17 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         plan = []
         if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
-                print("EXPLORE", Prettyprint_Plan(favoured_actions_for_revisit), "age:", oldest_age)
+                behavior = "EXPLORE"
+                print(behavior, Prettyprint_Plan(favoured_actions_for_revisit), "age:", oldest_age)
                 action = favoured_actions_for_revisit[0]
                 plan = favoured_actions_for_revisit
             else:
-                print("BABBLE")
+                behavior = "BABBLE"
+                print(behavior)
                 action = random.choice(actions) #motorbabbling
         else:
-            print("ACHIEVE" if airis_score == float("-inf") else "CURIOUS", Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
+            behavior = "ACHIEVE" if airis_score == float("-inf") else "CURIOUS"
+            print(behavior, Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
             action = favoured_actions[0]
             plan = favoured_actions
     else:
@@ -92,9 +96,9 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     else:
         print("\033[0mObserved map:\033[97;45m")
     World_Print(observed_world)
+    planworld = deepcopy(predicted_world)
     if "manual" not in sys.argv:
         print("\033[0mPredicted end:\033[97;41m")
-        planworld = deepcopy(predicted_world)
         for i in range(1, len(plan)):
             planworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
             if show_plansteps:
@@ -109,7 +113,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
             newrules.add(rule)
     else:
         usedRules = newrules = newnegrules = rules
-    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values
+    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, planworld, behavior
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely
 def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
@@ -125,8 +129,6 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if max_focus and oldworld[BOARD][y][x] in FocusSet and oldworld[BOARD][y][x] == max_focus:
-                age = max(age, (Time - newworld[TIMES][y][x]))
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in rules:
             if _RuleApplicable(scores, highscore, highesthighscore, rule):
@@ -136,6 +138,8 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
                 newworld[BOARD][y][x] = rule[1][2]
                 used_rules_sumscore += scores.get(rule, 0.0)
                 used_rules_amount += 1
+                if max_focus and newworld[BOARD][y][x] in FocusSet and newworld[BOARD][y][x] == max_focus:
+                    age = max(age, (Time - newworld[TIMES][y][x]))
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
