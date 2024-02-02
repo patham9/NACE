@@ -29,7 +29,7 @@ print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, p to look through the predicted plan step-wise, q to exit imagined world')
 else:
-    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "nopredictions" to hide prediction rectangles, "nogui" to hide GUI, "notextures" to not render textures in GUI.')
+    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "nopredictions" to hide prediction rectangles, "nogui" to hide GUI, "notextures" to not render textures in GUI, "colors" to render colors.')
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
@@ -116,27 +116,49 @@ else:
             for j in range(cols):
                 color = colors.get(pattern[i][j], 'white')
                 if "manual" not in sys.argv:
-                    if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
-                        if color == "white":
-                            color = "lightgray"
+                    if "colors" not in sys.argv:
+                        if pattern[i][j] == ".":
+                            color = "gray"
+                        elif _IsPresentlyObserved(Time, observed_world, i, j):
+                            color = "white"
                         else:
-                            color = lighten_color(color, 1.2)
+                            color = "lightgray"
+                    else:
+                        if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
+                            if color == "white":
+                                color = "lightgray"
+                            else:
+                                color = lighten_color(color, 1.2)
                 ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
                 if "manual" not in sys.argv and "nopredictions" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
                     color = colors.get(planworld[BOARD][i][j], 'white')
-                    if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
+                    if "colors" not in sys.argv:
+                        if pattern[i][j] == ".":
+                            color = "gray"
+                        elif _IsPresentlyObserved(Time, observed_world, i, j):
+                            color = "lightgray"
+                        else:
+                            color = "gray"
+                    elif not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
                         if color == "white":
                             color = "lightgray"
                         else:
                             color = lighten_color(color, 1.2)
-                    ax.add_patch(Rectangle((j+0.4, -i+0.4), 0.2, 0.2, facecolor=color, edgecolor='none',zorder=50))
+                    color = lighten_color(color, 1.1)
+                    patt = planworld[BOARD][i][j]
+                    ax.add_patch(Rectangle((j+0.3, -i+0.3), 0.4, 0.4, facecolor=color, edgecolor='none',zorder=50))
+                    if (direction == "right" and patt == 'x') or patt.isupper():
+                        patt += "2"
+                    if "notextures" not in sys.argv and patt in M:
+                        # Display the texture inside the rectangle using imshow
+                        ax.imshow(M[patt], extent=(j+0.3, j + 0.7, -i+0.3, -i + 0.7), zorder=100)
+                    
                 patt = pattern[i][j]
                 if (direction == "right" and patt == 'x') or patt.isupper():
                     patt += "2"
                 if "notextures" not in sys.argv and patt in M:
                     # Display the texture inside the rectangle using imshow
                     ax.imshow(M[patt], extent=(j, j + 1, -i, -i + 1), zorder=10)
-                
         ax.set_xlim(0, width)  # Set the desired x-axis limits
         ax.set_ylim(-rows+1, 1)  # Set the desired y-axis limits
         ax.set_aspect('equal', adjustable='box')
