@@ -115,20 +115,19 @@ else:
         for i in range(rows):
             for j in range(cols):
                 color = colors.get(pattern[i][j], 'white')
-                if "manual" not in sys.argv:
-                    if "colors" not in sys.argv:
-                        if pattern[i][j] == ".":
-                            color = "gray"
-                        elif _IsPresentlyObserved(Time, observed_world, i, j):
-                            color = "white"
-                        else:
-                            color = "lightgray"
+                if "colors" not in sys.argv:
+                    if pattern[i][j] == ".":
+                        color = "gray"
+                    elif _IsPresentlyObserved(Time, observed_world, i, j):
+                        color = "white"
                     else:
-                        if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
-                            if color == "white":
-                                color = "lightgray"
-                            else:
-                                color = lighten_color(color, 1.2)
+                        color = "lightgray"
+                else:
+                    if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
+                        if color == "white":
+                            color = "lightgray"
+                        else:
+                            color = lighten_color(color, 1.2)
                 ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
                 if "manual" not in sys.argv and "nopredictions" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
                     color = colors.get(planworld[BOARD][i][j], 'white')
