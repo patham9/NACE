@@ -29,7 +29,7 @@ print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, p to look through the predicted plan step-wise, q to exit imagined world')
 else:
-    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay.')
+    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "hidepredictions" to hide prediction rectangles, "nogui" to hide GUI.')
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
@@ -120,7 +120,7 @@ else:
                         else:
                             color = lighten_color(color, 1.2)
                 ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
-                if "manual" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
+                if "manual" not in sys.argv and "hidepredictions" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
                     color = colors.get(planworld[BOARD][i][j], 'white')
                     if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
                         if color == "white":
