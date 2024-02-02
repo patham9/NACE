@@ -120,7 +120,7 @@ else:
                         else:
                             color = lighten_color(color, 1.2)
                 ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
-                if observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
+                if "manual" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
                     color = colors.get(planworld[BOARD][i][j], 'white')
                     if not _IsPresentlyObserved(Time, observed_world, i, j) and color != "gray":
                         if color == "white":
