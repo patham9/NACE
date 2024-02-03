@@ -96,10 +96,12 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     else:
         print("\033[0mObserved map:\033[97;45m")
     World_Print(observed_world)
+    lastplanworld = deepcopy(observed_world)
     planworld = deepcopy(predicted_world)
     if "manual" not in sys.argv:
         print("\033[0mPredicted end:\033[97;41m")
         for i in range(1, len(plan)):
+            lastplanworld = deepcopy(planworld)
             planworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(planworld), plan[i], rules)
             if show_plansteps:
                 World_Print(planworld)
@@ -113,7 +115,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
             newrules.add(rule)
     else:
         usedRules = newrules = newnegrules = rules
-    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, planworld, behavior
+    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, lastplanworld, planworld, behavior, plan
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely
 def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):

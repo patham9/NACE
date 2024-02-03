@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  * """
 
-from matplotlib.animation import FuncAnimation
 import sys
 import time
 print("Welcome to NACE!")
@@ -37,11 +36,12 @@ Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAss
 #Run the simulation in a loop for up to k steps:
 Time = -1
 behavior = "BABBLE"
+plan = []
 def Step(inject_key=""):
-    global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, planworld, behavior, Time
+    global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
     start_time = time.time()
-    usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, planworld, behavior = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
+    usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     end_time = time.time()
     print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:])), end="")
     if "manual" in sys.argv:
@@ -90,6 +90,8 @@ if "nogui" in sys.argv:
 if "nogui" in sys.argv:
     exit()
 else:
+    from matplotlib.animation import FuncAnimation
+    from matplotlib.patches import FancyArrow
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle, Circle
     from matplotlib.lines import Line2D
@@ -115,9 +117,13 @@ else:
         for i in range(rows):
             for j in range(cols):
                 color = colors.get(pattern[i][j], 'white')
+                lastaction = None
+                if len([x for x in plan if x == left or x == right]) > 0:
+                    lastaction = [x for x in plan if x == left or x == right][-1]
                 if "colors" not in sys.argv:
                     if pattern[i][j] == ".":
                         color = "gray"
+                        color = lighten_color(color, 0.6)
                     elif _IsPresentlyObserved(Time, observed_world, i, j):
                         color = "white"
                     else:
@@ -145,19 +151,48 @@ else:
                             color = lighten_color(color, 1.2)
                     color = lighten_color(color, 1.1)
                     patt = planworld[BOARD][i][j]
+                    if behavior == "CURIOUS" and planworld[BOARD][i][j] != lastplanworld[BOARD][i][j]:
+                        patt = "what"
+                    if patt == ".":
+                        patt = "unknown"
                     ax.add_patch(Circle((j+0.5, -i+0.5), 0.25, facecolor=color, edgecolor='none', zorder=50, alpha=0.8))
-                    if (direction == "right" and patt == 'x') or patt.isupper():
+                    if patt != "what" and (((lastaction is None and direction == "right") or lastaction == right) and patt == ROBOT) or patt.isupper():
                         patt += "2"
-                    if "notextures" not in sys.argv and patt in M:
+                    if "notextures" not in sys.argv and patt not in [" ", "."]:
+                        if patt not in M:
+                            print("PATT ", patt, patt.isupper()); exit(0)
                         # Display the texture inside the rectangle using imshow
                         ax.imshow(M[patt], extent=(j+0.3, j + 0.7, -i+0.3, -i + 0.7), zorder=100)
-                    
                 patt = pattern[i][j]
                 if (direction == "right" and patt == 'x') or patt.isupper():
                     patt += "2"
+                if patt == ".":
+                    patt = "unknown"
                 if "notextures" not in sys.argv and patt in M:
                     # Display the texture inside the rectangle using imshow
                     ax.imshow(M[patt], extent=(j, j + 1, -i, -i + 1), zorder=10)
+        # Map of actions to changes in x and y
+        action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1)}
+        # Plot path
+        if len(plan) > 0:
+            (x,y) = (loc[0]+0.5,-loc[1]+0.5)
+            vizloc = loc
+            #nextstepworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(observed_world), plan[0], usedRules)
+            nextstepworld = observed_world
+            for i, action in enumerate(plan[1:]):
+                dx, dy = action_dict[action]
+                if i == len(plan[1:])-1:
+                    ax.add_patch(FancyArrow(x, y, dx, dy, color='black', width=0.01, head_width=0.1, head_length=0.2))
+                else:
+                    ax.add_line(Line2D([x, x + dx], [y, y + dy], color='black'))
+                nextstepworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(nextstepworld), action, usedRules)
+                #now check if there is indeed a robot predicted to be there
+                #(to take into account that the agent indeed knows how location is affected, which matters for visualization, as in egg world)
+                tx = x + dx
+                ty = y + dy
+                tvizloc = action(vizloc)
+                if nextstepworld[BOARD][tvizloc[1]][tvizloc[0]] == ROBOT:
+                    (x, y, vizloc) = (tx, ty, tvizloc)
         ax.set_xlim(0, width)  # Set the desired x-axis limits
         ax.set_ylim(-rows+1, 1)  # Set the desired y-axis limits
         ax.set_aspect('equal', adjustable='box')
@@ -204,6 +239,7 @@ else:
                 # Add to dictionary M
                 M[key] = plt.imread('textures/' + filename)
     planworld = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+    lastplanworld = planworld
     pattern = [
         "............",
         "............",
