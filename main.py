@@ -281,6 +281,6 @@ else:
     plot_pattern(pattern, [0, 0])
     fig.canvas.mpl_connect('key_press_event', on_key)
     if "manual" not in sys.argv and "debug" not in sys.argv:
-        ani = FuncAnimation(fig, update, interval=100)  # Update every 1000 milliseconds (1 second)
+        ani = FuncAnimation(fig, update, interval=100)  # Update every 100 milliseconds
     plt.show()
 
