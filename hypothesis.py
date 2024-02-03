@@ -102,8 +102,7 @@ def Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence):
     for i, rule1 in enumerate(rulesin):
         #if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5: #exclude rules which are not better than exp (only 0.5+ makes sense here)
         if Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) <= 0.5 or \
-           random.random()*random.random() > Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1])) or \
-           RuleEvidence[rule1][1] > 0:
+           ("nohypothesissampling" not in sys.argv and random.random()*random.random() > Hypothesis_TruthExpectation(Hypothesis_TruthValue(RuleEvidence[rule1]))):
             if rule1 in rules:
                 rulesExcluded.add(rule1)
                 rules.remove(rule1)

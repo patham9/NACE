@@ -140,8 +140,12 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
                 newworld[BOARD][y][x] = rule[1][2]
                 used_rules_sumscore += scores.get(rule, 0.0)
                 used_rules_amount += 1
-                if max_focus and newworld[BOARD][y][x] in FocusSet and newworld[BOARD][y][x] == max_focus:
-                    age = max(age, (Time - newworld[TIMES][y][x]))
+    for y in range(height):
+        for x in range(width):
+            if (y,x) not in positionscores:
+                continue
+            if max_focus and newworld[BOARD][y][x] in FocusSet and newworld[BOARD][y][x] == max_focus:
+                age = max(age, (Time - newworld[TIMES][y][x]))
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
     #but if the predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):

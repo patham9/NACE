@@ -158,9 +158,7 @@ else:
                     ax.add_patch(Circle((j+0.5, -i+0.5), 0.25, facecolor=color, edgecolor='none', zorder=50, alpha=0.8))
                     if patt != "what" and (((lastaction is None and direction == "right") or lastaction == right) and patt == ROBOT) or patt.isupper():
                         patt += "2"
-                    if "notextures" not in sys.argv and patt not in [" ", "."]:
-                        if patt not in M:
-                            print("PATT ", patt, patt.isupper()); exit(0)
+                    if "notextures" not in sys.argv and patt != " ":
                         # Display the texture inside the rectangle using imshow
                         ax.imshow(M[patt], extent=(j+0.3, j + 0.7, -i+0.3, -i + 0.7), zorder=100)
                 patt = pattern[i][j]
@@ -281,6 +279,17 @@ else:
     plot_pattern(pattern, [0, 0])
     fig.canvas.mpl_connect('key_press_event', on_key)
     if "manual" not in sys.argv and "debug" not in sys.argv:
-        ani = FuncAnimation(fig, update, interval=100)  # Update every 100 milliseconds
+        frames = 0
+        worldname = ""
+        for arg in sys.argv:
+            if arg.startswith("frames="):
+                frames = int(arg.split("frames=")[1])
+            if arg.startswith("world="):
+                worldname = arg.split("world=")[1]
+        if frames > 0:
+            ani = FuncAnimation(fig, update, interval=100, repeat=False, frames=frames)  # Update every 100 milliseconds
+            ani.save(f'world{worldname}.gif', writer='imagemagick', fps=1)
+        else:
+            ani = FuncAnimation(fig, update, interval=100)  # Update every 100 milliseconds
     plt.show()
 
