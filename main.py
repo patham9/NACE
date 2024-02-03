@@ -91,7 +91,7 @@ if "nogui" in sys.argv:
     exit()
 else:
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle
+    from matplotlib.patches import Rectangle, Circle
     from matplotlib.lines import Line2D
     from matplotlib.patches import Patch
     import matplotlib.colors as mc
@@ -145,7 +145,7 @@ else:
                             color = lighten_color(color, 1.2)
                     color = lighten_color(color, 1.1)
                     patt = planworld[BOARD][i][j]
-                    ax.add_patch(Rectangle((j+0.3, -i+0.3), 0.4, 0.4, facecolor=color, edgecolor='none',zorder=50))
+                    ax.add_patch(Circle((j+0.5, -i+0.5), 0.25, facecolor=color, edgecolor='none', zorder=50, alpha=0.8))
                     if (direction == "right" and patt == 'x') or patt.isupper():
                         patt += "2"
                     if "notextures" not in sys.argv and patt in M:
