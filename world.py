@@ -222,12 +222,6 @@ def World_Move(loc, world, action):
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
         world[VALUES] = tuple([world[VALUES][0]] + [world[VALUES][1] - 1] + list(world[VALUES][2:])) #the second value +1 and the rest stays
-    #BALL
-    if oldworld[BOARD][newloc[1]][newloc[0]] == BALL:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
-        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
     #BATTERY
     if world[BOARD][newloc[1]][newloc[0]] == BATTERY:
         world[BOARD][loc[1]][loc[0]] = FREE
