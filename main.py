@@ -279,6 +279,8 @@ else:
         #soccer:
         GOAL: 'green',
         SBALL: 'orange',
+        #eletric shock level
+        SHOCK: "yellow"
     }
     fig, ax = plt.subplots()
     plt.rcParams['keymap.save'].remove('s')
