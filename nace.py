@@ -35,13 +35,15 @@ negrules = set([])
 worldchange = set([])
 RuleEvidence = dict([])
 observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+nochange = False
 
 #One observe-learn-plan-action cycle of the AI system
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld, inject_key=""):
+    global nochange
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
     observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
-    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence)
+    Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, nochange)
     behavior = ""
     if "manual" not in sys.argv:
         favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
@@ -88,6 +90,10 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
     observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
+    if observed_world_old[VALUES] == observed_world[VALUES] and observed_world_old[BOARD] == observed_world[BOARD]:
+        nochange = True
+    else:
+        nochange = False
     predicted_world, _, __, values = NACE_Predict(Time, FocusSet, deepcopy(observed_world_old), action, rules)
     if "manual" not in sys.argv:
         print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
