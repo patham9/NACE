@@ -217,12 +217,19 @@ else:
         if event.key == "s":
             event.stop = True
 
+    frame = 1
     def update(wat):
-        global lastloc, direction
-        Step()
-        updateloc()
+        global lastloc, direction, frame
+        start = 1
+        for arg in sys.argv:
+            if arg.startswith("startframe="):
+                start = int(arg.split("startframe=")[1])
+        if frame >= start:
+            Step()
+            updateloc()
         plot_pattern(observed_world[BOARD], observed_world[VALUES])
         lastloc = loc
+        frame += 1
 
     lastloc = loc
     direction = "right"
