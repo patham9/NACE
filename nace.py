@@ -153,9 +153,12 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
             if max_focus and newworld[BOARD][y][x] in FocusSet and newworld[BOARD][y][x] == max_focus:
                 age = max(age, (Time - newworld[TIMES][y][x]))
     score = used_rules_sumscore/used_rules_amount if used_rules_amount > 0 else 1.0 #AIRIS confidence
-    #but if the predicted world has higher value, then set prediction score to the best it can be
+    #but if the certaintly predicted world has higher value, then set prediction score to the best it can be
     if (newworld[VALUES][0] == 1 and score == 1.0)  or (customGoal and customGoal(newworld)):
         score = float('-inf')
+    #while if the certaintly predicted world has lower value, set prediction score to the worst it can be
+    if newworld[VALUES][0] == -1 and score == 1.0:
+        score = float('inf')
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
@@ -180,7 +183,7 @@ def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customG
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
-            if new_world == current_world:
+            if new_world == current_world or new_score == float("inf"):
                 continue
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):

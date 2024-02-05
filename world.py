@@ -90,6 +90,15 @@ o x0 0     o
 o          o
 oooooooooooo
 """
+_world8 = """
+oooooooooooo
+o     zzzzzo
+o f z z    o
+o   z z zz o
+o x z z z  o
+o   z   z  o
+oooooooooooo
+"""
 
 _challenge_input = ""
 for arg in sys.argv:
@@ -103,7 +112,7 @@ for arg in sys.argv:
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
 else:
-    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), input "1", "2", "3", "4", "5", "6", or "7":')
+    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), input "1", "2", "3", "4", "5", "6", or "7":')
 if _challenge_input == "":
     _challenge = input()
 else:
@@ -127,11 +136,14 @@ if "6" in _challenge:
     world = _world6
 if "7" in _challenge:
     world = _world7
+if "8" in _challenge:
+    world = _world8
 
 #World states:
 loc = (2,4)
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL  = ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0')
+WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
+      ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
@@ -222,6 +234,12 @@ def World_Move(loc, world, action):
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
         world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
+    #SHOCK
+    if world[BOARD][newloc[1]][newloc[0]] == SHOCK:
+        world[BOARD][loc[1]][loc[0]] = FREE
+        loc = newloc
+        world[BOARD][loc[1]][loc[0]] = ROBOT
+        world[VALUES] = tuple([world[VALUES][0] - 1] + list(world[VALUES][1:])) #the first value -1 and the rest stays
     #FOOD
     if world[BOARD][newloc[1]][newloc[0]] == FOOD:
         world[BOARD][loc[1]][loc[0]] = FREE
