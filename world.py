@@ -171,7 +171,7 @@ def World_Move(loc, world, action):
     newloc = action(loc)
     oldworld = deepcopy(world)
     #ROBOT MOVEMENT ON FREE SPACE
-    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE:
+    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE and (newloc[0] == width-1 or oldworld[BOARD][newloc[1]][newloc[0]+1] != BALL):
         world[BOARD][loc[1]][loc[0]] = FREE
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
@@ -245,11 +245,6 @@ def World_Move(loc, world, action):
             if world[BOARD][y][x] == FREE:
                 world[BOARD][y][x] = FOOD
                 break
-    #FREE SPACE
-    if world[BOARD][newloc[1]][newloc[0]] == FREE or world[BOARD][newloc[1]][newloc[0]] == BALL:
-        world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
-        world[BOARD][loc[1]][loc[0]] = ROBOT
     #EGG
     if world[BOARD][newloc[1]][newloc[0]] == EGG and world[VALUES][1] == 0: #can only carry 1
         world[BOARD][newloc[1]][newloc[0]] = EGGPLACE
