@@ -121,6 +121,14 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
             newrules.add(rule)
     else:
         usedRules = newrules = newnegrules = rules
+    if debuginput == "u":
+        for x in usedRules:
+            Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
+        input()
+    if debuginput == "x":
+        for x in rulesExcluded:
+            Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
+        input()
     return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, lastplanworld, planworld, behavior, plan
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely

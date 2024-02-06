@@ -236,6 +236,15 @@ else:
                 predworldi = deepcopy(observed_world)
             else:
                 predworldi = None
+        if event.key == "l":
+            for x in rules:
+                Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
+        if event.key == "u":
+            for x in usedRules:
+                Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
+        if event.key == "x":
+            for x in rules - usedRules:
+                Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
 
     frame = 1
     def update(wat):
