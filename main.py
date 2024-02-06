@@ -213,12 +213,16 @@ else:
 
     predworldi = None
     def on_key(event):
-        global predworldi
+        global predworldi, direction
         if event.key in ["w", "s", "a", "d", "p", "enter", "r"]:
             if predworldi is None and event.key != 'r':
+                if event.key == "a":
+                    direction = "left"
+                if event.key == "d":
+                    direction = "right"
                 Step(inject_key = event.key)
                 updateloc(event.key)
-                plot_pattern(observed_world[BOARD], observed_world[VALUES])
+                plot_pattern(observed_world[BOARD], observed_world[VALUES], event.key not in ["w", "s", "a", "d"])
             else:
                 if event.key == 'r':
                     predworldi = deepcopy(observed_world)
