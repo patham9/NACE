@@ -50,7 +50,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     else:
         observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
     debuginput = inject_key
-    if "debug" in sys.argv or "manual" in sys.argv and inject_key == "":
+    if ("debug" in sys.argv or "manual" in sys.argv) and inject_key == "":
         debuginput = input()
     print("\033[1;1H\033[2J")
     plan = []

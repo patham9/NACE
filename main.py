@@ -51,7 +51,7 @@ def Step(inject_key=""):
     elapsed_time = end_time - start_time
     if elapsed_time < 1.0 and "nosleep" not in sys.argv and "debug" not in sys.argv and "manual" not in sys.argv:
         time.sleep(1.0 - elapsed_time)
-    if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p"]:
+    if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p", "enter"]:
         predworld = deepcopy(observed_world)
         score = 0.0
         while True:
@@ -172,7 +172,7 @@ else:
         # Map of actions to changes in x and y
         action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1)}
         # Plot path
-        if len(plan) > 0:
+        if len(plan) > 0 and "nopredictions" not in sys.argv:
             (x,y) = (loc[0]+0.5,-loc[1]+0.5)
             vizloc = loc
             #nextstepworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(observed_world), plan[0], usedRules)
@@ -210,7 +210,7 @@ else:
             direction = "left"
 
     def on_key(event):
-        if event.key in ["w", "s", "a", "d"]:
+        if event.key in ["w", "s", "a", "d", "p", "enter"]:
             Step(inject_key = event.key)
             updateloc(event.key)
             plot_pattern(observed_world[BOARD], observed_world[VALUES])
