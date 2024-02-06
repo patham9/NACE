@@ -63,7 +63,7 @@ def Step(inject_key=""):
             print("values:", values)
             d = input()
             score = 0.0
-            if d == 'q':
+            if d == 'q' or d == 'i':
                 break
             if d == 'r':
                 predworld = deepcopy(observed_world)
@@ -109,8 +109,10 @@ else:
         c = colorsys.rgb_to_hls(*mc.to_rgb(c))
         return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
-    def plot_pattern(pattern, values):
+    def plot_pattern(pattern, values, DrawPredictions=True):
         global loc
+        if DrawPredictions and "nopredictions" in sys.argv:
+            DrawPredictions = False
         rows = len(pattern)
         cols = len(pattern[0])
         ax.clear()
@@ -135,7 +137,7 @@ else:
                         else:
                             color = lighten_color(color, 1.2)
                 ax.add_patch(Rectangle((j, -i), 1, 1, facecolor=color, edgecolor='none'))
-                if "manual" not in sys.argv and "nopredictions" not in sys.argv and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
+                if "manual" not in sys.argv and DrawPredictions and observed_world[BOARD][i][j] != planworld[BOARD][i][j]:
                     color = colors.get(planworld[BOARD][i][j], 'white')
                     if "colors" not in sys.argv:
                         if pattern[i][j] == ".":
@@ -172,7 +174,7 @@ else:
         # Map of actions to changes in x and y
         action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1)}
         # Plot path
-        if len(plan) > 0 and "nopredictions" not in sys.argv:
+        if len(plan) > 0 and DrawPredictions:
             (x,y) = (loc[0]+0.5,-loc[1]+0.5)
             vizloc = loc
             #nextstepworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(observed_world), plan[0], usedRules)
@@ -209,13 +211,31 @@ else:
         if loc[0] < lastloc[0] or key == "a":
             direction = "left"
 
+    predworldi = None
     def on_key(event):
-        if event.key in ["w", "s", "a", "d", "p", "enter"]:
-            Step(inject_key = event.key)
-            updateloc(event.key)
-            plot_pattern(observed_world[BOARD], observed_world[VALUES])
-        if event.key == "s":
-            event.stop = True
+        global predworldi
+        if event.key in ["w", "s", "a", "d", "p", "enter", "r"]:
+            if predworldi is None and event.key != 'r':
+                Step(inject_key = event.key)
+                updateloc(event.key)
+                plot_pattern(observed_world[BOARD], observed_world[VALUES])
+            else:
+                if event.key == 'r':
+                    predworldi = deepcopy(observed_world)
+                if event.key == 'a':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), left, usedRules)
+                if event.key == 'd':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), right, usedRules)
+                if event.key == 'w':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), up, usedRules)
+                if event.key == 's':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), down, usedRules)
+                plot_pattern(predworldi[BOARD], predworldi[VALUES], DrawPredictions=False)
+        if event.key == "i":
+            if predworldi is None:
+                predworldi = deepcopy(observed_world)
+            else:
+                predworldi = None
 
     frame = 1
     def update(wat):
