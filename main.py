@@ -258,7 +258,6 @@ else:
             Step()
             updateloc()
         plot_pattern(observed_world[BOARD], observed_world[VALUES])
-        lastloc = loc
         frame += 1
 
     lastloc = loc

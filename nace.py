@@ -171,6 +171,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
 def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
+    if "random" in sys.argv: return [random.choice([left, right, up, down])], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
