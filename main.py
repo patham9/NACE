@@ -49,8 +49,8 @@ def Step(inject_key=""):
     else:
         print(",", "focus="+str(FocusSet))
     elapsed_time = end_time - start_time
-    if elapsed_time < 1.0 and "nosleep" not in sys.argv and "debug" not in sys.argv and "manual" not in sys.argv:
-        time.sleep(1.0 - elapsed_time)
+    if elapsed_time < 0.01 and "nosleep" not in sys.argv and "debug" not in sys.argv and "manual" not in sys.argv:
+        time.sleep(0.01 - elapsed_time)
     if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p", "enter"]:
         predworld = deepcopy(observed_world)
         score = 0.0
@@ -85,7 +85,7 @@ def Step(inject_key=""):
                 input()
 
 if "nogui" in sys.argv:
-    for Time in range(300):
+    for Time in range(30000):
         Step()
 if "nogui" in sys.argv:
     exit()

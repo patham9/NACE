@@ -27,6 +27,7 @@ from collections import deque
 from hypothesis import *
 from world import *
 import sys
+from dynaQ import Agent
 
 #Initializing the memory of the AI
 FocusSet = dict([])
@@ -36,13 +37,48 @@ worldchange = set([])
 RuleEvidence = dict([])
 observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
 nochange = False
+agent = Agent()
+
+def get_next_state_and_reward(Time, loc, observed_world, oldworld, action):
+    #global loc
+    action = {"left": left, "right": right, "up": up, "down": down}[action]
+    loc, newworld = World_Move(loc, deepcopy(oldworld), action)
+    observed_world, worldstate = World_FieldOfView(Time, loc, observed_world, oldworld, dyna=True)
+    return newworld, loc, worldstate, observed_world[VALUES][0] - oldworld[VALUES][0]
 
 #One observe-learn-plan-action cycle of the AI system
 def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negrules, oldworld, inject_key=""):
     global nochange
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
-    observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
+
+    #observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+    observed_world, worldstate = World_FieldOfView(Time, loc, observed_world, oldworld, dyna=True)
+    agent.set_last_state(worldstate)
+    print("!!!", agent.last_state)
+    action = agent.take_action(agent.last_state)
+    newworld, loc, s, r = get_next_state_and_reward(Time, loc, observed_world, oldworld, action)
+    agent.update_model(s, r)
+    agent.update_Q(s, r)
+    agent.planning_step(n_steps=50)
+    
+    #dummy
+    plan=[]
+    newnegrules=newrules=usedRules=[]
+    behavior = "ACHIEVE"
+    debuginput=""
+    lastplanworld=newworld
+    planworld=newworld
+    values=()
+    print("\033[1;1H\033[2J")
+    print(f"\033[0mWorld t={Time} beliefs={len(rules)}:\033[97;40m")
+    World_Print(newworld)
+    #dummy end
+    return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, lastplanworld, planworld, behavior, plan
+
+
+    """
+    
     Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, nochange)
     behavior = ""
     if "manual" not in sys.argv:
@@ -128,7 +164,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     if debuginput == "x":
         for x in rulesExcluded:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
-        input()
+        input()"""
     return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, lastplanworld, planworld, behavior, plan
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely

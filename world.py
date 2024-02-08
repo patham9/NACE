@@ -29,11 +29,11 @@ from copy import deepcopy
 #The worlds:
 world = """
 oooooooooooo
-o   o   f  o
-o          o
+o f oooooooo
+T   Tooooooo
 o   oooooooo
-o x        o
-o       u  o
+D x Dooooooo
+oooooooooooo
 oooooooooooo
 """
 _world2 = """
@@ -141,7 +141,7 @@ if "8" in _challenge:
 
 #World states:
 loc = (2,4)
-VIEWDISTX, VIEWDISTY = (3, 2)
+VIEWDISTX, VIEWDISTY = (2, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
       ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
@@ -292,7 +292,8 @@ def World_Print(world):
         print("".join(line))
 
 #The limited field of view the agent can observe dependent on view distance (partial observability)
-def World_FieldOfView(Time, loc, observed_world, world):
+def World_FieldOfView(Time, loc, observed_world, world, dyna=False):
+    observes=[]
     for y in range(VIEWDISTY*2+1):
         for x in range(VIEWDISTX*2+1):
             Y = loc[1]+y-VIEWDISTY
@@ -301,7 +302,11 @@ def World_FieldOfView(Time, loc, observed_world, world):
                X >= 0 and X < width:
                 observed_world[BOARD][Y][X] = world[BOARD][Y][X]
                 observed_world[TIMES][Y][X] = Time
+                if dyna:
+                    observes.append(observed_world[BOARD][Y][X])
     observed_world[VALUES] = deepcopy(world[VALUES])
+    if dyna:
+        return observed_world, tuple(observes)
     return observed_world
 
 #The world component represented as an immutable tuple
