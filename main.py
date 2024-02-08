@@ -274,15 +274,7 @@ else:
                 M[key] = plt.imread('textures/' + filename)
     planworld = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
     lastplanworld = planworld
-    pattern = [
-        "............",
-        "............",
-        "............",
-        "............",
-        "............",
-        "............",
-        "............"
-    ]
+    pattern = ["".join(["." for x in world[BOARD][i]]) for i in range(len(world[BOARD]))]
     colors = {
         ' ': 'white',
         ROBOT: 'red',

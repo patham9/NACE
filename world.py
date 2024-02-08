@@ -28,14 +28,16 @@ from copy import deepcopy
 
 #The worlds:
 world = """
-oooooooooooo
-o   o   f  o
-o          o
-o   oooooooo
-o x        o
-o       u  o
-oooooooooooo
+oooooo
+ox   o
+o z zo
+o   zo
+oz  fo
+oooooo
 """
+
+loc = (1,1)
+
 _world2 = """
 oooooooooooo
 o          o
@@ -123,7 +125,7 @@ if _slippery_input == "":
 else:
     _slippery = "y" in _slippery_input
 _isWorld5 = False
-if "2" in _challenge:
+"""if "2" in _challenge:
     world = _world2
 if "3" in _challenge:
     world = _world3
@@ -137,14 +139,15 @@ if "6" in _challenge:
 if "7" in _challenge:
     world = _world7
 if "8" in _challenge:
-    world = _world8
+    world = _world8"""
 
 #World states:
-loc = (2,4)
-VIEWDISTX, VIEWDISTY = (3, 2)
+#loc = (2,4)
+VIEWDISTX, VIEWDISTY = (4, 4)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
       ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
+initworld = deepcopy(world)
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
 world.append([[float("-inf") for i in range(width)] for j in range(height)])
@@ -230,21 +233,37 @@ def World_Move(loc, world, action):
         world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
     #SHOCK
     if world[BOARD][newloc[1]][newloc[0]] == SHOCK:
+        
         world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
+        world[BOARD][2][2] = SHOCK
+        world[BOARD][2][4] = SHOCK
+        world[BOARD][4][1] = SHOCK
+        #loc = newloc
+        #world[BOARD][loc[1]][loc[0]] = ROBOT
+        loc = (1, 1)
         world[BOARD][loc[1]][loc[0]] = ROBOT
+        #world[BOARD] = initworld[BOARD]
+        
+        
         world[VALUES] = tuple([world[VALUES][0] - 1] + list(world[VALUES][1:])) #the first value -1 and the rest stays
     #FOOD
     if world[BOARD][newloc[1]][newloc[0]] == FOOD:
         world[BOARD][loc[1]][loc[0]] = FREE
-        loc = newloc
+        world[BOARD][2][2] = SHOCK
+        world[BOARD][2][4] = SHOCK
+        world[BOARD][4][1] = SHOCK
+        #loc = newloc
+        #world[BOARD][loc[1]][loc[0]] = ROBOT
+        loc = (1, 1)
+        world[BOARD][newloc[1]][newloc[0]] = FOOD
         world[BOARD][loc[1]][loc[0]] = ROBOT
+        #world[BOARD] = initworld[BOARD]
         world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
-        while True:
-            x, y = (random.randint(0, width-1), random.randint(0, height-1))
-            if world[BOARD][y][x] == FREE:
-                world[BOARD][y][x] = FOOD
-                break
+        #while True:
+        #    x, y = (random.randint(0, width-1), random.randint(0, height-1))
+        #    if world[BOARD][y][x] == FREE:
+        #        world[BOARD][y][x] = FOOD
+        #        break
     #EGG
     if world[BOARD][newloc[1]][newloc[0]] == EGG and world[VALUES][1] == 0: #can only carry 1
         world[BOARD][newloc[1]][newloc[0]] = EGGPLACE
