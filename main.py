@@ -272,7 +272,7 @@ else:
                 key = os.path.splitext(filename)[0]
                 # Add to dictionary M
                 M[key] = plt.imread('textures/' + filename)
-    planworld = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
+    planworld = [[["." for x in range(width)] for i in range(height)], world[VALUES], world[TIMES]]
     lastplanworld = planworld
     pattern = [
         "............",

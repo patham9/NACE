@@ -1,4 +1,4 @@
-run_names = ["food_run", "food_rand"]
+run_names = ["soccer_run", "soccer_rand"]
 files = dict([])
 for run_name in run_names:
     for i in range(1,10+1):

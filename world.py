@@ -27,6 +27,12 @@ import random
 from copy import deepcopy
 
 #The worlds:
+_world0 = """
+    
+    
+    
+    
+"""
 world = """
 oooooooooooo
 o   o   f  o
@@ -123,6 +129,8 @@ if _slippery_input == "":
 else:
     _slippery = "y" in _slippery_input
 _isWorld5 = False
+if "0" in _challenge:
+    world = _world0
 if "2" in _challenge:
     world = _world2
 if "3" in _challenge:
@@ -141,7 +149,7 @@ if "8" in _challenge:
 
 #World states:
 loc = (2,4)
-VIEWDISTX, VIEWDISTY = (3, 2)
+VIEWDISTX, VIEWDISTY = (30, 20)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
       ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
@@ -151,24 +159,87 @@ world.append([[float("-inf") for i in range(width)] for j in range(height)])
 
 #Move operations to move the agent in the world:
 def left(loc):
+    if loc[0] -1 < 0:
+        return loc
     return (loc[0]-1, loc[1])
 
 def right(loc):
     if _isWorld5:
         return loc
+    if loc[0] + 1 > width-1:
+        return loc
     return (loc[0]+1, loc[1])
 
 def up(loc):
+    if loc[1]-1 < 0:
+        return loc
     return (loc[0],   loc[1]-1)
 
 def down(loc):
+    if loc[1]+1 > height:
+        return loc
     return (loc[0],   loc[1]+1)
+
+
+import gym
+# Create Frozen Lake environment
+env = gym.make('FrozenLake-v1', render_mode="human", is_slippery=False)
+
+# Reset the environment to start a new episode
+state = env.reset()
+
+# Render the initial state
+#env.render()
+loc = (0, 0)
+
+actionint={"left": 0, "down": 1, "right": 2, "up": 3,
+          left:  0,   down: 1,   right: 2,   up: 3}
+#python3 main.py world=0 slippery=n nopredictions
+
 
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
     if _slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
     newloc = action(loc)
+    (state, reward, finished, whatever, crap) = env.step(actionint[action])
+    if reward > 0: 
+        world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
+        world[BOARD][y][x] = FOOD
+    if finished:
+        env.reset()
+        newloc = (0, 0)
+    env.render()
+    grid_layout = env.desc
+
+
+    for y in range(height):
+        for x in range(width):
+            world[BOARD][y][x] = ' '
+    # Print the grid layout
+    for y,row in enumerate(grid_layout):
+        column = [x.decode() for x in row]
+        for x,c in enumerate(column):
+            if c == 'H':
+                world[BOARD][y][x] = SHOCK
+            if c == 'G':
+                world[BOARD][y][x] = FOOD
+    #
+    #    b'S': Start tile
+   # b'F': Frozen tile (safe)
+   # b'H': Hole (fall to your doom)
+   # b'G': Goal tile
+    #
+    
+    
+    for y in range(height):
+        for x in range(width):
+            if (y, x) == (newloc[1], newloc[0]):
+                world[BOARD][y][x] = ROBOT
+                #world[BOARD][y][x] = ' '
+    return newloc, [world[BOARD], world[VALUES], world[TIMES]]
+    
+    
     oldworld = deepcopy(world)
     #ROBOT MOVEMENT ON FREE SPACE
     if oldworld[BOARD][newloc[1]][newloc[0]] == FREE and (newloc[0] == width-1 or oldworld[BOARD][newloc[1]][newloc[0]+1] != BALL):
