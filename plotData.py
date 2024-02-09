@@ -71,7 +71,7 @@ for i, run_name in enumerate(run_names):
         alpha=0.1,
     )
 
-plt.axis([0, 300, 0, 100])
+plt.axis([0, 300, 0, 50])
 
 # Adding labels and a legend
 plt.xlabel('Time')
