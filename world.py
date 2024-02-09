@@ -245,7 +245,7 @@ def World_Move(loc, world, action):
         #world[BOARD] = initworld[BOARD]
         
         
-        world[VALUES] = tuple([world[VALUES][0] - 1] + list(world[VALUES][1:])) #the first value -1 and the rest stays
+        #world[VALUES] = tuple([world[VALUES][0] - 1] + list(world[VALUES][1:])) #the first value -1 and the rest stays
     #FOOD
     if world[BOARD][newloc[1]][newloc[0]] == FOOD:
         world[BOARD][loc[1]][loc[0]] = FREE
