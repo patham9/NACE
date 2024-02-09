@@ -1,4 +1,4 @@
-run_names = ["food_run", "food_rand"]
+run_names = ["frozen_run", "frozen_rand", "frozen_dyn"]
 files = dict([])
 for run_name in run_names:
     for i in range(1,10+1):
@@ -23,21 +23,30 @@ for run_name in run_names:
         if run_name not in syslists:
             syslists[run_name] = []
         syslists[run_name] += [scores]
+        if len(syslists[run_name]) > 300:
+            print("ISSUE!!!")
+            exit(0)
+
+for run_name in run_names:
+    for i,run in enumerate(syslists[run_name]):
+        if len(run) != 300:
+                print(f"ISSUE!!! {run_name}"+str(i+1), len(run))
 
 import ast
 import numpy as np
 import matplotlib.pyplot as plt
 
-total = 0
+total = dict([])
 syslistsavg = dict([])
 for run_name in run_names:
+    total[run_name] = 0
     syslistsavg[run_name] = [0 for i in range(len(syslists[run_name][0]))]
     for syslist in syslists[run_name]:
         for i,x in enumerate(syslist):
             syslistsavg[run_name][i] += x
-        total+=1
+        total[run_name]+=1
     for i,x in enumerate(syslistsavg[run_name]):
-        syslistsavg[run_name][i] /= total
+        syslistsavg[run_name][i] /= total[run_name]
     syslistsavg[run_name] = np.array(syslistsavg[run_name])
 
 # to check if syslists is a 2D array where all inner lists are of same length
@@ -50,8 +59,9 @@ except ValueError as e:
 
 # Plotting the average with standard deviation shading
 for i, run_name in enumerate(run_names):
-    colors=["green", "red"]
-    names = ["NACE Avg.", "Random Avg."]
+    colors=["green", "red", "blue"]
+    names = ["NACE Avg.", "Random Avg.", "DynaQ Avg."]
+    plt.title("Frozen Lake 4x4 (non-slippery)")
     plt.plot(syslistsavg[run_name], color=colors[i], label=names[i])
     plt.fill_between(
         range(len(syslistsavg[run_name])),
@@ -60,6 +70,8 @@ for i, run_name in enumerate(run_names):
         color=colors[i],
         alpha=0.1,
     )
+
+plt.axis([0, 300, 0, 100])
 
 # Adding labels and a legend
 plt.xlabel('Time')
