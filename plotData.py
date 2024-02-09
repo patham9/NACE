@@ -1,4 +1,4 @@
-run_names = ["food_run", "food_rand"]
+run_names = ["shock_run", "shock_rand"]
 files = dict([])
 for run_name in run_names:
     for i in range(1,10+1):
@@ -28,16 +28,17 @@ import ast
 import numpy as np
 import matplotlib.pyplot as plt
 
-total = 0
+total = dict([])
 syslistsavg = dict([])
 for run_name in run_names:
+    total[run_name] = 0
     syslistsavg[run_name] = [0 for i in range(len(syslists[run_name][0]))]
     for syslist in syslists[run_name]:
         for i,x in enumerate(syslist):
             syslistsavg[run_name][i] += x
-        total+=1
+        total[run_name]+=1
     for i,x in enumerate(syslistsavg[run_name]):
-        syslistsavg[run_name][i] /= total
+        syslistsavg[run_name][i] /= total[run_name]
     syslistsavg[run_name] = np.array(syslistsavg[run_name])
 
 # to check if syslists is a 2D array where all inner lists are of same length
