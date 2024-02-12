@@ -1,4 +1,4 @@
-<div style="text-align:center"><img alt="Non-Axiomatic Causal Explorer" src="https://github.com/patham9/NACE/assets/8284677/f3a77ec1-4d5d-498a-8edd-dd437ae6ba0e" height="250"></div>
+<div style="text-align:center"><img alt="Non-Axiomatic Causal Explorer" src="https://github.com/patham9/NACE/assets/8284677/09b4aea3-b6e0-4fc1-87d8-a8c238831d2d" height="250"></div>
 
 ## Aim
 
