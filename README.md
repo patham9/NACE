@@ -19,9 +19,9 @@ Several AI systems, as referenced in related works, employ a form of Cognitive S
 - Learning to collect batteries and to pick up keys in order to make it through doors: [World3](http://91.203.212.130/NACE/world3.gif)
 - Learning to collect salad with a moving cat as disturbance: [World4](http://91.203.212.130/NACE/world4.gif)
 - Learning to play Pong in the grid world: [World5](http://91.203.212.130/NACE/world5.gif)
-- Learning to bring eggs to the chicken: [World6](http://91.203.212.130/NACE/world5.gif)
+- Learning to bring eggs to the chicken: [World6](http://91.203.212.130/NACE/world6.gif)
 - Learning to play soccer: [World7](http://91.203.212.130/NACE/world7.gif)
-- Learning to collect salad while avoiding to get shocked by electric fences [World8](http://91.203.212.130/NACE/world7.gif)
+- Learning to collect salad while avoiding to get shocked by electric fences [World8](http://91.203.212.130/NACE/world8.gif)
 
 ## Related works:
 
