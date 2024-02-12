@@ -1,4 +1,4 @@
-<div style="text-align:center"><img src="https://github.com/patham9/NACE/assets/8284677/152ff170-772d-4d81-b74c-ae5d84190235" height="250"></div>
+<div style="text-align:center"><img alt="Non-Axiomatic Causal Explorer" src="https://github.com/patham9/NACE/assets/8284677/152ff170-772d-4d81-b74c-ae5d84190235" height="250"></div>
 
 ## Aim
 
@@ -12,6 +12,17 @@ Several AI systems, as referenced in related works, employ a form of Cognitive S
 
 ![image](https://github.com/patham9/NACE/assets/8284677/778e4639-e079-4cce-8a4f-caed7d139c46)
 
+## Demonstration scenarios
+
+- Learning to collect salad from scratch: [World1](http://91.203.212.130/NACE/world1.gif)
+- Learning how to put the cup on the table, in this case the goal is known to the agent: [World2](http://91.203.212.130/NACE/world2.gif)
+- Learning to collect batteries and to pick up keys in order to make it through doors: [World3](http://91.203.212.130/NACE/world3.gif)
+- Learning to collect salad with a moving cat as disturbance: [World4](http://91.203.212.130/NACE/world4.gif)
+- Learning to play Pong in the grid world: [World5](http://91.203.212.130/NACE/world5.gif)
+- Learning to bring eggs to the chicken: [World6](http://91.203.212.130/NACE/world5.gif)
+- Learning to play soccer: [World7](http://91.203.212.130/NACE/world7.gif)
+- Learning to collect salad while avoiding to get shocked by electric fences [World8](http://91.203.212.130/NACE/world7.gif)
+
 ## Related works:
 
 [Autonomous Intelligent Reinforcement Interpreted Symbolism (AIRIS)](https://github.com/berickcook/AIRIS_Public)
@@ -19,12 +30,3 @@ Several AI systems, as referenced in related works, employ a form of Cognitive S
 [OpenNARS for Applications (ONA)](https://github.com/opennars/OpenNARS-for-Applications/)
 
 [Rational OpenCog Controlled Agent (ROCCA)](https://github.com/opencog/rocca)
-
-## Demo videos:
-
-NACE Soccer: http://91.203.212.130/NACE/NACE_Soccer.mov
-
-AIRIS Project 2023 Demonstration: https://www.youtube.com/watch?v=40W2OmV_rm0
-
-OpenNARS for Applications v0.8.8 Demos: https://www.youtube.com/watch?v=oyQ250H5owE
-
