@@ -160,7 +160,7 @@ else:
                     ax.add_patch(Circle((j+0.5, -i+0.5), 0.25, facecolor=color, edgecolor='none', zorder=50, alpha=0.8))
                     if patt != "what" and (((lastaction is None and direction == "right") or lastaction == right) and patt == ROBOT) or patt.isupper():
                         patt += "2"
-                    if "notextures" not in sys.argv and patt != " " and patt != "what":
+                    if "notextures" not in sys.argv and patt != " ":
                         # Display the texture inside the rectangle using imshow
                         ax.imshow(M[patt], extent=(j+0.3, j + 0.7, -i+0.3, -i + 0.7), zorder=100)
                 patt = pattern[i][j]
