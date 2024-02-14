@@ -47,7 +47,7 @@ def _prettyTriplet(triplet):
     (y, x, value) = triplet[:3]
     if y >= 0: y = " " + str(y)
     if x >= 0: x = " " + str(x)
-    return "[" + str(x) + "," + str(y) + f" ]='{value}'"
+    return "shape[" + str(x) + "," + str(y) + f" ]='{value}'"
 
 def _prettyaction(action):
     return "^" + str(action).split("<function ")[1].split(" at")[0]
