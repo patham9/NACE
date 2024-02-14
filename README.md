@@ -10,7 +10,7 @@ Several AI systems, as referenced in related works, employ a form of Cognitive S
 
 ## Architecture
 
-![image](https://github.com/patham9/NACE/assets/8284677/778e4639-e079-4cce-8a4f-caed7d139c46)
+![image](https://github.com/patham9/NACE/assets/8284677/2911ac01-d73a-45cd-a8ce-aa2333e35435)
 
 ## Demonstration scenarios
 
