@@ -51,7 +51,7 @@ def Step(inject_key=""):
     elapsed_time = end_time - start_time
     if elapsed_time < 1.0 and "nosleep" not in sys.argv and "debug" not in sys.argv and "manual" not in sys.argv:
         time.sleep(1.0 - elapsed_time)
-    if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p", "enter"]:
+    if "debug" in sys.argv and debuginput != "" and debuginput not in ["w", "a", "s", "d", "l", "p", "enter", "b", "n", "t"]:
         predworld = deepcopy(observed_world)
         score = 0.0
         while True:
@@ -75,6 +75,12 @@ def Step(inject_key=""):
                 predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), up, usedRules)
             if d == 's':
                 predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), down, usedRules)
+            if d == 'b':
+                predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), pick, usedRules)
+            if d == 'n':
+                predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), drop, usedRules)
+            if d == 't':
+                predworld, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworld), toggle, usedRules)
             if d == 'l':
                 for x in rules:
                     Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
@@ -172,7 +178,7 @@ else:
                     # Display the texture inside the rectangle using imshow
                     ax.imshow(M[patt], extent=(j, j + 1, -i, -i + 1), zorder=10)
         # Map of actions to changes in x and y
-        action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1)}
+        action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1), pick: (0, 0), drop: (0, 0), toggle: (0, 0)}
         # Plot path
         if len(plan) > 0 and DrawPredictions:
             (x,y) = (loc[0]+0.5,-loc[1]+0.5)
@@ -215,11 +221,11 @@ else:
     predworldi = None
     def on_key(event):
         global predworldi
-        if event.key in ["w", "s", "a", "d", "p", "enter", "r"]:
+        if event.key in ["w", "s", "a", "d", "p", "enter", "r", "b", "n", "t"]:
             if predworldi is None and event.key != 'r':
                 Step(inject_key = event.key)
                 updateloc(event.key)
-                plot_pattern(observed_world[BOARD], observed_world[VALUES], event.key not in ["w", "s", "a", "d"])
+                plot_pattern(observed_world[BOARD], observed_world[VALUES], event.key not in ["w", "s", "a", "d", "b", "n", "t"])
             else:
                 if event.key == 'r':
                     predworldi = deepcopy(observed_world)
@@ -231,6 +237,12 @@ else:
                     predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), up, usedRules)
                 if event.key == 's':
                     predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), down, usedRules)
+                if event.key == 'b':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), pick, usedRules)
+                if event.key == 'n':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), drop, usedRules)
+                if event.key == 't':
+                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), toggle, usedRules)
                 plot_pattern(predworldi[BOARD], predworldi[VALUES], DrawPredictions=False)
         if event.key == "i":
             if predworldi is None:

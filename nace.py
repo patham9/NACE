@@ -82,6 +82,12 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         action = left
     if debuginput == "d":
         action = right
+    if debuginput == "b":
+        action = pick
+    if debuginput == "n":
+        action = drop
+    if debuginput == "t":
+        action = toggle
     if debuginput == 'l':
         for x in rules:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
@@ -167,6 +173,15 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     #while if the certaintly predicted world has lower value, set prediction score to the worst it can be
     if newworld[VALUES][0] == -1 and score == 1.0:
         score = float('inf')
+    #handling of the non-spatial pick/drop/toggle operations
+    VALS = list(newworld[VALUES])
+    if action == pick:
+        VALS[2] = True
+    if action == drop:
+        VALS[3] = True
+    if action == toggle:
+        VALS[4] = True
+    newworld[VALUES] = tuple(VALS)
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
@@ -256,6 +271,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
         if y<height-1 and newworld[BOARD][y+1][x] in FocusSet:
             changesets[0].add((y+1,x))
     #Build rules based on changes and prediction-observation mismatches
+    print(changesets)
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
             action_values_precondition = [action, oldworld[VALUES][1:]]
