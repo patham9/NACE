@@ -176,11 +176,11 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     #handling of the non-spatial pick/drop/toggle operations
     VALS = list(newworld[VALUES])
     if action == pick:
-        VALS[2] = True
-    if action == drop:
-        VALS[3] = True
-    if action == toggle:
-        VALS[4] = True
+        VALS[2] = pick
+    elif action == drop:
+        VALS[2] = drop
+    elif action == toggle:
+        VALS[2] = toggle
     newworld[VALUES] = tuple(VALS)
     return newworld, score, age, newworld[VALUES]
 
@@ -293,7 +293,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for pr in preconditions:
                 action_values_precondition.append(pr)
             rule = (tuple(action_values_precondition), (0, 0, newworld[BOARD][y1_abs][x1_abs], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))))
-            if len(preconditions) >= 2:
+            if len(preconditions) == 2:
                 RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #if rule conditions are only partly met or the predicted outcome is different than observed, build a specialized rule which has the precondition and conclusion corrected!
