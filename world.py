@@ -181,7 +181,7 @@ if "9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
     direction = dir_down
-    env = gym.make("MiniGrid-DoorKey-8x8-v0", render_mode='human')
+    env = gym.make("MiniGrid-BlockedUnlockPickup-v0", render_mode='human')
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
@@ -193,8 +193,8 @@ VIEWDISTX, VIEWDISTY = (3, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
       ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 initvals = tuple([0, 0])
-if "9" in _challenge:
-    initvals = tuple([0, 0, "none"])
+#if "9" in _challenge:
+#    initvals = tuple([0, 0, "none"])
 world=[[[*x] for x in world[1:-1].split("\n")], initvals]
 
 BOARD, VALUES, TIMES = (0, 1, 2)
@@ -216,12 +216,26 @@ def up(loc):
 def down(loc):
     return (loc[0],   loc[1]+1)
 
-def pick(loc):
-    return loc
-def drop(loc):
-    return loc
-def toggle(loc):
-    return loc
+def pick(loc): return loc
+def drop(loc): return loc
+def toggle(loc): return loc
+
+def pick_left(loc): return loc
+def drop_left(loc): return loc
+def toggle_left(loc): return loc
+
+def pick_right(loc): return loc
+def drop_right(loc): return loc
+def toggle_right(loc): return loc
+
+def pick_up(loc): return loc
+def drop_up(loc): return loc
+def toggle_up(loc): return loc
+
+def pick_down(loc): return loc
+def drop_down(loc): return loc
+def toggle_down(loc): return loc
+
 
 lastseen = set([])
 
@@ -230,225 +244,197 @@ def World_Move(loc, world, action):
     global lastseen, lastreward
     lastseen = set([])
     lastreward = 0
+    ActionIsPick = action == pick_left or action == pick_right or action == pick_down or action == pick_up
+    ActionIsDrop = action == drop_left or action == drop_right or action == drop_down or action == drop_up
+    ActionIsToggle = action == toggle_left or action == toggle_right or action == toggle_down or action == toggle_up
     if env is not None:
-        (_, __, lastAction) = world[VALUES]
-        lastActionIsPick = lastAction == pick
-        lastActionIsDrop = lastAction == drop
-        lastActionIsToggle = lastAction == toggle
-        """if action == pick:
-            minigrid_digest(env.step(action_pick))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_pick))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_pick))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_pick))
-            minigrid_digest(env.step(action_right))
-        if action == drop:
-            minigrid_digest(env.step(action_drop))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_drop))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_drop))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_drop))
-            minigrid_digest(env.step(action_right))
-        if action == toggle:
-            minigrid_digest(env.step(action_toggle))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_toggle))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_toggle))
-            minigrid_digest(env.step(action_right))
-            minigrid_digest(env.step(action_toggle))
-            minigrid_digest(env.step(action_right))"""
-        if action == left:
+        if action == left or action == pick_left or action == drop_left or action == toggle_left:
             if direction == dir_left:
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
-            """if lastActionIsPick:
+            """if ActionIsPick:
                 minigrid_digest(env.step(action_pick))
-            if lastActionIsDrop:
+            if ActionIsDrop:
                 minigrid_digest(env.step(action_drop))
-            if lastActionIsToggle:
+            if ActionIsToggle:
                 minigrid_digest(env.step(action_toggle))"""
-        if action == right:
+        if action == right or action == pick_right or action == drop_right or action == toggle_right:
             if direction == dir_right:
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
-            """if lastActionIsPick:
+            """if ActionIsPick:
                 minigrid_digest(env.step(action_pick))
-            if lastActionIsDrop:
+            if ActionIsDrop:
                 minigrid_digest(env.step(action_drop))
-            if lastActionIsToggle:
+            if ActionIsToggle:
                 minigrid_digest(env.step(action_toggle))"""
-        if action == up:
+        if action == up or action == pick_up or action == drop_up or action == toggle_up:
             if direction == dir_up:
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
-            """if lastActionIsPick:
+            """if ActionIsPick:
                 minigrid_digest(env.step(action_pick))
-            if lastActionIsDrop:
+            if ActionIsDrop:
                 minigrid_digest(env.step(action_drop))
-            if lastActionIsToggle:
+            if ActionIsToggle:
                 minigrid_digest(env.step(action_toggle))"""
-        if action == down:
+        if action == down or action == pick_down or action == drop_down or action == toggle_down:
             if direction == dir_down:
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
+                if ActionIsPick:
                     minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
+                elif ActionIsDrop:
                     minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
+                elif ActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
-            """if lastActionIsPick:
+            """if ActionIsPick:
                 minigrid_digest(env.step(action_pick))
-            if lastActionIsDrop:
+            if ActionIsDrop:
                 minigrid_digest(env.step(action_drop))
-            if lastActionIsToggle:
+            if ActionIsToggle:
                 minigrid_digest(env.step(action_toggle))"""
         newloc = env.agent_pos
         oldworld = deepcopy(world)
@@ -502,14 +488,14 @@ def World_Move(loc, world, action):
         i_inventory = 3
         j_inventory = 6
         V_inventory = lastimage[i_inventory,j_inventory][0]
-        lastaction = "none"
+        """lastaction = "none"
         if action == pick:
             lastaction = pick
         elif action == drop:
             lastaction = drop
         elif action == toggle:
-            lastaction = toggle
-        world[VALUES] = (lastreward, V_inventory, lastaction)
+            lastaction = toggle"""
+        world[VALUES] = (lastreward, V_inventory) #, lastaction)
         return loc, [world[BOARD], world[VALUES], world[TIMES]]
     
     
@@ -676,4 +662,8 @@ if _isWorld5:
     actions = [up, down, left]
     VIEWDISTX, VIEWDISTY = (4, 3)
 if isWorld9:
-    actions = [left, right, up, down, pick, drop, toggle]
+    actions = [left, right, up, down, 
+               pick_left, drop_left, toggle_left, 
+               pick_right, drop_right, toggle_right,
+               pick_up, drop_up, toggle_up,
+               pick_down, drop_down, toggle_down]

@@ -23,7 +23,7 @@
  * """
 
 def Prettyprint_Plan(actionlist):
-    return [_prettyaction(x) for x in actionlist[1:]]
+    return [_prettyaction(x) for x in actionlist[0:]]
 
 def Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, rule):
     actions_values_preconditions = rule[0]

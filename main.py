@@ -32,7 +32,10 @@ else:
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
-Hypothesis_UseMovementOpAssumptions(left, right, up, down, "DisableOpSymmetryAssumption" in sys.argv)
+Hypothesis_UseMovementOpAssumptions(left, right, up, down, 
+                                    pick_left, pick_right, pick_up, pick_down,
+                                    drop_left, drop_right, drop_up, drop_down,
+                                    toggle_left, toggle_right, toggle_up, toggle_down, "DisableOpSymmetryAssumption" in sys.argv)
 #Run the simulation in a loop for up to k steps:
 Time = -1
 behavior = "BABBLE"
@@ -178,7 +181,11 @@ else:
                     # Display the texture inside the rectangle using imshow
                     ax.imshow(M[patt], extent=(j, j + 1, -i, -i + 1), zorder=10)
         # Map of actions to changes in x and y
-        action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1), pick: (0, 0), drop: (0, 0), toggle: (0, 0)}
+        action_dict = {left: (-1, 0), right: (1, 0), up: (0, 1), down: (0, -1),
+                       pick_left: (-1, 0), pick_right: (1, 0), pick_up: (0, 1), pick_down: (0, -1),
+                       drop_left: (-1, 0), drop_right: (1, 0), drop_up: (0, 1), drop_down: (0, -1),
+                       toggle_left: (-1, 0), toggle_right: (1, 0), toggle_up: (0, 1), toggle_down: (0, -1),
+                        pick: (0, 0), drop: (0, 0), toggle: (0, 0)}
         # Plot path
         if len(plan) > 0 and DrawPredictions:
             (x,y) = (loc[0]+0.5,-loc[1]+0.5)

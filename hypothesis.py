@@ -28,9 +28,16 @@ from prettyprint import *
 import random
 
 #Register operations in case euclidean space operation alignment assumptions should be exploited which helps data efficiency
-def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag):
-    global left, right, up, down, DisableOpSymmetryAssumption
+def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, 
+                                        leftPickOp, rightPickOp, upPickOp, downPickOp, 
+                                        leftDropOp, rightDropOp, upDropOp, downDropOp,
+                                        leftToggleOp, rightToggleOp, upToggleOp, downToggleOp,  
+                                        DisableOpSymmetryAssumptionFlag):
+    global left, right, up, down, pick_left, pick_right, pick_up, pick_down, drop_left, drop_right, drop_up, drop_down, toggle_left, toggle_right, toggle_up, toggle_down, DisableOpSymmetryAssumption
     left, right, up, down, DisableOpSymmetryAssumption = (leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag)
+    pick_left, pick_right, pick_up, pick_down = (leftPickOp, rightPickOp, upPickOp, downPickOp)
+    drop_left, drop_right, drop_up, drop_down = (leftDropOp, rightDropOp, upDropOp, downDropOp)
+    toggle_left, toggle_right, toggle_up, toggle_down = (leftToggleOp, rightToggleOp, upToggleOp, downToggleOp)
 
 #The truth value of a hypothesis can be obtained directly from the positive and negative evidence counter
 def Hypothesis_TruthValue(wpn):
@@ -134,6 +141,30 @@ def _OpRotate(op):
         return up
     if op == up:
         return right
+    if op == pick_right:
+        return pick_down
+    if op == pick_down:
+        return pick_left
+    if op == pick_left:
+        return pick_up
+    if op == pick_up:
+        return pick_right
+    if op == drop_right:
+        return drop_down
+    if op == drop_down:
+        return drop_left
+    if op == drop_left:
+        return drop_up
+    if op == drop_up:
+        return drop_right
+    if op == toggle_right:
+        return toggle_down
+    if op == toggle_down:
+        return toggle_left
+    if op == toggle_left:
+        return toggle_up
+    if op == toggle_up:
+        return toggle_right
 
 #Rotate the conditions as well if euclidean op assumptions are allowed to be utilized
 def _ConditionRotate(cond):
@@ -171,9 +202,9 @@ def _Variants(FocusSet, rule): #explots euclidean space properties (knowledge ab
             if val == max_focus or rule[1][2] == max_focus:
                 max_focus_val = True
     for (y,x,v) in conditions:
-        if (action == left or action == right) and y != 0:
+        if (action == left or action == right or action == pick_left or action == pick_right or action == drop_left or action == drop_right or action == toggle_left or action == toggle_right) and y != 0:
             return []
-        if (action == up or action == down) and x != 0:
+        if (action == up or action == down or action == pick_up or action == pick_down or action == drop_up or action == drop_down or action == toggle_up or action == toggle_down) and x != 0:
             return []
     rules = [rule]
     action2 = _OpRotate(action)
@@ -181,12 +212,16 @@ def _Variants(FocusSet, rule): #explots euclidean space properties (knowledge ab
     action4 = _OpRotate(action3)
     if DisableOpSymmetryAssumption:
         return rules
-    if not max_focus_val:
+    """if not max_focus_val:
         rules.append((tuple([left, action_values_precons[1]] + list(conditions)), rule[1]))
         rules.append((tuple([right, action_values_precons[1]] + list(conditions)), rule[1]))
         rules.append((tuple([up, action_values_precons[1]] + list(conditions)), rule[1]))
-        rules.append((tuple([down, action_values_precons[1]] + list(conditions)), rule[1]))
-    if action != left and action != right and action != down and action != up: #not such an op where symmetry would apply
+        rules.append((tuple([down, action_values_precons[1]] + list(conditions)), rule[1]))"""
+    #not such an op where symmetry would apply
+    if action != left and action != right and action != down and action != up and \
+       action != pick_left and action != pick_right and action != pick_down and action != pick_up and \
+       action != drop_left and action != drop_right and action != drop_down and action != drop_up and \
+       action != toggle_left and action != toggle_right and action != toggle_down and action != toggle_up:
         return rules
     conditionlist2 = sorted([_ConditionRotate(x) for x in conditions])
     conditionlist3 = sorted([_ConditionRotate(x) for x in conditionlist2])

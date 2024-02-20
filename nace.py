@@ -55,8 +55,8 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[1;1H\033[2J")
     plan = []
     if "manual" not in sys.argv:
-        exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
-        explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
+        exploit_babble = random.random() > 0.8 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+        explore_babble = random.random() > 0.8 #since it might not know yet about all ops, exploring then can be limited
         if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
                 behavior = "EXPLORE"
@@ -65,8 +65,8 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
                 plan = favoured_actions_for_revisit
             else:
                 behavior = "BABBLE"
-                print(behavior)
                 action = random.choice(actions) #motorbabbling
+                print(behavior, action)
         else:
             behavior = "ACHIEVE" if airis_score == float("-inf") else "CURIOUS"
             print(behavior, Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
