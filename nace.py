@@ -405,9 +405,10 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                 else:
                     continue
                 CONTINUE = False
+                #print(len(values), values); input()
                 for i in range(len(values)):
-                    if values[i] != oldworld[VALUES][i+1]:
-                        CONTINUE = True
+                    if values[i] == oldworld[VALUES][i+1]:
+                        scores[rule] += 1.0
                 if CONTINUE:
                     continue
                 for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
@@ -418,7 +419,7 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                         scores[rule] += 1.0
                 if CONTINUE:
                     continue
-                scores[rule] /= (len(precondition)-2)
+                scores[rule] /= ((len(precondition)-2) + len(values))
                 if scores[rule] > 0.0 and (scores[rule] > highscore or (scores[rule] == highscore and highscorerule is not None and len(rule[0]) > len(highscorerule[0]))):
                     highscore = scores.get(rule, 0.0)
                     highscorerule = rule

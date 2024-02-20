@@ -270,7 +270,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_right))
@@ -280,7 +280,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_left))
@@ -290,7 +290,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_right))
@@ -301,7 +301,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
@@ -317,7 +317,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_left))
@@ -327,7 +327,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_right))
@@ -337,7 +337,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_right))
@@ -348,7 +348,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
@@ -364,7 +364,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_left))
@@ -374,7 +374,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_right))
@@ -384,7 +384,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_right))
@@ -395,7 +395,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
@@ -411,7 +411,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_right))
@@ -421,7 +421,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_left))
@@ -431,7 +431,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_right))
@@ -442,7 +442,7 @@ def World_Move(loc, world, action):
                     minigrid_digest(env.step(action_drop))
                 elif lastActionIsToggle:
                     minigrid_digest(env.step(action_toggle))
-                else:
+                if True:
                     minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
