@@ -272,6 +272,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for (y2_abs, x2_abs) in changeset:
                 (y2_rel, x2_rel) = (y2_abs-y1_abs, x2_abs-x1_abs)
                 condition = (y2_rel, x2_rel, oldworld[BOARD][y2_abs][x2_abs])
+                if oldworld[BOARD][y2_abs][x2_abs] == '.': #NECESSARY FOR EPISODE RESET ONLY
+                    CONTINUE = True
+                    break
                 if y2_rel > 1 or x2_rel > 0:
                     CONTINUE = True
                     break
@@ -317,6 +320,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                             break
                         if oldworld[BOARD][y+y_rel][x+x_rel] == max_focus:
                             has_focus_set_condition = True
+                        if oldworld[BOARD][y+y_rel][x+x_rel] == ".":
+                            CONTINUE = True
+                            break
                         corrected_preconditions.append((y_rel, x_rel, oldworld[BOARD][y+y_rel][x+x_rel]))
                     corrected_preconditions = sorted(corrected_preconditions)
                     if CONTINUE or not has_focus_set_condition:
