@@ -125,7 +125,7 @@ for arg in sys.argv:
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
 else:
-    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), input "1", "2", "3", "4", "5", "6", or "7":')
+    print('world=1 from 1 to 9 (selecting different minigrid scenarios):')
 if _challenge_input == "":
     _challenge = input()
 else:
@@ -180,16 +180,36 @@ def minigrid_digest(state):
         lastreward = state[1]
         #print("REARD!!!", lastreward, "!!!"); exit(0)
 
+
+worldstr = "MiniGrid-DoorKey-8x8-v0"
+if "world=2" in sys.argv:
+    worldstr = "MiniGrid-DoorKey-8x8-v0"
+if "world=3" in sys.argv:
+    worldstr = "MiniGrid-Empty-8x8-v0"
+if "world=4" in sys.argv:
+    worldstr = "MiniGrid-LavaGapS7-v0"
+if "world=5" in sys.argv:
+    worldstr = "MiniGrid-UnlockPickup-v0"
+if "world=6" in sys.argv:
+    worldstr = "MiniGrid-Unlock-v0"
+if "world=7" in sys.argv:
+    worldstr = "MiniGrid-DistShift2-v0"
+if "world=8" in sys.argv:
+    worldstr = "MiniGrid-SimpleCrossingS11N5-v0"
+if "world=9" in sys.argv:
+    print("WARNING world9 is poorly suppported!")
+    worldstr = "MiniGrid-BlockedUnlockPickup-v0"
+
 isWorld9 = False
 if True: #"9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
     _isWorld5 = False #TODO
     direction = dir_down
-    env = gym.make("MiniGrid-DoorKey-8x8-v0", render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0 (MiniGrid-BlockedUnlockPickup-v0 TODO)
+    env = gym.make(worldstr, render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0 (MiniGrid-BlockedUnlockPickup-v0 TODO)
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
-    print("Observation:", observation_reward_and_whatever)MiniGrid-DoorKey-8x8-v0
+    print("Observation:", observation_reward_and_whatever)
     env.render()
     world = _world9
     isWorld9 = True
