@@ -66,7 +66,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
             else:
                 behavior = "BABBLE"
                 print(behavior)
-                action = random.choice(actions) #motorbabbling
+                action = random.choice([left, right, up, down, drop, drop, drop]) #motorbabbling
         else:
             behavior = "ACHIEVE" if airis_score == float("-inf") else "CURIOUS"
             print(behavior, Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
@@ -173,19 +173,10 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     #while if the certaintly predicted world has lower value, set prediction score to the worst it can be
     if newworld[VALUES][0] == -1 and score == 1.0:
         score = float('inf')
-    #handling of the non-spatial pick/drop/toggle operations
-    VALS = list(newworld[VALUES])
-    if action == pick:
-        VALS[2] = pick
-    elif action == drop:
-        VALS[2] = drop
-    elif action == toggle:
-        VALS[2] = toggle
-    newworld[VALUES] = tuple(VALS)
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=20, max_queue_len=2000, customGoal = None):
+def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
     if "random" in sys.argv: return [random.choice([left, right, up, down])], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
@@ -405,10 +396,9 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                 else:
                     continue
                 CONTINUE = False
-                #print(len(values), values); input()
                 for i in range(len(values)):
-                    if values[i] == oldworld[VALUES][i+1]:
-                        scores[rule] += 1.0
+                    if values[i] != oldworld[VALUES][i+1]:
+                        CONTINUE = True
                 if CONTINUE:
                     continue
                 for (y_rel, x_rel, requiredstate) in action_score_and_preconditions[2:]:
@@ -419,7 +409,7 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
                         scores[rule] += 1.0
                 if CONTINUE:
                     continue
-                scores[rule] /= ((len(precondition)-2) + len(values))
+                scores[rule] /= (len(precondition)-2)
                 if scores[rule] > 0.0 and (scores[rule] > highscore or (scores[rule] == highscore and highscorerule is not None and len(rule[0]) > len(highscorerule[0]))):
                     highscore = scores.get(rule, 0.0)
                     highscorerule = rule

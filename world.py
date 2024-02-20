@@ -108,6 +108,7 @@ _world9 = """
             
             
             
+            
 """
 
 _challenge_input = ""
@@ -173,8 +174,9 @@ def minigrid_digest(state):
     #print(state[0]['image'].shape); exit(0)
     loc = env.agent_pos
     lastimage = state[0]["image"]
-    if len(state) == 5 and (lastreward == 0 or lastreward == None):
+    if len(state) == 5 and (lastreward == 0 or lastreward == None) and state[1] != 0:
         lastreward = state[1]
+        #print("REARD!!!", lastreward, "!!!"); exit(0)
 
 isWorld9 = False
 if "9" in _challenge:
@@ -225,16 +227,27 @@ def toggle(loc):
 
 lastseen = set([])
 
+def help(action):
+    if action != drop:
+        minigrid_digest(env.step(action_toggle))
+        minigrid_digest(env.step(action_pick))
+
+def hasEntry(world, VAL):
+    for y in range(height):
+        for x in range(width):
+            if world[BOARD][y][x] == VAL:
+                return True
+    return False
+
+
+hasReset = 0
+resetscore = 0
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
-    global lastseen, lastreward
+    global lastseen, lastreward, hasReset, resetscore
     lastseen = set([])
     lastreward = 0
     if env is not None:
-        (_, __, lastAction) = world[VALUES]
-        lastActionIsPick = lastAction == pick
-        lastActionIsDrop = lastAction == drop
-        lastActionIsToggle = lastAction == toggle
         """if action == pick:
             minigrid_digest(env.step(action_pick))
             minigrid_digest(env.step(action_right))
@@ -262,47 +275,34 @@ def World_Move(loc, world, action):
             minigrid_digest(env.step(action_right))
             minigrid_digest(env.step(action_toggle))
             minigrid_digest(env.step(action_right))"""
+        
+        
+        if action == drop: #drop below always
+            if direction == dir_down:
+                help(action);minigrid_digest(env.step(action_drop))
+            elif direction == dir_left:
+                minigrid_digest(env.step(action_left))
+                help(action);minigrid_digest(env.step(action_drop))
+            elif direction == dir_right:
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_drop))
+            elif direction == dir_up:
+                minigrid_digest(env.step(action_right))
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_drop))
         if action == left:
             if direction == dir_left:
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
             if lastActionIsDrop:
@@ -311,45 +311,17 @@ def World_Move(loc, world, action):
                 minigrid_digest(env.step(action_toggle))"""
         if action == right:
             if direction == dir_right:
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
             if lastActionIsDrop:
@@ -358,45 +330,17 @@ def World_Move(loc, world, action):
                 minigrid_digest(env.step(action_toggle))"""
         if action == up:
             if direction == dir_up:
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_down:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
             if lastActionIsDrop:
@@ -405,55 +349,28 @@ def World_Move(loc, world, action):
                 minigrid_digest(env.step(action_toggle))"""
         if action == down:
             if direction == dir_down:
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_right:
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_left:
                 minigrid_digest(env.step(action_left))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             if direction == dir_up:
                 minigrid_digest(env.step(action_right))
                 minigrid_digest(env.step(action_right))
-                if lastActionIsPick:
-                    minigrid_digest(env.step(action_pick))
-                elif lastActionIsDrop:
-                    minigrid_digest(env.step(action_drop))
-                elif lastActionIsToggle:
-                    minigrid_digest(env.step(action_toggle))
-                if True:
-                    minigrid_digest(env.step(action_forward))
+                help(action);minigrid_digest(env.step(action_forward))
             """if lastActionIsPick:
                 minigrid_digest(env.step(action_pick))
             if lastActionIsDrop:
                 minigrid_digest(env.step(action_drop))
             if lastActionIsToggle:
                 minigrid_digest(env.step(action_toggle))"""
+        #help(action)
         newloc = env.agent_pos
         oldworld = deepcopy(world)
         
-        M = {1: FREE, 2: WALL, 4: DOOR, 5: KEY, 6: BALL, 7: FREE, 8: FOOD}
+        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): DOOR, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL}
         for i in range(7):
             for j in reversed(range(7)):
                 if lastimage[i,j][0] == 0:
@@ -463,8 +380,8 @@ def World_Move(loc, world, action):
                     Y = newloc[1] + i - 3
                     lastseen.add((Y,X))
                     #print(lastimage); exit(0)
-                    V = lastimage[i,j][0]
-                    if V != 0:       
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0:       
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
                 if direction == dir_left:
@@ -472,8 +389,8 @@ def World_Move(loc, world, action):
                     Y = newloc[1] - i + 3
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
-                    V = lastimage[i,j][0]
-                    if V != 0:       
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0:       
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
                 
@@ -482,8 +399,8 @@ def World_Move(loc, world, action):
                     X = newloc[0] + i - 3
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
-                    V = lastimage[i,j][0]
-                    if V != 0:       
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0:       
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
                 if direction == dir_down:
@@ -491,8 +408,8 @@ def World_Move(loc, world, action):
                     X = newloc[0] - i + 3
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
-                    V = lastimage[i,j][0]
-                    if V != 0:       
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0:       
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
         
@@ -502,14 +419,14 @@ def World_Move(loc, world, action):
         i_inventory = 3
         j_inventory = 6
         V_inventory = lastimage[i_inventory,j_inventory][0]
-        lastaction = "none"
-        if action == pick:
-            lastaction = pick
-        elif action == drop:
-            lastaction = drop
-        elif action == toggle:
-            lastaction = toggle
-        world[VALUES] = (lastreward, V_inventory, lastaction)
+        if (hasEntry(oldworld, TABLE) and not hasEntry(world, TABLE)) or (hasEntry(oldworld, GOAL) and not hasEntry(world, GOAL)) or lastreward > 0:
+            lastreward = 1 #minigrid is not giving so we provide own reward
+            world[VALUES] = (lastreward, V_inventory)
+            hasReset = 2 #ugly double reset hack is needed
+            resetscore = world[VALUES][0]
+            minigrid_digest(env.reset())
+        else:
+            world[VALUES] = (lastreward, V_inventory)
         return loc, [world[BOARD], world[VALUES], world[TIMES]]
     
     
@@ -640,6 +557,7 @@ def World_Print(world):
 
 #The limited field of view the agent can observe dependent on view distance (partial observability)
 def World_FieldOfView(Time, loc, observed_world, world):
+    global hasReset
     """if env is not None:
         for y in range(height):
             for x in range(width):
@@ -648,6 +566,18 @@ def World_FieldOfView(Time, loc, observed_world, world):
                     observed_world[TIMES][y][x] = Time
         observed_world[VALUES] = deepcopy(world[VALUES])
         return observed_world"""
+    if hasReset > 0:
+        world[VALUES] = (resetscore, 0)
+        for y in range(height):
+            for x in range(width):
+                observed_world[BOARD][y][x] = '.'
+                world[BOARD][y][x] = FREE
+                observed_world[TIMES][y][x] = Time - 1000
+        observed_world[VALUES] = (resetscore, 0)
+        world[VALUES] = (resetscore, 0)
+        hasReset -= 1
+        #PRINT("RESET!!!!!!!!!!!!")
+        return observed_world
     for Y in range(height):
         for X in range(width):
             #if (Y, X) in lastseen:
@@ -676,4 +606,4 @@ if _isWorld5:
     actions = [up, down, left]
     VIEWDISTX, VIEWDISTY = (4, 3)
 if isWorld9:
-    actions = [left, right, up, down, pick, drop, toggle]
+    actions = [left, right, up, down, drop] #, pick, drop, toggle]
