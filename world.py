@@ -109,6 +109,8 @@ _world9 = """
             
             
             
+            
+            
 """
 
 _challenge_input = ""
@@ -184,7 +186,7 @@ if True: #"9" in _challenge:
     from minigrid.wrappers import *
     _isWorld5 = False #TODO
     direction = dir_down
-    env = gym.make("MiniGrid-DoorKey-8x8-v0", render_mode='human')
+    env = gym.make("MiniGrid-BlockedUnlockPickup-v0", render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
@@ -233,12 +235,13 @@ def help(action):
         minigrid_digest(env.step(action_toggle))
         minigrid_digest(env.step(action_pick))
 
-def hasEntry(world, VAL):
+def cntEntry(world, VAL):
+    cnt = 0
     for y in range(height):
         for x in range(width):
             if world[BOARD][y][x] == VAL:
-                return True
-    return False
+                cnt += 1
+    return cnt
 
 
 hasReset = 0
@@ -382,7 +385,7 @@ def World_Move(loc, world, action):
                     lastseen.add((Y,X))
                     #print(lastimage); exit(0)
                     V = (lastimage[i,j][0], lastimage[i,j][2])
-                    if V[0] != 0:       
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
                 if direction == dir_left:
@@ -391,7 +394,7 @@ def World_Move(loc, world, action):
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
                     V = (lastimage[i,j][0], lastimage[i,j][2])
-                    if V[0] != 0:       
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
                 
@@ -401,7 +404,7 @@ def World_Move(loc, world, action):
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
                     V = (lastimage[i,j][0], lastimage[i,j][2])
-                    if V[0] != 0:       
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
                 if direction == dir_down:
@@ -410,7 +413,7 @@ def World_Move(loc, world, action):
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
                     V = (lastimage[i,j][0], lastimage[i,j][2])
-                    if V[0] != 0:       
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:  
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
         
@@ -420,7 +423,9 @@ def World_Move(loc, world, action):
         i_inventory = 3
         j_inventory = 6
         V_inventory = lastimage[i_inventory,j_inventory][0]
-        if (hasEntry(oldworld, TABLE) and not hasEntry(world, TABLE)) or (hasEntry(oldworld, GOAL) and not hasEntry(world, GOAL)) or lastreward != 0:
+        if (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
+           (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
+           (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK)) or lastreward != 0:
             if lastreward > 0:
                 lastreward = 1 #minigrid is not giving so we provide own reward
             else:

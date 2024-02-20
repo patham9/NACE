@@ -197,7 +197,7 @@ else:
                 tx = x + dx
                 ty = y + dy
                 tvizloc = action(vizloc)
-                if nextstepworld[BOARD][tvizloc[1]][tvizloc[0]] == ROBOT:
+                if tvizloc[1] >= 0 and tvizloc[1] < height and tvizloc[0] >= 0 and tvizloc[0] < width and nextstepworld[BOARD][tvizloc[1]][tvizloc[0]] == ROBOT:
                     (x, y, vizloc) = (tx, ty, tvizloc)
         ax.set_xlim(0, width)  # Set the desired x-axis limits
         ax.set_ylim(-rows+1, 1)  # Set the desired y-axis limits
