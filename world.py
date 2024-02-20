@@ -186,10 +186,10 @@ if True: #"9" in _challenge:
     from minigrid.wrappers import *
     _isWorld5 = False #TODO
     direction = dir_down
-    env = gym.make("MiniGrid-BlockedUnlockPickup-v0", render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0
+    env = gym.make("MiniGrid-DoorKey-8x8-v0", render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0 MiniGrid-BlockedUnlockPickup-v0
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
-    print("Observation:", observation_reward_and_whatever)
+    print("Observation:", observation_reward_and_whatever)MiniGrid-DoorKey-8x8-v0
     env.render()
     world = _world9
     isWorld9 = True
