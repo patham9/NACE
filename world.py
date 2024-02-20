@@ -179,9 +179,10 @@ def minigrid_digest(state):
         #print("REARD!!!", lastreward, "!!!"); exit(0)
 
 isWorld9 = False
-if "9" in _challenge:
+if True: #"9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
+    _isWorld5 = False #TODO
     direction = dir_down
     env = gym.make("MiniGrid-DoorKey-8x8-v0", render_mode='human')
     observation_reward_and_whatever = env.reset()
@@ -370,7 +371,7 @@ def World_Move(loc, world, action):
         newloc = env.agent_pos
         oldworld = deepcopy(world)
         
-        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): DOOR, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL}
+        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): DOOR, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL, (9,0): SHOCK}
         for i in range(7):
             for j in reversed(range(7)):
                 if lastimage[i,j][0] == 0:
@@ -419,8 +420,11 @@ def World_Move(loc, world, action):
         i_inventory = 3
         j_inventory = 6
         V_inventory = lastimage[i_inventory,j_inventory][0]
-        if (hasEntry(oldworld, TABLE) and not hasEntry(world, TABLE)) or (hasEntry(oldworld, GOAL) and not hasEntry(world, GOAL)) or lastreward > 0:
-            lastreward = 1 #minigrid is not giving so we provide own reward
+        if (hasEntry(oldworld, TABLE) and not hasEntry(world, TABLE)) or (hasEntry(oldworld, GOAL) and not hasEntry(world, GOAL)) or lastreward != 0:
+            if lastreward > 0:
+                lastreward = 1 #minigrid is not giving so we provide own reward
+            else:
+                lastreward = -1
             world[VALUES] = (lastreward, V_inventory)
             hasReset = 2 #ugly double reset hack is needed
             resetscore = world[VALUES][0]
