@@ -185,7 +185,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
+def _Plan(Time, world, rules, actions, max_depth=20, max_queue_len=2000, customGoal = None):
     if "random" in sys.argv: return [random.choice([left, right, up, down])], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
@@ -207,7 +207,7 @@ def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customG
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
-            if new_world == current_world or new_score == float("inf"):
+            if (new_world[BOARD] == current_world[BOARD] and new_world[VALUES] == current_world[VALUES]) or new_score == float("inf"):
                 continue
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
@@ -241,8 +241,8 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 valuecount[val] += 1
     for y in range(height):
         for x in range(width):
-            if not _IsPresentlyObserved(Time, newworld, y, x):
-                continue
+            #if not _IsPresentlyObserved(Time, newworld, y, x):
+            #    continue
             val = oldworld[BOARD][y][x]
             if valuecount[val] == 1 and val not in FocusSet:
                 if x>0 and oldworld[BOARD][y][x-1] in FocusSet or \
@@ -281,6 +281,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for (y2_abs, x2_abs) in changeset:
                 (y2_rel, x2_rel) = (y2_abs-y1_abs, x2_abs-x1_abs)
                 condition = (y2_rel, x2_rel, oldworld[BOARD][y2_abs][x2_abs])
+                if y2_rel > 1 or x2_rel > 0:
+                    CONTINUE = True
+                    break
                 if Hypothesis_ValidCondition(condition):
                     preconditions.append(condition)
                     if y2_rel == 0 and x2_rel == 0:
@@ -305,8 +308,8 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if not _IsPresentlyObserved(Time, newworld, y, x):
-                continue
+            #if not _IsPresentlyObserved(Time, newworld, y, x):
+            #    continue
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in oldrules:
             if _RuleApplicable(scores, highscore, highesthighscore, rule):
@@ -335,8 +338,8 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     #Crisp match: Add negative evidence for rules which prediction contradicts observation (in a classical AIRIS implementation restricted to deterministic worlds: this part would remove contradicting rules from the rule set and would ensure they can't be re-induced)
     for y in range(height):
         for x in range(width):
-            if not _IsPresentlyObserved(Time, newworld, y, x):
-                continue
+            #if not _IsPresentlyObserved(Time, newworld, y, x):
+            #    continue
             for rule in oldrules: #find rules which don't work, and add negative evidence for them (classical AIRIS: remove them and add them to newnegrules)
                 (precondition, consequence) = rule
                 action_score_and_preconditions = list(precondition)
@@ -423,6 +426,7 @@ def _MatchHypotheses(FocusSet, oldworld, action, rules):
             if highscore > highesthighscore:
                 highesthighscore = highscore
     return (positionscores, highesthighscore)
+
 
 #Whether a rule is applicable: only if it matches better than not at all, and as well as the best matching rule
 def _RuleApplicable(scores, highscore, highesthighscore, rule):
