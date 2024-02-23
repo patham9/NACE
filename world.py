@@ -398,7 +398,7 @@ def World_Move(loc, world, action):
         newloc = env.agent_pos
         oldworld = deepcopy(world)
         
-        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): DOOR, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL, (9,0): SHOCK}
+        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): FREE, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL, (9,0): SHOCK}
         for i in range(7):
             for j in reversed(range(7)):
                 if lastimage[i,j][0] == 0:

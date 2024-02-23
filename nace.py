@@ -55,7 +55,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[1;1H\033[2J")
     plan = []
     if "manual" not in sys.argv:
-        exploit_babble = random.random() > (1.0 if airis_score == float("-inf") else 1.0) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+        exploit_babble = random.random() > (1.0 if airis_score == float("-inf") else 0.9) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
         explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
         if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
@@ -176,8 +176,8 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
-    if "random" in sys.argv: return [random.choice([left, right, up, down])], float("-inf"), [], 0
+def _Plan(Time, world, rules, actions, max_depth=20, max_queue_len=2000, customGoal = None):
+    if "random" in sys.argv: return [random.choice([left, right, up, down, drop])], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -223,6 +223,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     newnegrules = deepcopy(oldnegrules)
     changesets = [set([]), set([])]
     valuecount, valuecount_remembered = (dict([]), dict([]))
+    ROBOTYX = (0,0)
     for y in range(height):
         for x in range(width):
             val = oldworld[BOARD][y][x]
@@ -230,6 +231,8 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 valuecount[val] = 1
             else:
                 valuecount[val] += 1
+            if newworld[BOARD][y][x] == ROBOT:
+                 ROBOTYX = (y,x)
     for y in range(height):
         for x in range(width):
             #if not _IsPresentlyObserved(Time, newworld, y, x):
@@ -242,25 +245,34 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                    y>0 and oldworld[BOARD][y-1][x] in FocusSet:
                     FocusSet[val] = 0
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
-                changesets[0].add((y, x))
+                if abs(y-ROBOTYX[0]) + abs(x-ROBOTYX[1]) <= 1:
+                    changesets[0].add((y, x))
                 if valuecount[val] == 1: #unique
                     if val not in FocusSet:
                         FocusSet[val] = 1
                     else:
                         FocusSet[val] += 1
-            if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
-                changesets[1].add((y, x))
+    for y in range(height):
+        for x in range(width):
+            if len(changesets[0]) < 2 and predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
+                if abs(y-ROBOTYX[0]) + abs(x-ROBOTYX[1]) <= 1:
+                    changesets[0].add((y, x))
     #if there was a change next to a non-changing focus set element
-    chgset = deepcopy(changesets[0])
-    for (y,x) in chgset:
-        if x>0 and newworld[BOARD][y][x-1] in FocusSet:
-            changesets[0].add((y,x-1))
-        if x<width-1 and newworld[BOARD][y][x+1] in FocusSet:
-            changesets[0].add((y,x+1))
-        if y>0 and newworld[BOARD][y-1][x] in FocusSet:
-            changesets[0].add((y-1,x))
-        if y<height-1 and newworld[BOARD][y+1][x] in FocusSet:
-            changesets[0].add((y+1,x))
+    if len(changesets[0]) < 2:
+        chgset = deepcopy(changesets[0])
+        for (y,x) in chgset:
+            if x>0 and newworld[BOARD][y][x-1] in FocusSet:
+                if abs(y-ROBOTYX[0]) + abs(x-1-ROBOTYX[1]) <= 1:
+                    changesets[0].add((y,x-1))
+            if x<width-1 and newworld[BOARD][y][x+1] in FocusSet:
+                if abs(y-ROBOTYX[0]) + abs(x+1-ROBOTYX[1]) <= 1:
+                    changesets[0].add((y,x+1))
+            if y>0 and newworld[BOARD][y-1][x] in FocusSet:
+                if abs(y-1-ROBOTYX[0]) + abs(x-ROBOTYX[1]) <= 1:
+                    changesets[0].add((y-1,x))
+            if y<height-1 and newworld[BOARD][y+1][x] in FocusSet:
+                if abs(y+1-ROBOTYX[0]) + abs(x-ROBOTYX[1]) <= 1:
+                    changesets[0].add((y+1,x))
     #Build rules based on changes and prediction-observation mismatches
     print(changesets)
     for changeset in changesets:
