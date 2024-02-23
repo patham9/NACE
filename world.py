@@ -450,7 +450,7 @@ def World_Move(loc, world, action):
         if (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
            (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
            (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK)) or lastreward != 0:
-            if lastreward > 0:
+            if lastreward > 0 or (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)):
                 lastreward = 1 #minigrid is not giving so we provide own reward
             else:
                 lastreward = -1
