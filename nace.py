@@ -55,7 +55,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[1;1H\033[2J")
     plan = []
     if "manual" not in sys.argv:
-        exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+        exploit_babble = random.random() > (1.0 if airis_score == float("-inf") else 1.0) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
         explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
         if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
@@ -65,8 +65,10 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
                 plan = favoured_actions_for_revisit
             else:
                 behavior = "BABBLE"
-                print(behavior)
-                action = random.choice(actions) #motorbabbling
+                actli = deepcopy(actions)
+                if drop in actli:
+                    actli += [drop, drop] #TODO
+                action = random.choice(actli) #motorbabbling
         else:
             behavior = "ACHIEVE" if airis_score == float("-inf") else "CURIOUS"
             print(behavior, Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
@@ -82,6 +84,12 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         action = left
     if debuginput == "d":
         action = right
+    if debuginput == "b":
+        action = pick
+    if debuginput == "n":
+        action = drop
+    if debuginput == "t":
+        action = toggle
     if debuginput == 'l':
         for x in rules:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
@@ -171,7 +179,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
 def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
-    if "random" in sys.argv: return [random.choice([left, right, up, down])], float("-inf"), [], 0
+    if "random" in sys.argv: return [random.choice(actions)], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -192,7 +200,7 @@ def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customG
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
-            if new_world == current_world or new_score == float("inf"):
+            if (new_world[BOARD] == current_world[BOARD] and new_world[VALUES] == current_world[VALUES]) or new_score == float("inf"):
                 continue
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
