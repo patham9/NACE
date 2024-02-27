@@ -234,7 +234,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 valuecount[val] += 1
     for y in range(height):
         for x in range(width):
-            if not _IsPresentlyObserved(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
                 continue
             val = oldworld[BOARD][y][x]
             if valuecount[val] == 1 and val not in FocusSet:
@@ -300,7 +300,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if not _IsPresentlyObserved(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and oldworld[BOARD][y][x] != max_focus and not (newworld[BOARD][y][x] == '.' and oldworld[BOARD][y][x] != '.'):
                 continue
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in oldrules:
@@ -333,7 +333,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     #Crisp match: Add negative evidence for rules which prediction contradicts observation (in a classical AIRIS implementation restricted to deterministic worlds: this part would remove contradicting rules from the rule set and would ensure they can't be re-induced)
     for y in range(height):
         for x in range(width):
-            if not _IsPresentlyObserved(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and oldworld[BOARD][y][x] != max_focus and not (newworld[BOARD][y][x] == '.' and oldworld[BOARD][y][x] != '.'):
                 continue
             for rule in oldrules: #find rules which don't work, and add negative evidence for them (classical AIRIS: remove them and add them to newnegrules)
                 (precondition, consequence) = rule
