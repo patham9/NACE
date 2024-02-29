@@ -201,7 +201,6 @@ if "17" == _challenge:
 if "18" == _challenge:
     worldstr = "MiniGrid-UnlockPickup-v0"
 if "19" == _challenge:
-    print("WARNING world9 is poorly suppported!")
     worldstr = "MiniGrid-BlockedUnlockPickup-v0"
 
 isWorld9 = int(_challenge) >= 10 #Minigrid challenges start at that index
@@ -584,6 +583,10 @@ def World_Print(world):
 #The limited field of view the agent can observe dependent on view distance (partial observability)
 def World_FieldOfView(Time, loc, observed_world, world):
     global hasReset
+    for Y in range(height):
+        for X in range(width):
+            if observed_world[TIMES][Y][X] == Time:
+                observed_world[TIMES][Y][X] = Time - 1 #WHY can this ever happen??? DEBUG!
     if env is None:
         for y in range(VIEWDISTY*2+1):
             for x in range(VIEWDISTX*2+1):
@@ -608,12 +611,8 @@ def World_FieldOfView(Time, loc, observed_world, world):
             return observed_world
         for Y in range(height):
             for X in range(width):
-                #if (Y, X) in lastseen:
-                if observed_world[TIMES][Y][X] == Time:
-                    observed_world[TIMES][Y][X] = Time - 1 #WHY can this ever happen??? DEBUG!
                 if observed_world[BOARD][Y][X] == ROBOT:
                     observed_world[BOARD][Y][X] = FREE
-                        #exit(0)
         for Y in range(height):
             for X in range(width):
                 if (Y, X) in lastseen:

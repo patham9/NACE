@@ -115,8 +115,9 @@ else:
         c = colorsys.rgb_to_hls(*mc.to_rgb(c))
         return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
+    predicted_certainty = None
     def plot_pattern(pattern, values, DrawPredictions=True):
-        global loc
+        global loc, predicted_certainty
         if DrawPredictions and "nopredictions" in sys.argv:
             DrawPredictions = False
         rows = len(pattern)
@@ -191,7 +192,7 @@ else:
                     ax.add_patch(FancyArrow(x, y, dx, dy, color='black', width=0.01, head_width=0.1, head_length=0.2))
                 else:
                     ax.add_line(Line2D([x, x + dx], [y, y + dy], color='black'))
-                nextstepworld, _, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(nextstepworld), action, usedRules)
+                nextstepworld, predscore, __, ___ = NACE_Predict(Time, FocusSet, deepcopy(nextstepworld), action, usedRules)
                 #now check if there is indeed a robot predicted to be there
                 #(to take into account that the agent indeed knows how location is affected, which matters for visualization, as in egg world)
                 tx = x + dx
@@ -207,7 +208,7 @@ else:
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.grid(False)
-        plt.title(behavior + " score=" + str(values[0]) + " vars="+str(list(values[1:])))
+        plt.title(behavior + " score=" + str(values[0]) + " vars="+str(list(values[1:])) + ("" if predicted_certainty is None else " certainty="+str(predicted_certainty)))
         plt.draw()
 
     def updateloc(key=""):
@@ -220,7 +221,8 @@ else:
 
     predworldi = None
     def on_key(event):
-        global predworldi
+        global predworldi, predicted_certainty
+        predicted_certainty = None
         if event.key in ["w", "s", "a", "d", "p", "enter", "r", "b", "n", "t"]:
             if predworldi is None and event.key != 'r':
                 Step(inject_key = event.key)
@@ -229,20 +231,24 @@ else:
             else:
                 if event.key == 'r':
                     predworldi = deepcopy(observed_world)
-                if event.key == 'a':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), left, usedRules)
-                if event.key == 'd':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), right, usedRules)
-                if event.key == 'w':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), up, usedRules)
-                if event.key == 's':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), down, usedRules)
-                if event.key == 'b':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), pick, usedRules)
-                if event.key == 'n':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), drop, usedRules)
-                if event.key == 't':
-                    predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), toggle, usedRules)
+                    predicted_certainty = 1.0
+                else:
+                    if event.key == 'a':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), left, usedRules)
+                    if event.key == 'd':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), right, usedRules)
+                    if event.key == 'w':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), up, usedRules)
+                    if event.key == 's':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), down, usedRules)
+                    if event.key == 'b':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), pick, usedRules)
+                    if event.key == 'n':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), drop, usedRules)
+                    if event.key == 't':
+                        predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), toggle, usedRules)
+                    if score >= 0.0 and score <= 1.0:
+                        predicted_certainty = score
                 plot_pattern(predworldi[BOARD], predworldi[VALUES], DrawPredictions=False)
         if event.key == "i":
             if predworldi is None:

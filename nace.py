@@ -55,10 +55,10 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[1;1H\033[2J")
     plan = []
     if "manual" not in sys.argv:
-        curiosity_babble = 0.9
+        curiosity_babble = 1.0
         exploit_babble = random.random() > (1.0 if airis_score == float("-inf") else curiosity_babble) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
         explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
-        if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
+        if airis_score >= 0.9 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
                 behavior = "EXPLORE"
                 print(behavior, Prettyprint_Plan(favoured_actions_for_revisit), "age:", oldest_age)
@@ -201,7 +201,7 @@ def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customG
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
-            if (new_world[BOARD] == current_world[BOARD] and new_world[VALUES] == current_world[VALUES]) or new_score == float("inf"):
+            if new_world == current_world or new_score == float("inf"):
                 continue
             new_Planned_actions = planned_actions + [action]
             if new_score < best_score or (new_score == best_score and len(new_Planned_actions) < len(best_actions)):
@@ -220,12 +220,27 @@ def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customG
 def _IsPresentlyObserved(Time, world, y, x):
     return Time - world[TIMES][y][x] == 0
 
+#Build adjacent consideration set
+def _AddToAdjacentSet(consideredSets, newEntry, MaxCapacity, CanCreateNewSet):
+    (y, x) = newEntry
+    AdjacentToAnySet = False
+    for consideredSet in consideredSets:
+        consideredSetFrozen = deepcopy(consideredSet)
+        for (ys, xs) in consideredSetFrozen:
+            if abs(y - ys) + abs(x - xs) <= 1:
+                if len(consideredSet) < MaxCapacity:
+                    consideredSet.add(newEntry)
+                AdjacentToAnySet = True
+    if not AdjacentToAnySet and CanCreateNewSet:
+        consideredSets.append(set([newEntry]))
+
 #Extract new rules from the observations by looking only for observed changes and prediction-observation mismatches
 def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
-    changesets = [set([]), set([])]
+    changesets = []
     valuecount, valuecount_remembered = (dict([]), dict([]))
+    #Keep track of cell type counts
     for y in range(height):
         for x in range(width):
             val = oldworld[BOARD][y][x]
@@ -233,37 +248,48 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 valuecount[val] = 1
             else:
                 valuecount[val] += 1
+    #Update FocusSet based on unique values and unique changing values
     for y in range(height):
         for x in range(width):
             if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
                 continue
             val = oldworld[BOARD][y][x]
             if valuecount[val] == 1 and val not in FocusSet:
-                if x>0 and oldworld[BOARD][y][x-1] in FocusSet or \
-                   x<width-1 and oldworld[BOARD][y][x+1] in FocusSet or \
-                   y<height-1 and oldworld[BOARD][y+1][x] in FocusSet or \
-                   y>0 and oldworld[BOARD][y-1][x] in FocusSet:
-                    FocusSet[val] = 0
+                FocusSet[val] = 0
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
-                changesets[0].add((y, x))
                 if valuecount[val] == 1: #unique
                     if val not in FocusSet:
                         FocusSet[val] = 1
                     else:
                         FocusSet[val] += 1
-            if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
-                changesets[1].add((y, x))
-    #if there was a change next to a non-changing focus set element
-    chgset = deepcopy(changesets[0])
-    for (y,x) in chgset:
-        if x>0 and newworld[BOARD][y][x-1] in FocusSet:
-            changesets[0].add((y,x-1))
-        if x<width-1 and newworld[BOARD][y][x+1] in FocusSet:
-            changesets[0].add((y,x+1))
-        if y>0 and newworld[BOARD][y-1][x] in FocusSet:
-            changesets[0].add((y-1,x))
-        if y<height-1 and newworld[BOARD][y+1][x] in FocusSet:
-            changesets[0].add((y+1,x))
+    #Add change sets
+    changesets = []
+    for y in range(height):
+        for x in range(width):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
+                continue
+            if oldworld[BOARD][y][x] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] != '.':
+                _AddToAdjacentSet(changesets, (y, x), MaxCapacity=3, CanCreateNewSet=True)
+    #Add prediction mismatch entries to adjacent change set entry
+    for y in range(height):
+        for x in range(width):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
+                continue
+            if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] != '.':
+                _AddToAdjacentSet(changesets, (y,x), MaxCapacity=2, CanCreateNewSet=True)
+    #if there was a change next to a focus set element (spatial dependency)
+    chgsets = deepcopy(changesets)
+    for changeset in chgsets:
+        for (y,x) in changeset:
+            if x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
+                _AddToAdjacentSet(changesets, (y,x-1), MaxCapacity=3, CanCreateNewSet=False)
+            if x<width-1 and newworld[BOARD][y][x+1] in FocusSet and oldworld[BOARD][y][x+1] != '.':
+                _AddToAdjacentSet(changesets, (y,x+1), MaxCapacity=3, CanCreateNewSet=False)
+            if y>0 and newworld[BOARD][y-1][x] in FocusSet and oldworld[BOARD][y-1][x] != '.':
+                _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
+            if y<height-1 and newworld[BOARD][y+1][x] in FocusSet and oldworld[BOARD][y+1][x] != '.':
+                _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
+    print(chgsets)
     #Build rules based on changes and prediction-observation mismatches
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
