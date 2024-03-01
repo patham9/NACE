@@ -55,9 +55,9 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[1;1H\033[2J")
     plan = []
     if "manual" not in sys.argv:
-        curiosity_babble = 1.0
-        exploit_babble = random.random() > (1.0 if airis_score == float("-inf") else curiosity_babble) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
-        explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
+        curiosity_babble_rate, exploit_babble_rate, explore_babble_rate = (1.0, 1.0, 1.0)
+        exploit_babble = random.random() > (exploit_babble_rate if airis_score == float("-inf") else curiosity_babble_rate) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+        explore_babble = random.random() > explore_babble_rate #since it might not know yet about all ops, exploring then can be limited
         if airis_score >= 0.9 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
                 behavior = "EXPLORE"
