@@ -281,13 +281,13 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     chgsets = deepcopy(changesets)
     for changeset in chgsets:
         for (y,x) in changeset:
-            if x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
+            if action == right and x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
                 _AddToAdjacentSet(changesets, (y,x-1), MaxCapacity=3, CanCreateNewSet=False)
-            if x<width-1 and newworld[BOARD][y][x+1] in FocusSet and oldworld[BOARD][y][x+1] != '.':
+            if action == left and x<width-1 and newworld[BOARD][y][x+1] in FocusSet and oldworld[BOARD][y][x+1] != '.':
                 _AddToAdjacentSet(changesets, (y,x+1), MaxCapacity=3, CanCreateNewSet=False)
-            if y>0 and newworld[BOARD][y-1][x] in FocusSet and oldworld[BOARD][y-1][x] != '.':
+            if (action == down or action == drop) and y>0 and newworld[BOARD][y-1][x] in FocusSet and oldworld[BOARD][y-1][x] != '.':
                 _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
-            if y<height-1 and newworld[BOARD][y+1][x] in FocusSet and oldworld[BOARD][y+1][x] != '.':
+            if action == up and y<height-1 and newworld[BOARD][y+1][x] in FocusSet and oldworld[BOARD][y+1][x] != '.':
                 _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
     print(chgsets)
     #Build rules based on changes and prediction-observation mismatches
