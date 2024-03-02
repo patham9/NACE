@@ -54,8 +54,18 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         debuginput = input()
     print("\033[1;1H\033[2J")
     plan = []
+    all_actions_tried = False
     if "manual" not in sys.argv:
-        curiosity_babble_rate, exploit_babble_rate, explore_babble_rate = (1.0, 1.0, 1.0)
+        actionlist = set(actions)
+        #make motorbabbling on curiosity&exploration dependent on whether there are still untried actions
+        for rule in rules:
+            (precondition, consequence) = rule
+            action = precondition[0]
+            if action in actionlist:
+                actionlist.remove(action)
+        all_actions_tried = len(actionlist) == 0
+        explore_curiosity_modulator = 1.0 if all_actions_tried else 0.5 #1.0 if all_actions_tried and world_is_novel else 0.5
+        curiosity_babble_rate, exploit_babble_rate, explore_babble_rate = (explore_curiosity_modulator, 1.0, explore_curiosity_modulator)
         exploit_babble = random.random() > (exploit_babble_rate if airis_score == float("-inf") else curiosity_babble_rate) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
         explore_babble = random.random() > explore_babble_rate #since it might not know yet about all ops, exploring then can be limited
         if airis_score >= 0.9 or exploit_babble or len(favoured_actions) == 0:
@@ -138,6 +148,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         for x in rulesExcluded:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
         input()
+    #print("ALL ACTIONS TRIED?", all_actions_tried)
     return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, lastplanworld, planworld, behavior, plan
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely
@@ -270,6 +281,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 continue
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] != '.':
                 _AddToAdjacentSet(changesets, (y, x), MaxCapacity=3, CanCreateNewSet=True)
+    changesetslen = len(changesets) #the length of change set only
     #Add prediction mismatch entries to adjacent change set entry
     for y in range(height):
         for x in range(width):
@@ -281,13 +293,13 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     chgsets = deepcopy(changesets)
     for changeset in chgsets:
         for (y,x) in changeset:
-            if action == right and x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
+            if x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
                 _AddToAdjacentSet(changesets, (y,x-1), MaxCapacity=3, CanCreateNewSet=False)
-            if action == left and x<width-1 and newworld[BOARD][y][x+1] in FocusSet and oldworld[BOARD][y][x+1] != '.':
+            if x<width-1 and newworld[BOARD][y][x+1] in FocusSet and oldworld[BOARD][y][x+1] != '.':
                 _AddToAdjacentSet(changesets, (y,x+1), MaxCapacity=3, CanCreateNewSet=False)
-            if (action == down or action == drop) and y>0 and newworld[BOARD][y-1][x] in FocusSet and oldworld[BOARD][y-1][x] != '.':
+            if y>0 and newworld[BOARD][y-1][x] in FocusSet and oldworld[BOARD][y-1][x] != '.':
                 _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
-            if action == up and y<height-1 and newworld[BOARD][y+1][x] in FocusSet and oldworld[BOARD][y+1][x] != '.':
+            if y<height-1 and newworld[BOARD][y+1][x] in FocusSet and oldworld[BOARD][y+1][x] != '.':
                 _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
     print(chgsets)
     #Build rules based on changes and prediction-observation mismatches

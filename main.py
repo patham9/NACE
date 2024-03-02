@@ -233,6 +233,7 @@ else:
                     predworldi = deepcopy(observed_world)
                     predicted_certainty = 1.0
                 else:
+                    score = 1.0
                     if event.key == 'a':
                         predworldi, score, age, values = NACE_Predict(Time, FocusSet, deepcopy(predworldi), left, usedRules)
                     if event.key == 'd':
