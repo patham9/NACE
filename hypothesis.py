@@ -28,9 +28,9 @@ from prettyprint import *
 import random
 
 #Register operations in case euclidean space operation alignment assumptions should be exploited which helps data efficiency
-def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag):
-    global left, right, up, down, DisableOpSymmetryAssumption
-    left, right, up, down, DisableOpSymmetryAssumption = (leftOp, rightOp, upOp, downOp, DisableOpSymmetryAssumptionFlag)
+def Hypothesis_UseMovementOpAssumptions(leftOp, rightOp, upOp, downOp, dropOp, DisableOpSymmetryAssumptionFlag):
+    global left, right, up, down, drop, DisableOpSymmetryAssumption
+    left, right, up, down, drop, DisableOpSymmetryAssumption = (leftOp, rightOp, upOp, downOp, dropOp, DisableOpSymmetryAssumptionFlag)
 
 #The truth value of a hypothesis can be obtained directly from the positive and negative evidence counter
 def Hypothesis_TruthValue(wpn):
@@ -173,7 +173,7 @@ def _Variants(FocusSet, rule): #explots euclidean space properties (knowledge ab
     for (y,x,v) in conditions:
         if (action == left or action == right) and y != 0:
             return []
-        if (action == up or action == down) and x != 0:
+        if (action == up or action == down or action == drop) and x != 0:
             return []
     rules = [rule]
     action2 = _OpRotate(action)

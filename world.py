@@ -99,6 +99,19 @@ o x z z z  o
 o   z   z  o
 oooooooooooo
 """
+_world9 = """
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+"""
 
 _challenge_input = ""
 for arg in sys.argv:
@@ -123,24 +136,86 @@ if _slippery_input == "":
 else:
     _slippery = "y" in _slippery_input
 _isWorld5 = False
-if "2" in _challenge:
+if "2" == _challenge:
     world = _world2
-if "3" in _challenge:
+if "3" == _challenge:
     world = _world3
-if "4" in _challenge:
+if "4" == _challenge:
     world = _world4
-if "5" in _challenge:
+if "5" == _challenge:
     world = _world5
     _isWorld5 = True
-if "6" in _challenge:
+if "6" == _challenge:
     world = _world6
-if "7" in _challenge:
+if "7" == _challenge:
     world = _world7
-if "8" in _challenge:
+if "8" == _challenge:
     world = _world8
-
 #World states:
 loc = (2,4)
+env = None
+dir_right = 0
+dir_down = 1
+dir_left = 2
+dir_up = 3
+action_left = 0
+action_right = 1
+action_forward = 2
+action_pick = 3
+action_drop = 4
+action_toggle = 5
+direction = None
+env = None
+lastimage = None
+lastreward = None
+
+def minigrid_digest(state):
+    global direction, loc, lastimage, lastreward
+    #print(state[0]["direction"]); exit(0)
+    direction = state[0]["direction"]
+    #print(state[0]['image'].shape); exit(0)
+    loc = env.agent_pos
+    lastimage = state[0]["image"]
+    if len(state) == 5 and (lastreward == 0 or lastreward == None) and state[1] != 0:
+        lastreward = state[1]
+        #print("REARD!!!", lastreward, "!!!"); exit(0)
+
+
+worldstr = "MiniGrid-DoorKey-8x8-v0"
+if "10" == _challenge:
+    worldstr = "MiniGrid-Empty-8x8-v0"
+if "11" == _challenge:
+    worldstr = "BabyAI-GoToRedBallNoDists-v0"
+if "12" == _challenge:
+    worldstr = "MiniGrid-DistShift2-v0"
+if "13" == _challenge:
+    worldstr = "MiniGrid-LavaGapS7-v0"
+if "14" == _challenge:
+    worldstr = "MiniGrid-SimpleCrossingS11N5-v0"
+if "15" == _challenge:
+    worldstr = "MiniGrid-LavaCrossingS11N5-v0"
+if "16" == _challenge:
+    worldstr = "MiniGrid-Unlock-v0"
+if "17" == _challenge:
+    worldstr = "MiniGrid-DoorKey-8x8-v0"
+if "18" == _challenge:
+    worldstr = "MiniGrid-UnlockPickup-v0"
+if "19" == _challenge:
+    worldstr = "MiniGrid-BlockedUnlockPickup-v0"
+
+isWorld9 = int(_challenge) >= 10 #Minigrid challenges start at that index
+if isWorld9: #"9" in _challenge:
+    import gymnasium as gym
+    from minigrid.wrappers import *
+    _isWorld5 = False #TODO
+    direction = dir_down
+    env = gym.make(worldstr, render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0 (MiniGrid-BlockedUnlockPickup-v0 TODO)
+    observation_reward_and_whatever = env.reset()
+    minigrid_digest(observation_reward_and_whatever)
+    print("Observation:", observation_reward_and_whatever)
+    env.render()
+    world = _world9
+    loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
       ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
@@ -164,8 +239,222 @@ def up(loc):
 def down(loc):
     return (loc[0],   loc[1]+1)
 
+def pick(loc):
+    return loc
+def drop(loc):
+    return loc
+def toggle(loc):
+    return loc
+
+lastseen = set([])
+
+def help(action):
+    if action != drop:
+        minigrid_digest(env.step(action_toggle))
+        minigrid_digest(env.step(action_pick))
+
+def cntEntry(world, VAL):
+    cnt = 0
+    for y in range(height):
+        for x in range(width):
+            if world[BOARD][y][x] == VAL:
+                cnt += 1
+    return cnt
+
+hasReset = 0
+resetscore = 0
+
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
+    global lastseen, lastreward, hasReset, resetscore
+    lastseen = set([])
+    lastreward = 0
+    if env is not None:
+        """if action == pick:
+            minigrid_digest(env.step(action_pick))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_pick))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_pick))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_pick))
+            minigrid_digest(env.step(action_right))
+        if action == drop:
+            minigrid_digest(env.step(action_drop))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_drop))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_drop))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_drop))
+            minigrid_digest(env.step(action_right))
+        if action == toggle:
+            minigrid_digest(env.step(action_toggle))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_toggle))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_toggle))
+            minigrid_digest(env.step(action_right))
+            minigrid_digest(env.step(action_toggle))
+            minigrid_digest(env.step(action_right))"""
+
+
+        if action == drop: #drop below always
+            if direction == dir_down:
+                help(action);minigrid_digest(env.step(action_drop))
+            elif direction == dir_left:
+                minigrid_digest(env.step(action_left))
+                help(action);minigrid_digest(env.step(action_drop))
+            elif direction == dir_right:
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_drop))
+            elif direction == dir_up:
+                minigrid_digest(env.step(action_right))
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_drop))
+        if action == left:
+            if direction == dir_left:
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_down:
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_up:
+                minigrid_digest(env.step(action_left))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_right:
+                minigrid_digest(env.step(action_right))
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            """if lastActionIsPick:
+                minigrid_digest(env.step(action_pick))
+            if lastActionIsDrop:
+                minigrid_digest(env.step(action_drop))
+            if lastActionIsToggle:
+                minigrid_digest(env.step(action_toggle))"""
+        if action == right:
+            if direction == dir_right:
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_down:
+                minigrid_digest(env.step(action_left))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_up:
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_left:
+                minigrid_digest(env.step(action_right))
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            """if lastActionIsPick:
+                minigrid_digest(env.step(action_pick))
+            if lastActionIsDrop:
+                minigrid_digest(env.step(action_drop))
+            if lastActionIsToggle:
+                minigrid_digest(env.step(action_toggle))"""
+        if action == up:
+            if direction == dir_up:
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_right:
+                minigrid_digest(env.step(action_left))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_left:
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_down:
+                minigrid_digest(env.step(action_right))
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            """if lastActionIsPick:
+                minigrid_digest(env.step(action_pick))
+            if lastActionIsDrop:
+                minigrid_digest(env.step(action_drop))
+            if lastActionIsToggle:
+                minigrid_digest(env.step(action_toggle))"""
+        if action == down:
+            if direction == dir_down:
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_right:
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_left:
+                minigrid_digest(env.step(action_left))
+                help(action);minigrid_digest(env.step(action_forward))
+            if direction == dir_up:
+                minigrid_digest(env.step(action_right))
+                minigrid_digest(env.step(action_right))
+                help(action);minigrid_digest(env.step(action_forward))
+            """if lastActionIsPick:
+                minigrid_digest(env.step(action_pick))
+            if lastActionIsDrop:
+                minigrid_digest(env.step(action_drop))
+            if lastActionIsToggle:
+                minigrid_digest(env.step(action_toggle))"""
+        #help(action)
+        newloc = env.agent_pos
+        oldworld = deepcopy(world)
+
+        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): FREE, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL, (9,0): SHOCK}
+        for i in range(7):
+            for j in reversed(range(7)):
+                if lastimage[i,j][0] == 0:
+                    break
+                if direction == dir_right:
+                    X = newloc[0] + (7-(j+1))
+                    Y = newloc[1] + i - 3
+                    lastseen.add((Y,X))
+                    #print(lastimage); exit(0)
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
+                        #print("!!!", (X,Y), (i,j), V)
+                        world[BOARD][Y][X] = M[V]
+                if direction == dir_left:
+                    X = newloc[0] - (7-(j+1))
+                    Y = newloc[1] - i + 3
+                    #print(lastimage); exit(0)
+                    lastseen.add((Y,X))
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
+                        #print("!!!", (X,Y), (i,j), V)
+                        world[BOARD][Y][X] = M[V]
+
+                if direction == dir_up:
+                    Y = newloc[1] - (7-(j+1))
+                    X = newloc[0] + i - 3
+                    #print(lastimage); exit(0)
+                    lastseen.add((Y,X))
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
+                        #print("!!!", (X,Y), (i,j), V)
+                        world[BOARD][Y][X] = M[V]
+                if direction == dir_down:
+                    Y = newloc[1] + (7-(j+1))
+                    X = newloc[0] - i + 3
+                    #print(lastimage); exit(0)
+                    lastseen.add((Y,X))
+                    V = (lastimage[i,j][0], lastimage[i,j][2])
+                    if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:  
+                        #print("!!!", (X,Y), (i,j), V)
+                        world[BOARD][Y][X] = M[V]
+
+        world[BOARD][loc[1]][loc[0]] = FREE
+        world[BOARD][newloc[1]][newloc[0]] = ROBOT
+        loc = newloc
+        i_inventory = 3
+        j_inventory = 6
+        V_inventory = lastimage[i_inventory,j_inventory][0]
+        if (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
+           (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
+           (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK)) or lastreward != 0:
+            if lastreward > 0 or (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)):
+                lastreward = 1 #minigrid is not giving so we provide own reward
+            else:
+                lastreward = -1
+            world[VALUES] = (lastreward, V_inventory)
+            hasReset = 2 #ugly double reset hack is needed
+            resetscore = world[VALUES][0]
+            minigrid_digest(env.reset())
+        else:
+            world[VALUES] = (lastreward, V_inventory)
+        return loc, [world[BOARD], world[VALUES], world[TIMES]]
     if _slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
     newloc = action(loc)
@@ -293,14 +582,44 @@ def World_Print(world):
 
 #The limited field of view the agent can observe dependent on view distance (partial observability)
 def World_FieldOfView(Time, loc, observed_world, world):
-    for y in range(VIEWDISTY*2+1):
-        for x in range(VIEWDISTX*2+1):
-            Y = loc[1]+y-VIEWDISTY
-            X = loc[0]+x-VIEWDISTX
-            if Y >= 0 and Y < height and \
-               X >= 0 and X < width:
-                observed_world[BOARD][Y][X] = world[BOARD][Y][X]
-                observed_world[TIMES][Y][X] = Time
+    global hasReset
+    for Y in range(height):
+        for X in range(width):
+            if observed_world[TIMES][Y][X] == Time:
+                observed_world[TIMES][Y][X] = Time - 1 #WHY can this ever happen??? DEBUG!
+    if env is None:
+        for y in range(VIEWDISTY*2+1):
+            for x in range(VIEWDISTX*2+1):
+                Y = loc[1]+y-VIEWDISTY
+                X = loc[0]+x-VIEWDISTX
+                if Y >= 0 and Y < height and \
+                   X >= 0 and X < width:
+                    observed_world[BOARD][Y][X] = world[BOARD][Y][X]
+                    observed_world[TIMES][Y][X] = Time
+    else:
+        if hasReset > 0:
+            world[VALUES] = (resetscore, 0)
+            for y in range(height):
+                for x in range(width):
+                    observed_world[BOARD][y][x] = '.'
+                    world[BOARD][y][x] = FREE
+                    observed_world[TIMES][y][x] = Time - 1000
+            observed_world[VALUES] = (resetscore, 0)
+            world[VALUES] = (resetscore, 0)
+            hasReset -= 1
+            #PRINT("RESET!!!!!!!!!!!!")
+            return observed_world
+        for Y in range(height):
+            for X in range(width):
+                if observed_world[BOARD][Y][X] == ROBOT:
+                    observed_world[BOARD][Y][X] = FREE
+        for Y in range(height):
+            for X in range(width):
+                if (Y, X) in lastseen:
+                    if Y >= 0 and Y < height and \
+                       X >= 0 and X < width:
+                        observed_world[BOARD][Y][X] = world[BOARD][Y][X]
+                        observed_world[TIMES][Y][X] = Time
     observed_world[VALUES] = deepcopy(world[VALUES])
     return observed_world
 
@@ -313,3 +632,5 @@ actions = [left, right, up, down]
 if _isWorld5:
     actions = [up, down, left]
     VIEWDISTX, VIEWDISTY = (4, 3)
+if isWorld9:
+    actions = [left, right, up, down, drop] #, pick, drop, toggle]

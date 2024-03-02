@@ -54,10 +54,21 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         debuginput = input()
     print("\033[1;1H\033[2J")
     plan = []
+    all_actions_tried = False
     if "manual" not in sys.argv:
-        exploit_babble = random.random() > 1.0 #babbling when wanting to achieve something or curious about something, and babbling when exploring:
-        explore_babble = random.random() > 1.0 #since it might not know yet about all ops, exploring then can be limited
-        if airis_score >= 1.0 or exploit_babble or len(favoured_actions) == 0:
+        actionlist = set(actions)
+        #make motorbabbling on curiosity&exploration dependent on whether there are still untried actions
+        for rule in rules:
+            (precondition, consequence) = rule
+            action = precondition[0]
+            if action in actionlist:
+                actionlist.remove(action)
+        all_actions_tried = len(actionlist) == 0
+        explore_curiosity_modulator = 1.0 if all_actions_tried else 0.5 #1.0 if all_actions_tried and world_is_novel else 0.5
+        curiosity_babble_rate, exploit_babble_rate, explore_babble_rate = (explore_curiosity_modulator, 1.0, explore_curiosity_modulator)
+        exploit_babble = random.random() > (exploit_babble_rate if airis_score == float("-inf") else curiosity_babble_rate) #babbling when wanting to achieve something or curious about something, and babbling when exploring:
+        explore_babble = random.random() > explore_babble_rate #since it might not know yet about all ops, exploring then can be limited
+        if airis_score >= 0.9 or exploit_babble or len(favoured_actions) == 0:
             if not exploit_babble and not explore_babble and oldest_age > 0.0 and airis_score == 1.0 and len(favoured_actions_for_revisit) != 0:
                 behavior = "EXPLORE"
                 print(behavior, Prettyprint_Plan(favoured_actions_for_revisit), "age:", oldest_age)
@@ -65,8 +76,10 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
                 plan = favoured_actions_for_revisit
             else:
                 behavior = "BABBLE"
-                print(behavior)
-                action = random.choice(actions) #motorbabbling
+                actli = deepcopy(actions)
+                if drop in actli:
+                    actli += [drop, drop] #TODO
+                action = random.choice(actli) #motorbabbling
         else:
             behavior = "ACHIEVE" if airis_score == float("-inf") else "CURIOUS"
             print(behavior, Prettyprint_Plan(favoured_actions), end=" "); NACE_PrintScore(airis_score)
@@ -82,6 +95,12 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         action = left
     if debuginput == "d":
         action = right
+    if debuginput == "b":
+        action = pick
+    if debuginput == "n":
+        action = drop
+    if debuginput == "t":
+        action = toggle
     if debuginput == 'l':
         for x in rules:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
@@ -129,6 +148,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         for x in rulesExcluded:
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
         input()
+    #print("ALL ACTIONS TRIED?", all_actions_tried)
     return usedRules, FocusSet, RuleEvidence, loc, observed_world, newrules, newnegrules, newworld, debuginput, values, lastplanworld, planworld, behavior, plan
 
 # Apply move to the predicted world model whereby we use the learned tules to decide how grid elements might change most likely
@@ -171,7 +191,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
 def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
-    if "random" in sys.argv: return [random.choice([left, right, up, down])], float("-inf"), [], 0
+    if "random" in sys.argv: return [random.choice(actions)], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
     best_score = float("inf")
@@ -211,12 +231,27 @@ def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customG
 def _IsPresentlyObserved(Time, world, y, x):
     return Time - world[TIMES][y][x] == 0
 
+#Build adjacent consideration set
+def _AddToAdjacentSet(consideredSets, newEntry, MaxCapacity, CanCreateNewSet):
+    (y, x) = newEntry
+    AdjacentToAnySet = False
+    for consideredSet in consideredSets:
+        consideredSetFrozen = deepcopy(consideredSet)
+        for (ys, xs) in consideredSetFrozen:
+            if abs(y - ys) + abs(x - xs) <= 1:
+                if len(consideredSet) < MaxCapacity:
+                    consideredSet.add(newEntry)
+                AdjacentToAnySet = True
+    if not AdjacentToAnySet and CanCreateNewSet:
+        consideredSets.append(set([newEntry]))
+
 #Extract new rules from the observations by looking only for observed changes and prediction-observation mismatches
 def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules, oldnegrules, predictedworld=None):
     newrules = deepcopy(oldrules)
     newnegrules = deepcopy(oldnegrules)
-    changesets = [set([]), set([])]
+    changesets = []
     valuecount, valuecount_remembered = (dict([]), dict([]))
+    #Keep track of cell type counts
     for y in range(height):
         for x in range(width):
             val = oldworld[BOARD][y][x]
@@ -224,37 +259,49 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 valuecount[val] = 1
             else:
                 valuecount[val] += 1
+    #Update FocusSet based on unique values and unique changing values
     for y in range(height):
         for x in range(width):
-            if not _IsPresentlyObserved(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
                 continue
             val = oldworld[BOARD][y][x]
             if valuecount[val] == 1 and val not in FocusSet:
-                if x>0 and oldworld[BOARD][y][x-1] in FocusSet or \
-                   x<width-1 and oldworld[BOARD][y][x+1] in FocusSet or \
-                   y<height-1 and oldworld[BOARD][y+1][x] in FocusSet or \
-                   y>0 and oldworld[BOARD][y-1][x] in FocusSet:
-                    FocusSet[val] = 0
+                FocusSet[val] = 0
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x]:
-                changesets[0].add((y, x))
                 if valuecount[val] == 1: #unique
                     if val not in FocusSet:
                         FocusSet[val] = 1
                     else:
                         FocusSet[val] += 1
-            if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x]:
-                changesets[1].add((y, x))
-    #if there was a change next to a non-changing focus set element
-    chgset = deepcopy(changesets[0])
-    for (y,x) in chgset:
-        if x>0 and newworld[BOARD][y][x-1] in FocusSet:
-            changesets[0].add((y,x-1))
-        if x<width-1 and newworld[BOARD][y][x+1] in FocusSet:
-            changesets[0].add((y,x+1))
-        if y>0 and newworld[BOARD][y-1][x] in FocusSet:
-            changesets[0].add((y-1,x))
-        if y<height-1 and newworld[BOARD][y+1][x] in FocusSet:
-            changesets[0].add((y+1,x))
+    #Add change sets
+    changesets = []
+    for y in range(height):
+        for x in range(width):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
+                continue
+            if oldworld[BOARD][y][x] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] != '.':
+                _AddToAdjacentSet(changesets, (y, x), MaxCapacity=3, CanCreateNewSet=True)
+    changesetslen = len(changesets) #the length of change set only
+    #Add prediction mismatch entries to adjacent change set entry
+    for y in range(height):
+        for x in range(width):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and not _IsPresentlyObserved(Time-1, newworld, y, x):
+                continue
+            if predictedworld and predictedworld[BOARD][y][x] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] != '.':
+                _AddToAdjacentSet(changesets, (y,x), MaxCapacity=2, CanCreateNewSet=True)
+    #if there was a change next to a focus set element (spatial dependency)
+    chgsets = deepcopy(changesets)
+    for changeset in chgsets:
+        for (y,x) in changeset:
+            if (action == left or action == right) and x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
+                _AddToAdjacentSet(changesets, (y,x-1), MaxCapacity=3, CanCreateNewSet=False)
+            if (action == left or action == right) and x<width-1 and newworld[BOARD][y][x+1]  in FocusSet and oldworld[BOARD][y][x+1] != '.':
+                _AddToAdjacentSet(changesets, (y,x+1), MaxCapacity=3, CanCreateNewSet=False)
+            if (action == up or action == down or action == drop) and y>0 and newworld[BOARD][y-1][x]  in FocusSet and oldworld[BOARD][y-1][x] != '.':
+                _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
+            if (action == up or action == down) and y<height-1 and newworld[BOARD][y+1][x]  in FocusSet and oldworld[BOARD][y+1][x] != '.':
+                _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
+    print(changesets)
     #Build rules based on changes and prediction-observation mismatches
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
@@ -265,6 +312,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for (y2_abs, x2_abs) in changeset:
                 (y2_rel, x2_rel) = (y2_abs-y1_abs, x2_abs-x1_abs)
                 condition = (y2_rel, x2_rel, oldworld[BOARD][y2_abs][x2_abs])
+                if oldworld[BOARD][y2_abs][x2_abs] == '.': #NECESSARY FOR EPISODE RESET ONLY
+                    CONTINUE = True
+                    break
                 if Hypothesis_ValidCondition(condition):
                     preconditions.append(condition)
                     if y2_rel == 0 and x2_rel == 0:
@@ -277,7 +327,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for pr in preconditions:
                 action_values_precondition.append(pr)
             rule = (tuple(action_values_precondition), (0, 0, newworld[BOARD][y1_abs][x1_abs], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))))
-            if len(preconditions) >= 2:
+            if len(preconditions) >= 2 and len(preconditions) <= 3:
                 RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #if rule conditions are only partly met or the predicted outcome is different than observed, build a specialized rule which has the precondition and conclusion corrected!
@@ -289,7 +339,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
         for x in range(width):
             if (y,x) not in positionscores:
                 continue
-            if not _IsPresentlyObserved(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and oldworld[BOARD][y][x] != max_focus and not (newworld[BOARD][y][x] == '.' and oldworld[BOARD][y][x] != '.'):
                 continue
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in oldrules:
@@ -307,6 +357,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                             break
                         if oldworld[BOARD][y+y_rel][x+x_rel] == max_focus:
                             has_focus_set_condition = True
+                        if oldworld[BOARD][y+y_rel][x+x_rel] == ".":
+                            CONTINUE = True
+                            break
                         corrected_preconditions.append((y_rel, x_rel, oldworld[BOARD][y+y_rel][x+x_rel]))
                     corrected_preconditions = sorted(corrected_preconditions)
                     if CONTINUE or not has_focus_set_condition:
@@ -319,7 +372,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
     #Crisp match: Add negative evidence for rules which prediction contradicts observation (in a classical AIRIS implementation restricted to deterministic worlds: this part would remove contradicting rules from the rule set and would ensure they can't be re-induced)
     for y in range(height):
         for x in range(width):
-            if not _IsPresentlyObserved(Time, newworld, y, x):
+            if not _IsPresentlyObserved(Time, newworld, y, x) and oldworld[BOARD][y][x] != max_focus and not (newworld[BOARD][y][x] == '.' and oldworld[BOARD][y][x] != '.'):
                 continue
             for rule in oldrules: #find rules which don't work, and add negative evidence for them (classical AIRIS: remove them and add them to newnegrules)
                 (precondition, consequence) = rule
