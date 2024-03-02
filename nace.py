@@ -291,17 +291,18 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 _AddToAdjacentSet(changesets, (y,x), MaxCapacity=2, CanCreateNewSet=True)
     #if there was a change next to a focus set element (spatial dependency)
     chgsets = deepcopy(changesets)
-    for changeset in chgsets:
-        for (y,x) in changeset:
-            if x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
-                _AddToAdjacentSet(changesets, (y,x-1), MaxCapacity=3, CanCreateNewSet=False)
-            if x<width-1 and newworld[BOARD][y][x+1] in FocusSet and oldworld[BOARD][y][x+1] != '.':
-                _AddToAdjacentSet(changesets, (y,x+1), MaxCapacity=3, CanCreateNewSet=False)
-            if y>0 and newworld[BOARD][y-1][x] in FocusSet and oldworld[BOARD][y-1][x] != '.':
-                _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
-            if y<height-1 and newworld[BOARD][y+1][x] in FocusSet and oldworld[BOARD][y+1][x] != '.':
-                _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
-    print(chgsets)
+    if len(changesets) < 2:
+        for changeset in chgsets:
+            for (y,x) in changeset:
+                if x>0 and newworld[BOARD][y][x-1] in FocusSet and oldworld[BOARD][y][x-1] != '.':
+                    _AddToAdjacentSet(changesets, (y,x-1), MaxCapacity=3, CanCreateNewSet=False)
+                if x<width-1 and newworld[BOARD][y][x+1]  in FocusSet and oldworld[BOARD][y][x+1] != '.':
+                    _AddToAdjacentSet(changesets, (y,x+1), MaxCapacity=3, CanCreateNewSet=False)
+                if y>0 and newworld[BOARD][y-1][x]  in FocusSet and oldworld[BOARD][y-1][x] != '.':
+                    _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
+                if y<height-1 and newworld[BOARD][y+1][x]  in FocusSet and oldworld[BOARD][y+1][x] != '.':
+                    _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
+    print(changesets)
     #Build rules based on changes and prediction-observation mismatches
     for changeset in changesets:
         for (y1_abs,x1_abs) in changeset:
