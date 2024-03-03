@@ -209,11 +209,15 @@ if isWorld9: #"9" in _challenge:
     from minigrid.wrappers import *
     _isWorld5 = False #TODO
     direction = dir_down
-    env = gym.make(worldstr, render_mode='human', max_steps=100000)
+    if "nominigrid" not in sys.argv:
+        env = gym.make(worldstr, render_mode='human', max_steps=100000)
+    else:
+        env = gym.make(worldstr, max_steps=100000)
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
-    env.render()
+    if "nominigrid" not in sys.argv:
+        env.render()
     world = _world9
     loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
