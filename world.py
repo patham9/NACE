@@ -209,7 +209,7 @@ if isWorld9: #"9" in _challenge:
     from minigrid.wrappers import *
     _isWorld5 = False #TODO
     direction = dir_down
-    env = gym.make(worldstr, render_mode='human') #MiniGrid-Empty-8x8-v0; MiniGrid-DoorKey-8x8-v0 MiniGrid-LavaGapS7-v0 MiniGrid-UnlockPickup-v0 MiniGrid-Unlock-v0 MiniGrid-DistShift2-v0 MiniGrid-SimpleCrossingS11N5-v0 (MiniGrid-BlockedUnlockPickup-v0 TODO)
+    env = gym.make(worldstr, render_mode='human', max_steps=100000)
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
@@ -632,5 +632,5 @@ actions = [left, right, up, down]
 if _isWorld5:
     actions = [up, down, left]
     VIEWDISTX, VIEWDISTY = (4, 3)
-if isWorld9:
+if isWorld9 and int(_challenge) >= 16:
     actions = [left, right, up, down, drop] #, pick, drop, toggle]
