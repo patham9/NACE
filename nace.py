@@ -282,6 +282,9 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             if oldworld[BOARD][y][x] != newworld[BOARD][y][x] and oldworld[BOARD][y][x] != '.':
                 _AddToAdjacentSet(changesets, (y, x), MaxCapacity=3, CanCreateNewSet=True)
     changesetslen = len(changesets) #the length of change set only
+    changeset0len = 0
+    if changesetslen > 0:
+        changeset0len = len(changesets[0]) #temporary fix: 3 things need to have changed at least to allow for the more complex rules to be induced
     #Add prediction mismatch entries to adjacent change set entry
     for y in range(height):
         for x in range(width):
@@ -327,7 +330,7 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
             for pr in preconditions:
                 action_values_precondition.append(pr)
             rule = (tuple(action_values_precondition), (0, 0, newworld[BOARD][y1_abs][x1_abs], tuple([newworld[VALUES][0]-oldworld[VALUES][0]] + list(newworld[VALUES][1:]))))
-            if len(preconditions) >= 2 and len(preconditions) <= 3:
+            if len(preconditions) >= 2 and (changeset0len == 3 or len(preconditions) <= 2):
                 RuleEvidence, newrules = Hypothesis_Confirmed(FocusSet, RuleEvidence, newrules, newnegrules, rule)
         break #speedup
     #if rule conditions are only partly met or the predicted outcome is different than observed, build a specialized rule which has the precondition and conclusion corrected!
