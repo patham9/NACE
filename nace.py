@@ -168,8 +168,6 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
             scores, highscore, rule = positionscores[(y,x)]
             #for rule in rules:
             if _RuleApplicable(scores, highscore, highesthighscore, rule):
-                if highscore < 1.0 and rule[1][3][0] > 0:
-                    continue #only use a rule that predicts score increase when certain!
                 newworld[VALUES] = rule[1][3]
                 newworld[BOARD][y][x] = rule[1][2]
                 used_rules_sumscore += scores.get(rule, 0.0)
