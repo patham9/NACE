@@ -202,6 +202,8 @@ if "18" == _challenge:
     worldstr = "MiniGrid-UnlockPickup-v0"
 if "19" == _challenge:
     worldstr = "MiniGrid-BlockedUnlockPickup-v0"
+if "20" == _challenge:
+    worldstr = "MiniGrid-ObstructedMaze-1Dlhb-v0"
 
 isWorld9 = int(_challenge) >= 10 #Minigrid challenges start at that index
 if isWorld9: #"9" in _challenge:
@@ -396,58 +398,57 @@ def World_Move(loc, world, action):
         newloc = env.agent_pos
         oldworld = deepcopy(world)
 
-        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): FREE, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL, (9,0): SHOCK}
+        M = {(1,0): FREE, (2,0): WALL, (4,0): FREE, (4,1): FREE, (4,2): DOOR, (5,0): KEY, (6,0): BALL, (7,0): TABLE, (8,0): GOAL, (9,0): SHOCK,
+             (6,2,0): SBALL}
+        getM = lambda key, color: M[(key[0], color, key[1])] if (key[0], color, key[1]) in M else M[key]
         for i in range(7):
             for j in reversed(range(7)):
                 if lastimage[i,j][0] == 0:
                     break
+                V = (lastimage[i,j][0], lastimage[i,j][2])
+                C = lastimage[i,j][1] #preliminary color distinction until color properties are supported properly and ideally with var intro!
                 if direction == dir_right:
                     X = newloc[0] + (7-(j+1))
                     Y = newloc[1] + i - 3
                     lastseen.add((Y,X))
                     #print(lastimage); exit(0)
-                    V = (lastimage[i,j][0], lastimage[i,j][2])
                     if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
                         #print("!!!", (X,Y), (i,j), V)
-                        world[BOARD][Y][X] = M[V]
+                        world[BOARD][Y][X] = getM(V, C)
                 if direction == dir_left:
                     X = newloc[0] - (7-(j+1))
                     Y = newloc[1] - i + 3
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
-                    V = (lastimage[i,j][0], lastimage[i,j][2])
                     if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
                         #print("!!!", (X,Y), (i,j), V)
-                        world[BOARD][Y][X] = M[V]
-
+                        world[BOARD][Y][X] = getM(V, C)
                 if direction == dir_up:
                     Y = newloc[1] - (7-(j+1))
                     X = newloc[0] + i - 3
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
-                    V = (lastimage[i,j][0], lastimage[i,j][2])
                     if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:
                         #print("!!!", (X,Y), (i,j), V)
-                        world[BOARD][Y][X] = M[V]
+                        world[BOARD][Y][X] = getM(V, C)
                 if direction == dir_down:
                     Y = newloc[1] + (7-(j+1))
                     X = newloc[0] - i + 3
                     #print(lastimage); exit(0)
                     lastseen.add((Y,X))
-                    V = (lastimage[i,j][0], lastimage[i,j][2])
                     if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:  
                         #print("!!!", (X,Y), (i,j), V)
-                        world[BOARD][Y][X] = M[V]
-
+                        world[BOARD][Y][X] = getM(V, C)
         world[BOARD][loc[1]][loc[0]] = FREE
         world[BOARD][newloc[1]][newloc[0]] = ROBOT
         loc = newloc
         i_inventory = 3
         j_inventory = 6
         V_inventory = lastimage[i_inventory,j_inventory][0]
-        if (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
-           (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
-           (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK)) or lastreward != 0:
+        if ("20" != _challenge and \
+            (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
+            (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
+            (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK))) or lastreward != 0:
             if lastreward > 0 or (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)):
                 lastreward = 1 #minigrid is not giving so we provide own reward
             else:
