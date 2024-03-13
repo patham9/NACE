@@ -464,23 +464,27 @@ def World_Move(loc, world, action):
     newloc = action(loc)
     oldworld = deepcopy(world)
     #ROBOT MOVEMENT ON FREE SPACE
-    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE and (newloc[0] == width-1 or oldworld[BOARD][newloc[1]][newloc[0]+1] != BALL):
+    movedAgent = False
+    if oldworld[BOARD][newloc[1]][newloc[0]] == FREE:
         world[BOARD][loc[1]][loc[0]] = FREE
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
+        movedAgent = True
+    oldoldworld = deepcopy(oldworld)
     oldworld = deepcopy(world)
     for y in range(height):
         for x in range(width):
-            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == FREE:
+            if oldworld[BOARD][y][x] == BALL and world[BOARD][y][x-1] == FREE and oldoldworld[BOARD][y][x-1] == FREE:
                 world[BOARD][y][x-1] = BALL
                 world[BOARD][y][x] = FREE
             if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == WALL:
                 world[BOARD][y][x] = FREE
                 world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
-            if oldworld[BOARD][y][x] == BALL and oldworld[BOARD][y][x-1] == ROBOT:
+            if oldworld[BOARD][y][x] == BALL and oldoldworld[BOARD][y][x-1] == ROBOT:
                 world[BOARD][y][x] = FREE
                 world[BOARD][random.choice(range(1, height-1))][width-1] = BALL
-                world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
+                if not movedAgent:
+                    world[VALUES] = tuple([world[VALUES][0] + 1] + list(world[VALUES][1:])) #the first value +1 and the rest stays
             if oldworld[BOARD][y][x] == ARROW_DOWN and oldworld[BOARD][y+1][x] == FREE:
                 world[BOARD][y+1][x] = ARROW_DOWN
                 world[BOARD][y][x] = FREE
@@ -638,3 +642,5 @@ if _isWorld5:
     VIEWDISTX, VIEWDISTY = (4, 3)
 if isWorld9 and int(_challenge) >= 16:
     actions = [left, right, up, down, drop] #, pick, drop, toggle]
+def World_Num5():
+    return _isWorld5

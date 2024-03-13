@@ -32,7 +32,7 @@ else:
 from nace import *
 
 #Configure hypotheses to use euclidean space properties if desired
-Hypothesis_UseMovementOpAssumptions(left, right, up, down, drop, "DisableOpSymmetryAssumption" in sys.argv)
+Hypothesis_UseMovementOpAssumptions(left, right, up, down, drop, "DisableOpSymmetryAssumption" in sys.argv or World_Num5())
 #Run the simulation in a loop for up to k steps:
 Time = -1
 behavior = "BABBLE"
