@@ -638,7 +638,7 @@ def World_AsTuple(worldpart):
 #The actions the agent can take dependent on the chosen world:
 actions = [left, right, up, down]
 if _isWorld5:
-    actions = [up, down, left]
+    actions = [up, down, right]
     VIEWDISTX, VIEWDISTY = (4, 3)
 if isWorld9 and int(_challenge) >= 16:
     actions = [left, right, up, down, drop] #, pick, drop, toggle]
