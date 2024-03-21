@@ -267,10 +267,11 @@ def cntEntry(world, VAL):
 
 hasReset = 0
 resetscore = 0
+acummulatedScore = 0
 
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
-    global lastseen, lastreward, hasReset, resetscore
+    global lastseen, lastreward, hasReset, resetscore, acummulatedScore
     lastseen = set([])
     lastreward = 0
     if env is not None:
@@ -452,12 +453,14 @@ def World_Move(loc, world, action):
                 lastreward = 1 #minigrid is not giving so we provide own reward
             else:
                 lastreward = -1
-            world[VALUES] = (lastreward, V_inventory)
+            acummulatedScore += lastreward
+            world[VALUES] = (acummulatedScore, V_inventory)
             hasReset = 2 #ugly double reset hack is needed
             resetscore = world[VALUES][0]
             minigrid_digest(env.reset())
         else:
-            world[VALUES] = (lastreward, V_inventory)
+            acummulatedScore += lastreward
+            world[VALUES] = (acummulatedScore, V_inventory)
         return loc, [world[BOARD], world[VALUES], world[TIMES]]
     if _slippery and random.random() > 0.9: #agent still believes it did the proper action
         action = random.choice(actions)    #but the world is slippery!
