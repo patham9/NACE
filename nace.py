@@ -46,7 +46,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, nochange)
     behavior = ""
     if "manual" not in sys.argv:
-        favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_CupIsOnTable)
+        favoured_actions, airis_score, favoured_actions_for_revisit, oldest_age = _Plan(Time, observed_world, rules, actions, customGoal = World_GetObjective())
     else:
         observed_world = [[["." for x in world[BOARD][i]] for i in range(len(world[BOARD]))], world[VALUES], world[TIMES]]
     debuginput = inject_key
@@ -188,7 +188,7 @@ def NACE_Predict(Time, FocusSet, oldworld, action, rules, customGoal = None):
     return newworld, score, age, newworld[VALUES]
 
 # Plan forward searching for situations of highest reward and if there is no such, then for biggest AIRIS uncertainty (max depth & max queue size obeying breadth first search)
-def _Plan(Time, world, rules, actions, max_depth=50, max_queue_len=2000, customGoal = None):
+def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=2000, customGoal = None):
     if "random" in sys.argv: return [random.choice(actions)], float("-inf"), [], 0
     queue = deque([(world, [], 0)])  # Initialize queue with world state, empty action list, and depth 0
     encountered = dict([])
