@@ -102,9 +102,9 @@ oooooooooooo
 _world9 = """
 oooooooooooo
 o          o
-o 4   0    o
+o     u    o
 o        _ o
-o x 0      o
+o x T      o
 o          o
 oooooooooooo
 """
@@ -126,10 +126,6 @@ _challenge_input = ""
 for arg in sys.argv:
     if arg.startswith("world="):
         _challenge_input = arg.split("world=")[1]
-_slippery_input = ""
-for arg in sys.argv:
-    if arg.startswith("slippery="):
-        _slippery_input = arg.split("slippery=")[1]
 #Description for world choice
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
@@ -139,11 +135,8 @@ if _challenge_input == "":
     _challenge = input()
 else:
     _challenge = _challenge_input
-print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-if _slippery_input == "":
-    _slippery = "y" in input()
-else:
-    _slippery = "y" in _slippery_input
+#print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
+_slippery = "slippery" in sys.argv
 _isWorld5 = False
 if "2" == _challenge:
     world = _world2

@@ -40,6 +40,12 @@ plan = []
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
+    if "interactive" in sys.argv: #(:! ((0 x _) --> left))
+        METTA = input() #f"(:! ((4 x 0) --> left))"
+        if METTA.startswith("(:!"):
+            World_SetObjective(groundedGoal(METTA))
+        elif METTA.startswith("(:."):
+            groundedBelief(METTA)
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     end_time = time.time()
@@ -96,7 +102,7 @@ if "nogui" in sys.argv:
 
 def groundedBelief(METTA):
     pred = METTA.split("--> ")[1].replace(")","")
-    S = METTA.split("(. ((")[1].split(" x")[0]
+    S = METTA.split("(:. ((")[1].split(" x")[0]
     P = METTA.split("x ")[1].split(")")[0]
     yoffset = 1
     xoffset = 0
@@ -121,7 +127,7 @@ def groundedGoal(METTA):
     #s,p,yoff,xoff = groundedFunction(METTA)
     #((S x P) --> left)
     pred = METTA.split("--> ")[1].replace(")","")
-    S = METTA.split("(! ((")[1].split(" x")[0]
+    S = METTA.split("(:! ((")[1].split(" x")[0]
     P = METTA.split("x ")[1].split(")")[0]
     yoffset = "y+1"
     xoffset = "x"
@@ -322,14 +328,14 @@ else:
         if toggle:
             obj1 = EGGPLACE
         if event.key == "z": #left right down up
-            METTA = f"(! (({obj1} x {obj2}) --> up))"
+            METTA = f"(:! (({obj1} x {obj2}) --> up))"
             print(METTA)
             World_SetObjective(groundedGoal(METTA))
         if event.key == "c":
             if toggle:
-                METTA = f"(. (({obj1} x {obj2}) --> left))"
+                METTA = f"(:. (({obj1} x {obj2}) --> left))"
             else:
-                METTA = f"(. (({obj1} x {obj2}) --> right))"
+                METTA = f"(:. (({obj1} x {obj2}) --> right))"
             print(METTA)
             groundedBelief(METTA)
     frame = 1
