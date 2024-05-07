@@ -100,6 +100,15 @@ o   z   z  o
 oooooooooooo
 """
 _world9 = """
+oooooooooooo
+o          o
+o     u    o
+o        _ o
+o x T      o
+o          o
+oooooooooooo
+"""
+_world_empty = """
             
             
             
@@ -117,10 +126,6 @@ _challenge_input = ""
 for arg in sys.argv:
     if arg.startswith("world="):
         _challenge_input = arg.split("world=")[1]
-_slippery_input = ""
-for arg in sys.argv:
-    if arg.startswith("slippery="):
-        _slippery_input = arg.split("slippery=")[1]
 #Description for world choice
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
@@ -130,11 +135,8 @@ if _challenge_input == "":
     _challenge = input()
 else:
     _challenge = _challenge_input
-print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
-if _slippery_input == "":
-    _slippery = "y" in input()
-else:
-    _slippery = "y" in _slippery_input
+#print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
+_slippery = "slippery" in sys.argv
 _isWorld5 = False
 if "2" == _challenge:
     world = _world2
@@ -151,6 +153,8 @@ if "7" == _challenge:
     world = _world7
 if "8" == _challenge:
     world = _world8
+if "9" == _challenge:
+    world = _world9
 #World states:
 loc = (2,4)
 env = None
@@ -203,8 +207,8 @@ if "18" == _challenge:
 if "19" == _challenge:
     worldstr = "MiniGrid-BlockedUnlockPickup-v0"
 
-isWorld9 = int(_challenge) >= 10 #Minigrid challenges start at that index
-if isWorld9: #"9" in _challenge:
+isMinigridWorld = int(_challenge) >= 10 #Minigrid challenges start at that index
+if isMinigridWorld: #"9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
     _isWorld5 = False #TODO
@@ -218,7 +222,7 @@ if isWorld9: #"9" in _challenge:
     print("Observation:", observation_reward_and_whatever)
     if "nominigrid" not in sys.argv:
         env.render()
-    world = _world9
+    world = _world_empty
     loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
 WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
@@ -586,6 +590,18 @@ def World_CupIsOnTable(world):
                 return True
     return False
 
+World_objective = World_CupIsOnTable
+
+def World_Criteria(world):
+    return World_objective(world)
+
+def World_SetObjective(func):
+    global World_objective
+    World_objective = func
+
+def World_GetObjective():
+    return World_objective
+
 #Print the world into the terminal
 def World_Print(world):
     for line in world[BOARD]:
@@ -643,7 +659,7 @@ actions = [left, right, up, down]
 if _isWorld5:
     actions = [up, down, right]
     VIEWDISTX, VIEWDISTY = (4, 3)
-if isWorld9 and int(_challenge) >= 16:
+if isMinigridWorld and int(_challenge) >= 16:
     actions = [left, right, up, down, drop] #, pick, drop, toggle]
 def World_Num5():
     return _isWorld5

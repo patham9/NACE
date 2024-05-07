@@ -40,6 +40,12 @@ plan = []
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
+    if "interactive" in sys.argv: #(:! ((0 x _) --> left))
+        METTA = input() #f"(:! ((4 x 0) --> left))"
+        if METTA.startswith("(:!"):
+            World_SetObjective(groundedGoal(METTA))
+        elif METTA.startswith("(:."):
+            groundedBelief(METTA)
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     end_time = time.time()
@@ -93,6 +99,56 @@ def Step(inject_key=""):
 if "nogui" in sys.argv:
     for Time in range(300):
         Step()
+
+def groundedBelief(METTA):
+    pred = METTA.split("--> ")[1].replace(")","")
+    S = METTA.split("(:. ((")[1].split(" x")[0]
+    P = METTA.split("x ")[1].split(")")[0]
+    yoffset = 1
+    xoffset = 0
+    if pred == "up":
+        yoffset = +1
+        xoffset = 0
+    if pred == "down":
+        yoffset = -1
+        xoffset = 0
+    if pred == "left":
+        yoffset = 0
+        xoffset = -1
+    if pred == "right":
+        yoffset = 0
+        xoffset = +1
+    for x in range(1,width-1):
+        for y in range(1,height-1):
+            if observed_world[BOARD][y][x] == S:
+                 observed_world[BOARD][y+yoffset][x+xoffset] = P 
+
+def groundedGoal(METTA):
+    #s,p,yoff,xoff = groundedFunction(METTA)
+    #((S x P) --> left)
+    pred = METTA.split("--> ")[1].replace(")","")
+    S = METTA.split("(:! ((")[1].split(" x")[0]
+    P = METTA.split("x ")[1].split(")")[0]
+    yoffset = "y+1"
+    xoffset = "x"
+    if pred == "up":
+        yoffset = "y-1"
+        xoffset = "x"
+    if pred == "down":
+        yoffset = "y+1"
+        xoffset = "x"
+    if pred == "left":
+        yoffset = "y"
+        xoffset = "x-1"
+    if pred == "right":
+        yoffset = "y"
+        xoffset = "x+1"
+    print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
+    STR = f"lambda world: any( world[BOARD][{yoffset}][{xoffset}] == '{S}' and world[BOARD][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
+    print("FUNC:", STR)
+    FUNC = eval(STR)
+    return FUNC
+
 if "nogui" in sys.argv:
     exit()
 else:
@@ -220,8 +276,10 @@ else:
         lastloc = loc
 
     predworldi = None
+    toggle = False
     def on_key(event):
-        global predworldi, predicted_certainty
+        global predworldi, predicted_certainty, toggle
+        toggle = not toggle
         predicted_certainty = None
         if event.key in ["w", "s", "a", "d", "p", "enter", "r", "b", "n", "t"]:
             if predworldi is None and event.key != 'r':
@@ -265,7 +323,21 @@ else:
         if event.key == "x":
             for x in rules - usedRules:
                 Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
-
+        obj1 = CHICKEN
+        obj2 = SBALL
+        if toggle:
+            obj1 = EGGPLACE
+        if event.key == "z": #left right down up
+            METTA = f"(:! (({obj1} x {obj2}) --> up))"
+            print(METTA)
+            World_SetObjective(groundedGoal(METTA))
+        if event.key == "c":
+            if toggle:
+                METTA = f"(:. (({obj1} x {obj2}) --> left))"
+            else:
+                METTA = f"(:. (({obj1} x {obj2}) --> right))"
+            print(METTA)
+            groundedBelief(METTA)
     frame = 1
     def update(wat):
         global lastloc, direction, frame
