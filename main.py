@@ -103,7 +103,8 @@ if "nogui" in sys.argv:
 def groundedBelief(METTA):
     pred = METTA.split("--> ")[1].replace(")","")
     S = METTA.split("(:. ((")[1].split(" x")[0]
-    P = METTA.split("x ")[1].split(")")[0]
+    P = METTA.split(" x ")[1].split(")")[0]
+    print("DEBUG", S, P); input()
     yoffset = 1
     xoffset = 0
     if pred == "up":
@@ -128,7 +129,7 @@ def groundedGoal(METTA):
     #((S x P) --> left)
     pred = METTA.split("--> ")[1].replace(")","")
     S = METTA.split("(:! ((")[1].split(" x")[0]
-    P = METTA.split("x ")[1].split(")")[0]
+    P = METTA.split(" x ")[1].split(")")[0]
     yoffset = "y+1"
     xoffset = "x"
     if pred == "up":

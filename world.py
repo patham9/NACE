@@ -138,6 +138,7 @@ else:
 #print('Slippery ground y/n (n default)? Causes the chosen action to have the consequence of another action in 10% of cases.')
 _slippery = "slippery" in sys.argv
 _isWorld5 = False
+_isWorld9 = False
 if "2" == _challenge:
     world = _world2
 if "3" == _challenge:
@@ -155,6 +156,7 @@ if "8" == _challenge:
     world = _world8
 if "9" == _challenge:
     world = _world9
+    _isWorld9 = True
 #World states:
 loc = (2,4)
 env = None
@@ -503,12 +505,13 @@ def World_Move(loc, world, action):
             if oldworld[BOARD][y][x] == ARROW_UP and oldworld[BOARD][y-1][x] == WALL:
                 world[BOARD][y][x] = ARROW_DOWN
             if oldworld[BOARD][y][x] == CUP and oldworld[BOARD][y+1][x] == TABLE:
-                world[BOARD][y][x] = FREE
-                while True:
-                    xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
-                    if oldworld[BOARD][yr][xr] == FREE:
-                        world[BOARD][yr][xr] = CUP
-                        break
+                if not _isWorld9:
+                    world[BOARD][y][x] = FREE
+                    while True:
+                        xr, yr = (random.randint(0, width-1), random.randint(0, height-1))
+                        if oldworld[BOARD][yr][xr] == FREE:
+                            world[BOARD][yr][xr] = CUP
+                            break
     #CUP
     if world[BOARD][newloc[1]][newloc[0]] == CUP: #an object the system could shift around
         world[BOARD][loc[1]][loc[0]] = CUP
