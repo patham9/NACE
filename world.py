@@ -175,8 +175,19 @@ env = None
 lastimage = None
 lastreward = None
 
+episode_id = 0
+run_id = -1
+episodes = -1
+max_steps = 1000
+step = 0
+for arg in sys.argv:
+    if arg.startswith("runid="):
+        run_id = int(arg.split("runid=")[1])
+    if arg.startswith("episodes="):
+        episodes = int(arg.split("episodes=")[1])
 def minigrid_digest(state):
-    global direction, loc, lastimage, lastreward
+    global direction, loc, lastimage, lastreward, step
+    step += 1
     #print(state[0]["direction"]); exit(0)
     direction = state[0]["direction"]
     #print(state[0]['image'].shape); exit(0)
@@ -184,8 +195,7 @@ def minigrid_digest(state):
     lastimage = state[0]["image"]
     if len(state) == 5 and (lastreward == 0 or lastreward == None) and state[1] != 0:
         lastreward = state[1]
-        #print("REARD!!!", lastreward, "!!!"); exit(0)
-
+        reward = state[1]
 
 worldstr = "MiniGrid-DoorKey-8x8-v0"
 if "10" == _challenge:
@@ -216,9 +226,9 @@ if isMinigridWorld: #"9" in _challenge:
     _isWorld5 = False #TODO
     direction = dir_down
     if "nominigrid" not in sys.argv:
-        env = gym.make(worldstr, render_mode='human', max_steps=100000)
+        env = gym.make(worldstr, render_mode='human', max_steps=max_steps)
     else:
-        env = gym.make(worldstr, max_steps=100000)
+        env = gym.make(worldstr, max_steps=max_steps)
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
@@ -277,7 +287,7 @@ acummulatedScore = 0
 
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
-    global lastseen, lastreward, hasReset, resetscore, acummulatedScore
+    global lastseen, lastreward, hasReset, resetscore, acummulatedScore, step, episode_id
     lastseen = set([])
     lastreward = 0
     if env is not None:
@@ -455,6 +465,7 @@ def World_Move(loc, world, action):
         if (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
            (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
            (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK)) or lastreward != 0:
+            episode_id += 1
             if lastreward > 0 or (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)):
                 lastreward = 1 #minigrid is not giving so we provide own reward
             else:
@@ -464,6 +475,14 @@ def World_Move(loc, world, action):
             hasReset = 2 #ugly double reset hack is needed
             resetscore = world[VALUES][0]
             minigrid_digest(env.reset())
+            if run_id != -1:
+                reward = 1 - 0.9 * (step / max_steps)
+                if episode_id < episodes:
+                    with open("run_world"+str(_challenge_input)+"_"+str(run_id)+".run", "a") as f:
+                        f.write(f"{episode_id} {reward}\n")
+                if episodes != -1 and episode_id >= episodes:
+                    exit(0)
+                step = 0
         else:
             acummulatedScore += lastreward
             world[VALUES] = (acummulatedScore, V_inventory)
