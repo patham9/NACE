@@ -1,9 +1,18 @@
 import matplotlib.pyplot as plt
+import os.path
+import sys
+
+worldn = 0
+for arg in sys.argv:
+    if arg.startswith("world="):
+        worldn = int(arg.split("world=")[1])
 
 lines = []
 scoresAll = {}
-for index in range(1,2):
-    F = f"run_world19_{index}.run"
+for index in range(1,101):
+    F = f"run_world{worldn}_{index}.run"
+    if not os.path.exists(F):
+        break
     with open(F) as f:
         lines = f.read().split("\n")
     for line in lines:
@@ -21,7 +30,7 @@ for key in scoresAll:
     for v in scoresAll[key]:
         V += v
     V /= len(scoresAll[key])
-    scores.append(v)
+    scores.append(V)
 
 
 # Define the list of values
@@ -38,4 +47,3 @@ plt.ylabel('Avg. reward')
 # Display the plot
 plt.grid(True)
 plt.show()
-    
