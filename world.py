@@ -103,8 +103,8 @@ _world9 = """
 oooooooooooo
 o          o
 o     u    o
-o        _ o
-o x T      o
+o  T     _ o
+o x   H    o
 o          o
 oooooooooooo
 """
@@ -130,7 +130,7 @@ for arg in sys.argv:
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
 else:
-    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), input "1", "2", "3", "4", "5", "6", or "7":')
+    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), interactive world (9), input "1", "2", "3", "4", "5", "6", or "7":')
 if _challenge_input == "":
     _challenge = input()
 else:
@@ -139,6 +139,9 @@ else:
 _slippery = "slippery" in sys.argv
 _isWorld5 = False
 _isWorld9 = False
+def getIsWorld9():
+    return _isWorld9
+
 if "2" == _challenge:
     world = _world2
 if "3" == _challenge:

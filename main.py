@@ -40,7 +40,7 @@ plan = []
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
-    if "interactive" in sys.argv: #(:! ((0 x _) --> left))
+    if "interactive" in sys.argv or getIsWorld9(): #(:! ((0 x _) --> left))
         METTA = input() #f"(:! ((4 x 0) --> left))"
         if METTA.startswith("(:!"):
             World_SetObjective(groundedGoal(METTA))
@@ -122,7 +122,9 @@ def groundedBelief(METTA):
     for x in range(1,width-1):
         for y in range(1,height-1):
             if observed_world[BOARD][y][x] == S:
-                 observed_world[BOARD][y+yoffset][x+xoffset] = P 
+                 observed_world[BOARD][y+yoffset][x+xoffset] = P
+            if observed_world[BOARD][y][x] == P:
+                observed_world[BOARD][y-yoffset][x-xoffset] = S
 
 def groundedGoal(METTA):
     #s,p,yoff,xoff = groundedFunction(METTA)
