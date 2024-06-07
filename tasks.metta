@@ -28,6 +28,17 @@
 ;the cup should be stored
 !(AddGoalEvent ((cup --> (IntSet stored)) (1.0 0.90)))
 
+;HIGHER-HIGHER-LEVEL GOALS:
+
+;the container should be stored
+!(AddGoalEvent ((container --> (IntSet stored)) (1.0 0.90)))
+
+;the drink should be made
+!(AddGoalEvent ((drink --> (IntSet made)) (1.0 0.90)))
+
+;the furniture should be set
+!(AddGoalEvent ((drink --> (IntSet made)) (1.0 0.90)))
+
 ;BELIEFS:
 
 ;cup above plate
@@ -55,3 +66,14 @@
 
 ;the cup is stored
 !(AddBeliefEvent ((cup --> (IntSet stored)) (1.0 0.90)))
+
+;HIGHER-HIGHER-LEVEL BELIEFS:
+
+;the container is stored
+!(AddBeliefEvent ((container --> (IntSet stored)) (1.0 0.90)))
+
+;the drink is made
+!(AddBeliefEvent ((drink --> (IntSet made)) (1.0 0.90)))
+
+;the furniture is set
+!(AddBeliefEvent ((furniture --> (IntSet set)) (1.0 0.90)))

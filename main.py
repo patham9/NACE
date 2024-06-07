@@ -53,20 +53,21 @@ def Step(inject_key=""):
     if interactiveWorld: #(:! ((0 x _) --> left))
         METTA = input() #f"(:! ((4 x 0) --> left))"
         if METTA.startswith("!"):
+            GOAL = "AddGoalEvent" in METTA
+            METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent")
             with open("knowledge.metta") as f:
                 backgroundknowledge = f.read()
             for belief in backgroundknowledge.split("\n"):
                 if belief != "" and not belief.startswith(";"):
                     NAR_AddInput(belief)
-            #!(AddGoalEvent (((u x _) --> up) (1.0 0.90)))
-            #!(AddGoalEvent ((table --> (IntSet set)) (1.0 0.90)))
-            #!(AddBeliefEvent ((table --> (IntSet set)) (1.0 0.90)))
             ret = NAR_AddInput(METTA)
             tasks = ret["inputs"] + ret["derivations"]
-            #tasks += NAR_Cycle(2)["derivations"]
+            ret = NAR_Cycle(2)
+            tasks += (ret["inputs"] + ret["derivations"])
             processGoals = True
             for task in tasks:
-                if "(!:" in task:
+                if GOAL: #"(!:" in task:
+                    task = task.replace("(.:", "(!:")
                     print("!!!!!TASK", task)
                     try:
                         if processGoals:
