@@ -37,7 +37,7 @@
 !(AddGoalEvent ((drink --> (IntSet made)) (1.0 0.90)))
 
 ;the furniture should be set
-!(AddGoalEvent ((drink --> (IntSet made)) (1.0 0.90)))
+!(AddGoalEvent ((furniture --> (IntSet set)) (1.0 0.90)))
 
 ;BELIEFS:
 
