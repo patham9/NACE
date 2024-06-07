@@ -142,8 +142,10 @@ _isWorld9 = False
 def getIsWorld9():
     return _isWorld9
 
+World_objective = None
 if "2" == _challenge:
     world = _world2
+    World_objective = World_CupIsOnTable
 if "3" == _challenge:
     world = _world3
 if "4" == _challenge:
@@ -614,8 +616,6 @@ def World_CupIsOnTable(world):
             if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
                 return True
     return False
-
-World_objective = World_CupIsOnTable
 
 def World_Criteria(world):
     return World_objective(world)
