@@ -32,9 +32,9 @@ else:
     print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "nopredictions" to hide prediction rectangles, "nogui" to hide GUI, "notextures" to not render textures in GUI, "colors" to render colors.')
 from nace import *
 
-interactiveWorld = "interactive" in sys.argv or getIsWorld9()
+interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
 if interactiveWorld:
-    mettanars = '/Users/patham9/metta-morph/metta-nars/'
+    mettanars = os.path.abspath('../metta-morph/metta-nars/')
     sys.path.append(mettanars)
     cwd = os.getcwd()
     os.chdir(mettanars)

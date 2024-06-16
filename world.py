@@ -128,7 +128,8 @@ for arg in sys.argv:
         _challenge_input = arg.split("world=")[1]
 #Description for world choice
 if "manual" in sys.argv:
-    print("Enter one of 1-7 to try a world:")
+    if _challenge_input == "":
+        print("Enter one of 1-9 to try a world:")
 else:
     print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), interactive world (9), input "1", "2", "3", "4", "5", "6", or "7":')
 if _challenge_input == "":
