@@ -103,8 +103,8 @@ _world9 = """
 oooooooooooo
 o          o
 o     u    o
-o        _ o
-o x T      o
+o  T     G o
+o x   H    o
 o          o
 oooooooooooo
 """
@@ -130,7 +130,7 @@ for arg in sys.argv:
 if "manual" in sys.argv:
     print("Enter one of 1-7 to try a world:")
 else:
-    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), input "1", "2", "3", "4", "5", "6", or "7":')
+    print('Food collecting (1), cup on table challenge (2), doors and keys (3), food collecting with moving object (4), pong (5), bring eggs to chicken (6), soccer (7), shock world (8), interactive world (9), input "1", "2", "3", "4", "5", "6", or "7":')
 if _challenge_input == "":
     _challenge = input()
 else:
@@ -139,8 +139,13 @@ else:
 _slippery = "slippery" in sys.argv
 _isWorld5 = False
 _isWorld9 = False
+def getIsWorld9():
+    return _isWorld9
+
+World_objective = None
 if "2" == _challenge:
     world = _world2
+    World_objective = World_CupIsOnTable
 if "3" == _challenge:
     world = _world3
 if "4" == _challenge:
@@ -237,8 +242,8 @@ if isMinigridWorld: #"9" in _challenge:
     world = _world_empty
     loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
-WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
-      ('o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
+COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
+      ('G', 'o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
@@ -611,8 +616,6 @@ def World_CupIsOnTable(world):
             if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
                 return True
     return False
-
-World_objective = World_CupIsOnTable
 
 def World_Criteria(world):
     return World_objective(world)
