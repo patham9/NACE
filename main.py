@@ -55,11 +55,16 @@ def Step(inject_key=""):
         if METTA.startswith("!"):
             GOAL = "AddGoalEvent" in METTA
             METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent")
+            atomic_terms = METTA.replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").split(" ")
+            connectors = ["-->", "IntSet", "<->", "<=>"]
             with open("knowledge.metta") as f:
                 backgroundknowledge = f.read()
             for belief in backgroundknowledge.split("\n"):
                 if belief != "" and not belief.startswith(";"):
-                    NAR_AddInput(belief)
+                    for atomic_term in atomic_terms:
+                        if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and atomic_term in belief and not atomic_term.replace(".","").isnumeric():
+                            NAR_AddInput(belief)
+                            break
             ret = NAR_AddInput(METTA)
             tasks = ret["inputs"] + ret["derivations"]
             ret = NAR_Cycle(2)
@@ -169,6 +174,8 @@ def groundedGoal(METTA):
     #s,p,yoff,xoff = groundedFunction(METTA)
     #((S x P) --> left)
     pred = METTA.split("--> ")[1].split(")")[0]
+    if pred not in ["left", "right", "up", "down"]:
+        exceptionThrown = 1/0 #TODO return flag
     S = METTA.split("(!: (((")[1].split(" x")[0]
     P = METTA.split(" x ")[1].split(")")[0]
     yoffset = "y+1"
