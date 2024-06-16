@@ -4,7 +4,7 @@
 !(AddBeliefEvent (((table --> (IntSet prepared)) <=> ((u x T) --> up)) (1.0 0.9)))
 
 ;What it means to deliver coffee:
-!(AddBeliefEvent (((coffee --> (IntSet made)) <=> ((u x _) --> up)) (1.0 0.9)))
+!(AddBeliefEvent (((coffee --> (IntSet made)) <=> ((u x G) --> up)) (1.0 0.9)))
 
 ;What it means to store cup
 !(AddBeliefEvent (((cup --> (IntSet stored)) <=> ((H x u) --> up)) (1.0 0.9)))

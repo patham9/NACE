@@ -3,7 +3,7 @@
 ;GOALS:
 
 ;cup is above plate
-!(AddGoalEvent (((u x _) --> up) (1.0 0.90)))
+!(AddGoalEvent (((u x G) --> up) (1.0 0.90)))
 
 ;goal is above cup
 !(AddGoalEvent (((H x u) --> up) (1.0 0.90)))
@@ -12,7 +12,7 @@
 !(AddGoalEvent (((u x T) --> up) (1.0 0.90)))
 
 ;bird is above plate
-!(AddGoalEvent (((x x _) --> up) (1.0 0.90)))
+!(AddGoalEvent (((x x G) --> up) (1.0 0.90)))
 
 ;bird is above table
 !(AddGoalEvent (((x x T) --> up) (1.0 0.90)))
@@ -48,7 +48,7 @@
 ;BELIEFS:
 
 ;cup should be above plate
-!(AddBeliefEvent (((u x _) --> up) (1.0 0.90)))
+!(AddBeliefEvent (((u x G) --> up) (1.0 0.90)))
 
 ;goal should be above cup
 !(AddBeliefEvent (((H x u) --> up) (1.0 0.90)))
@@ -57,7 +57,7 @@
 !(AddBeliefEvent (((u x T) --> up) (1.0 0.90)))
 
 ;bird should be above plate
-!(AddBeliefEvent (((x x _) --> up) (1.0 0.90)))
+!(AddBeliefEvent (((x x G) --> up) (1.0 0.90)))
 
 ;bird should be above table
 !(AddBeliefEvent (((x x T) --> up) (1.0 0.90)))

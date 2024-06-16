@@ -41,6 +41,60 @@ if interactiveWorld:
     from NAR import *
     os.chdir(cwd)
 
+def groundedGoal(METTA):
+    #s,p,yoff,xoff = groundedFunction(METTA)
+    #((S x P) --> left)
+    pred = METTA.split("--> ")[1].split(")")[0]
+    if pred not in ["left", "right", "up", "down"]:
+        exceptionThrown = 1/0 #TODO return flag
+    S = METTA.split("(!: (((")[1].split(" x")[0]
+    P = METTA.split(" x ")[1].split(")")[0]
+    yoffset = "y+1"
+    xoffset = "x"
+    if pred == "up":
+        yoffset = "y-1"
+        xoffset = "x"
+    if pred == "down":
+        yoffset = "y+1"
+        xoffset = "x"
+    if pred == "left":
+        yoffset = "y"
+        xoffset = "x-1"
+    if pred == "right":
+        yoffset = "y"
+        xoffset = "x+1"
+    print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
+    STR = f"lambda world: any( world[BOARD][{yoffset}][{xoffset}] == '{S}' and world[BOARD][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
+    print("FUNC:", STR)
+    FUNC = eval(STR)
+    return FUNC
+
+def groundedBelief(METTA):
+    pred = METTA.split("--> ")[1].split(")")[0]
+    S = METTA.split("(.: (((")[1].split(" x")[0]
+    P = METTA.split(" x ")[1].split(")")[0]
+    #print("DEBUG", S, P); input()
+    yoffset = 1
+    xoffset = 0
+    if pred == "up":
+        yoffset = +1
+        xoffset = 0
+    if pred == "down":
+        yoffset = -1
+        xoffset = 0
+    if pred == "left":
+        yoffset = 0
+        xoffset = -1
+    if pred == "right":
+        yoffset = 0
+        xoffset = +1
+    for x in range(1,width-1):
+        for y in range(1,height-1):
+            if observed_world[BOARD][y][x] == S:
+                 observed_world[BOARD][y+yoffset][x+xoffset] = P
+            if observed_world[BOARD][y][x] == P:
+                observed_world[BOARD][y-yoffset][x-xoffset] = S
+
 #Configure hypotheses to use euclidean space properties if desired
 Hypothesis_UseMovementOpAssumptions(left, right, up, down, drop, "DisableOpSymmetryAssumption" in sys.argv or World_Num5())
 #Run the simulation in a loop for up to k steps:
@@ -143,60 +197,6 @@ def Step(inject_key=""):
 if "nogui" in sys.argv:
     for Time in range(300):
         Step()
-
-def groundedBelief(METTA):
-    pred = METTA.split("--> ")[1].split(")")[0]
-    S = METTA.split("(.: (((")[1].split(" x")[0]
-    P = METTA.split(" x ")[1].split(")")[0]
-    print("DEBUG", S, P); input()
-    yoffset = 1
-    xoffset = 0
-    if pred == "up":
-        yoffset = +1
-        xoffset = 0
-    if pred == "down":
-        yoffset = -1
-        xoffset = 0
-    if pred == "left":
-        yoffset = 0
-        xoffset = -1
-    if pred == "right":
-        yoffset = 0
-        xoffset = +1
-    for x in range(1,width-1):
-        for y in range(1,height-1):
-            if observed_world[BOARD][y][x] == S:
-                 observed_world[BOARD][y+yoffset][x+xoffset] = P
-            if observed_world[BOARD][y][x] == P:
-                observed_world[BOARD][y-yoffset][x-xoffset] = S
-
-def groundedGoal(METTA):
-    #s,p,yoff,xoff = groundedFunction(METTA)
-    #((S x P) --> left)
-    pred = METTA.split("--> ")[1].split(")")[0]
-    if pred not in ["left", "right", "up", "down"]:
-        exceptionThrown = 1/0 #TODO return flag
-    S = METTA.split("(!: (((")[1].split(" x")[0]
-    P = METTA.split(" x ")[1].split(")")[0]
-    yoffset = "y+1"
-    xoffset = "x"
-    if pred == "up":
-        yoffset = "y-1"
-        xoffset = "x"
-    if pred == "down":
-        yoffset = "y+1"
-        xoffset = "x"
-    if pred == "left":
-        yoffset = "y"
-        xoffset = "x-1"
-    if pred == "right":
-        yoffset = "y"
-        xoffset = "x+1"
-    print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
-    STR = f"lambda world: any( world[BOARD][{yoffset}][{xoffset}] == '{S}' and world[BOARD][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
-    print("FUNC:", STR)
-    FUNC = eval(STR)
-    return FUNC
 
 if "nogui" in sys.argv:
     exit()
