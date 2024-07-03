@@ -121,6 +121,34 @@ _world_empty = """
             
             
 """
+_world_empty_large = """
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+"""
+
 
 _challenge_input = ""
 for arg in sys.argv:
@@ -205,7 +233,7 @@ def minigrid_digest(state):
 
 worldstr = "MiniGrid-DoorKey-8x8-v0"
 if "10" == _challenge:
-    worldstr = "MiniGrid-Empty-8x8-v0"
+    print("10 BECAME 30-36 as there are variants of empty levels"); exit(0)
 if "11" == _challenge:
     worldstr = "BabyAI-GoToRedBallNoDists-v0"
 if "12" == _challenge:
@@ -224,6 +252,30 @@ if "18" == _challenge:
     worldstr = "MiniGrid-UnlockPickup-v0"
 if "19" == _challenge:
     worldstr = "MiniGrid-BlockedUnlockPickup-v0"
+if "30" == _challenge:
+    worldstr = "MiniGrid-Empty-6x6-v0"
+    _challenge = "10"
+if "31" == _challenge:
+    worldstr = "MiniGrid-Empty-8x8-v0"
+    _challenge = "10"
+if "32" == _challenge:
+    worldstr = "MiniGrid-Empty-16x16-v0"
+    _world_empty = _world_empty_large
+    _challenge = "10"
+if "33" == _challenge:
+    worldstr = "MiniGrid-Empty-Random-5x5-v0"
+    _challenge = "10"
+if "34" == _challenge:
+    worldstr = "MiniGrid-Empty-Random-6x6-v0"
+    _challenge = "10"
+if "35" == _challenge:
+    worldstr = "MiniGrid-FourRooms-v0"
+    _world_empty = _world_empty_large
+    _challenge = "10"
+if "36" == _challenge:
+    worldstr = "MiniGrid-MultiRoom-N6-v0"
+    _world_empty = _world_empty_large
+    _challenge = "10"
 
 isMinigridWorld = int(_challenge) >= 10 #Minigrid challenges start at that index
 if isMinigridWorld: #"9" in _challenge:
