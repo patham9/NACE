@@ -37,6 +37,8 @@ for index in range(1,101):
             if idx not in indices:
                 indices.append(idx)
             rewardvalue = float(line.split(" ")[3].split("=")[1])
+            if "noclip" not in sys.argv:
+                rewardvalue = max(0.0, rewardvalue)
             lenvalue = float(line.split(" ")[2].split("=")[1])
             rewardAll[idx].append(rewardvalue)
             rewardlist.append(rewardvalue)
@@ -130,5 +132,16 @@ if "noplot" not in sys.argv:
 if "nocsv" not in sys.argv:
     with open(f"{worldstr}_NACE.csv", "w") as f:
         f.write("Timesteps,Mean Episode Reward,Standard Deviation of Episode Reward,Mean Episode Length,Standard Deviation of Episode Length\n")
+        #if "boilerplate" in sys.argv: #no need
+        #    f.write(f"{0}, {0}, {0}, {500}, {0}\n")
+        #    f.write(f"{1}, {0}, {0}, {500}, {0}\n")
+        timestepslast = 0
         for timesteps in indices:
+            timestepslast = timesteps
             f.write(f"{timesteps}, {rewardsAvgOfIndex[timesteps]}, {np.std(rewardValuesOfIndex[timesteps])}, {lensAvgOfIndex[timesteps]}, {np.std(lenValuesOfIndex[timesteps])}\n")
+        if "boilerplate" in sys.argv:
+            timestepslastlast = 10000000 
+            #f.write(f"{timestepslastlast}, {rewardsAvgOfIndex[timestepslast]}, {np.std(rewardValuesOfIndex[timestepslast])}, {lensAvgOfIndex[timestepslast]}, {np.std(lenValuesOfIndex[timestepslast])}\n")
+            for timestepslastlast in range(timestepslast, 10000000, 100):
+                f.write(f"{timestepslastlast}, {rewardsAvgOfIndex[timestepslast]}, {np.std(rewardValuesOfIndex[timestepslast])}, {lensAvgOfIndex[timestepslast]}, {np.std(lenValuesOfIndex[timestepslast])}\n")
+                
