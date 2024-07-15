@@ -3,6 +3,7 @@ import os.path
 import sys
 import numpy as np
 
+print("Replaced with plotTimes.py but could also be utilized if updated"); exit(0)
 _challenge = "0"
 for arg in sys.argv:
     if arg.startswith("world="):

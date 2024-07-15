@@ -212,16 +212,25 @@ lastreward = None
 episode_id = 0
 run_id = -1
 episodes = -1
-max_steps = 1000
+max_steps = -1 #1000
+evalsteps = -1
 step = 0
+totalstep = 0
+seed = -1
 for arg in sys.argv:
+    if arg.startswith("maxsteps="):
+        max_steps = int(arg.split("maxsteps=")[1])
     if arg.startswith("runid="):
         run_id = int(arg.split("runid=")[1])
+        seed = run_id - 1
+    if arg.startswith("evalsteps="):
+        evalsteps = int(arg.split("evalsteps=")[1])
     if arg.startswith("episodes="):
         episodes = int(arg.split("episodes=")[1])
 def minigrid_digest(state):
-    global direction, loc, lastimage, lastreward, step
+    global direction, loc, lastimage, lastreward, step, totalstep
     step += 1
+    totalstep += 1
     #print(state[0]["direction"]); exit(0)
     direction = state[0]["direction"]
     #print(state[0]['image'].shape); exit(0)
@@ -284,9 +293,28 @@ if isMinigridWorld: #"9" in _challenge:
     _isWorld5 = False #TODO
     direction = dir_down
     if "nominigrid" not in sys.argv:
-        env = gym.make(worldstr, render_mode='human', max_steps=max_steps)
+        if max_steps != -1:
+            env = gym.make(worldstr, render_mode='human', max_steps=max_steps)
+        else:
+            env = gym.make(worldstr, render_mode='human')
+            max_steps = env.max_steps
+            if max_steps == 0:
+                max_steps = 256
+                env = gym.make(worldstr, render_mode='human', max_steps=max_steps)
     else:
-        env = gym.make(worldstr, max_steps=max_steps)
+        if max_steps != -1:
+            env = gym.make(worldstr, max_steps=max_steps)
+        else:
+            env = gym.make(worldstr)
+            max_steps = env.max_steps
+            if max_steps == 0:
+                max_steps = 256
+                env = gym.make(worldstr, render_mode='human', max_steps=max_steps)
+    for arg in sys.argv:
+        if arg.startswith("seed="):
+            seed = int(arg.split("seed=")[1])
+        if seed != -1:
+            env.reset(seed=seed)
     observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
@@ -342,10 +370,12 @@ def cntEntry(world, VAL):
 hasReset = 0
 resetscore = 0
 acummulatedScore = 0
+lastevaltime = -1
+lastseed = seed
 
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
 def World_Move(loc, world, action):
-    global lastseen, lastreward, hasReset, resetscore, acummulatedScore, step, episode_id
+    global lastseen, lastreward, hasReset, resetscore, acummulatedScore, step, episode_id, lastevaltime, seed, lastseed
     lastseen = set([])
     lastreward = 0
     if env is not None:
@@ -513,7 +543,6 @@ def World_Move(loc, world, action):
                     if V[0] != 0 and Y >= 0 and X >= 0 and Y < height and X < width:  
                         #print("!!!", (X,Y), (i,j), V)
                         world[BOARD][Y][X] = M[V]
-
         world[BOARD][loc[1]][loc[0]] = FREE
         world[BOARD][newloc[1]][newloc[0]] = ROBOT
         loc = newloc
@@ -523,22 +552,42 @@ def World_Move(loc, world, action):
         if (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or \
            (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)) or \
            (cntEntry(oldworld, SHOCK) > cntEntry(world, SHOCK)) or lastreward != 0:
-            episode_id += 1
             if lastreward > 0 or (cntEntry(oldworld, TABLE) > cntEntry(world, TABLE)) or (cntEntry(oldworld, GOAL) > cntEntry(world, GOAL)):
                 lastreward = 1 #minigrid is not giving so we provide own reward
             else:
                 lastreward = -1
+            episode_id += 1
             acummulatedScore += lastreward
             world[VALUES] = (acummulatedScore, V_inventory)
             hasReset = 2 #ugly double reset hack is needed
             resetscore = world[VALUES][0]
-            minigrid_digest(env.reset())
-            if run_id != -1:
+            lastseed = seed
+            if seed != -1:
+                #Ali used seed 0-4, so we also alternate between these seeds:
+                seed += 1
+                if seed > 4:
+                    seed = 0
+            minigrid_digest(env.reset(seed=seed))
+            if run_id != -1 and lastreward != 0:
                 reward = 1 - 0.9 * (step / max_steps)
-                if episode_id < episodes:
-                    with open("run_world"+str(_challenge_input)+"_"+str(run_id)+".run", "a") as f:
-                        f.write(f"{episode_id} {reward}\n")
+                if lastreward < 0:
+                    reward = -1
+                if (episodes != -1 and episode_id < episodes) or \
+                   (evalsteps != -1 and totalstep < evalsteps):
+                    eval_time = int(totalstep/100)*100+100
+                    if lastevaltime == -1 and episodes == -1:
+                        for missed_time in range(0, eval_time-100, 100):
+                            with open("run_world"+str(_challenge_input)+"_"+str(run_id)+".run", "a") as f:
+                                f.write(f"episode_id={0} timesteps={missed_time+100} length={max_steps} reward={0.0} seed={lastseed}\n")
+                    if lastevaltime != eval_time or episodes != -1:
+                        lastevaltime = eval_time
+                        with open("run_world"+str(_challenge_input)+"_"+str(run_id)+".run", "a") as f:
+                            f.write(f"episode_id={episode_id} timesteps={eval_time} length={step} reward={reward} seed={lastseed}\n")
+                    if eval_time == evalsteps:
+                        exit(0) #no need to evaluate further
                 if episodes != -1 and episode_id >= episodes:
+                    exit(0)
+                if evalsteps != -1 and totalstep >= evalsteps:
                     exit(0)
                 step = 0
         else:
@@ -737,7 +786,7 @@ actions = [left, right, up, down]
 if _isWorld5:
     actions = [up, down, right]
     VIEWDISTX, VIEWDISTY = (4, 3)
-if isMinigridWorld and int(_challenge) >= 16:
+if isMinigridWorld and int(_challenge) >= 16 and int(_challenge) < 30:
     actions = [left, right, up, down, drop] #, pick, drop, toggle]
 def World_Num5():
     return _isWorld5
