@@ -314,8 +314,9 @@ if isMinigridWorld: #"9" in _challenge:
         if arg.startswith("seed="):
             seed = int(arg.split("seed=")[1])
         if seed != -1:
-            env.reset(seed=seed)
-    observation_reward_and_whatever = env.reset()
+            observation_reward_and_whatever = env.reset(seed=seed)
+        else:
+            observation_reward_and_whatever = env.reset()
     minigrid_digest(observation_reward_and_whatever)
     print("Observation:", observation_reward_and_whatever)
     if "nominigrid" not in sys.argv:
@@ -567,7 +568,10 @@ def World_Move(loc, world, action):
                 seed += 1
                 if seed > 4:
                     seed = 0
-            minigrid_digest(env.reset(seed=seed))
+            if seed != -1:
+                minigrid_digest(env.reset(seed=seed))
+            else:
+                minigrid_digest(env.reset())
             if run_id != -1 and lastreward != 0:
                 reward = 1 - 0.9 * (step / max_steps)
                 if lastreward < 0:
