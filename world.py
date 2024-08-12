@@ -108,6 +108,15 @@ o x   H    o
 o          o
 oooooooooooo
 """
+_world10 = """
+oooooooooooo
+o    f     o
+oo oooooo oo
+o          o
+o x   w o  o
+o          o
+oooooooooooo
+"""
 _world_empty = """
             
             
@@ -242,7 +251,7 @@ def minigrid_digest(state):
 
 worldstr = "MiniGrid-DoorKey-8x8-v0"
 if "10" == _challenge:
-    print("10 BECAME 30-36 as there are variants of empty levels"); exit(0)
+    world = _world10
 if "11" == _challenge:
     worldstr = "BabyAI-GoToRedBallNoDists-v0"
 if "12" == _challenge:
@@ -291,7 +300,7 @@ if "36" == _challenge:
 if "37" == _challenge:
     worldstr = "MiniGrid-SimpleCrossingS9N2"
 
-isMinigridWorld = int(_challenge) >= 10 #Minigrid challenges start at that index
+isMinigridWorld = int(_challenge) > 10 #Minigrid challenges start at that index
 if isMinigridWorld: #"9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
@@ -329,8 +338,8 @@ if isMinigridWorld: #"9" in _challenge:
     world = _world_empty
     loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
-COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
-      ('G', 'o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
+HUMAN,COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
+      ('w','G', 'o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))

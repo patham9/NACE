@@ -104,6 +104,41 @@ plan = []
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
+    if "adversary" in sys.argv:
+        direction = input()
+        BREAK = False
+        if direction == "w":
+            for i in range(1,width-1):
+                for j in range(1,height-1):
+                    if world[BOARD][j][i] == HUMAN and world[BOARD][j+1][i] == ' ':
+                        world[BOARD][j][i] = ' '
+                        world[BOARD][j+1][i] = HUMAN
+                        BREAK = True; break
+                if BREAK: break
+        if direction == "s":
+            for i in range(1,width-1):
+                for j in range(1,height-1):
+                    if world[BOARD][j][i] == HUMAN and world[BOARD][j-1][i] == ' ':
+                        world[BOARD][j][i] = ' '
+                        world[BOARD][j-1][i] = HUMAN
+                        BREAK = True; break
+                if BREAK: break
+        if direction == "a":
+            for i in range(1,width-1):
+                for j in range(1,height-1):
+                    if world[BOARD][j][i] == HUMAN and world[BOARD][j][i+1] == ' ':
+                        world[BOARD][j][i] = ' '
+                        world[BOARD][j][i+1] = HUMAN
+                        BREAK = True; break
+                if BREAK: break
+        if direction == "d":
+            for i in range(1,width-1):
+                for j in range(1,height-1):
+                    if world[BOARD][j][i] == HUMAN and world[BOARD][j][i-1] == ' ':
+                        world[BOARD][j][i] = ' '
+                        world[BOARD][j][i-1] = HUMAN
+                        BREAK = True; break
+                if BREAK: break
     if interactiveWorld: #(:! ((0 x _) --> left))
         METTA = input() #f"(:! ((4 x 0) --> left))"
         if METTA.startswith("!"):
