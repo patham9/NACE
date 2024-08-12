@@ -2,19 +2,19 @@
 
 ;GOALS:
 
-;cup is above plate
+;the cup should be above the coffee machine
 !(AddGoalEvent (((u x G) --> up) (1.0 0.90)))
 
-;goal is above cup
+;the goal should be above the cup
 !(AddGoalEvent (((H x u) --> up) (1.0 0.90)))
 
-;cup is above table
+;the cup should be above the table
 !(AddGoalEvent (((u x T) --> up) (1.0 0.90)))
 
-;bird is above plate
+;the bird should be above the coffee machine
 !(AddGoalEvent (((x x G) --> up) (1.0 0.90)))
 
-;bird is above table
+;the bird is above the table
 !(AddGoalEvent (((x x T) --> up) (1.0 0.90)))
 
 ;HIGHER-LEVEL GOALS:
@@ -47,19 +47,19 @@
 
 ;BELIEFS:
 
-;cup should be above plate
+;the cup is above the coffee machine
 !(AddBeliefEvent (((u x G) --> up) (1.0 0.90)))
 
-;goal should be above cup
+;the goal is above the cup
 !(AddBeliefEvent (((H x u) --> up) (1.0 0.90)))
 
-;cup should be above table
+;the cup is above the table
 !(AddBeliefEvent (((u x T) --> up) (1.0 0.90)))
 
-;bird should be above plate
+;the bird is above the coffee machine
 !(AddBeliefEvent (((x x G) --> up) (1.0 0.90)))
 
-;bird should be above table
+;the bird is above the table
 !(AddBeliefEvent (((x x T) --> up) (1.0 0.90)))
 
 ;HIGHER-LEVEL BELIEFS:

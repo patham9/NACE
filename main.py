@@ -407,6 +407,7 @@ else:
         "............"
     ]
     colors = {
+        COFFEEMACHINE: "black",
         ' ': 'white',
         ROBOT: 'red',
         '.': 'gray',

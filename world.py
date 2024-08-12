@@ -261,6 +261,9 @@ if "18" == _challenge:
     worldstr = "MiniGrid-UnlockPickup-v0"
 if "19" == _challenge:
     worldstr = "MiniGrid-BlockedUnlockPickup-v0"
+if "20" == _challenge: #EXT 1
+    worldstr = "MiniGrid-DoorKey-16x16-v0"
+    _world_empty = _world_empty_large
 if "30" == _challenge:
     worldstr = "MiniGrid-Empty-6x6-v0"
     _challenge = "10"
@@ -285,6 +288,8 @@ if "36" == _challenge:
     worldstr = "MiniGrid-MultiRoom-N6-v0"
     _world_empty = _world_empty_large
     _challenge = "10"
+if "37" == _challenge:
+    worldstr = "MiniGrid-SimpleCrossingS9N2"
 
 isMinigridWorld = int(_challenge) >= 10 #Minigrid challenges start at that index
 if isMinigridWorld: #"9" in _challenge:
