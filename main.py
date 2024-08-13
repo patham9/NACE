@@ -107,7 +107,7 @@ def Step(inject_key=""):
     if "adversary" in sys.argv:
         direction = input()
         BREAK = False
-        if direction == "w":
+        if direction == "s":
             for i in range(1,width-1):
                 for j in range(1,height-1):
                     if world[BOARD][j][i] == HUMAN and world[BOARD][j+1][i] == ' ':
@@ -115,7 +115,7 @@ def Step(inject_key=""):
                         world[BOARD][j+1][i] = HUMAN
                         BREAK = True; break
                 if BREAK: break
-        if direction == "s":
+        if direction == "w":
             for i in range(1,width-1):
                 for j in range(1,height-1):
                     if world[BOARD][j][i] == HUMAN and world[BOARD][j-1][i] == ' ':
@@ -123,7 +123,7 @@ def Step(inject_key=""):
                         world[BOARD][j-1][i] = HUMAN
                         BREAK = True; break
                 if BREAK: break
-        if direction == "a":
+        if direction == "d":
             for i in range(1,width-1):
                 for j in range(1,height-1):
                     if world[BOARD][j][i] == HUMAN and world[BOARD][j][i+1] == ' ':
@@ -131,7 +131,7 @@ def Step(inject_key=""):
                         world[BOARD][j][i+1] = HUMAN
                         BREAK = True; break
                 if BREAK: break
-        if direction == "d":
+        if direction == "a":
             for i in range(1,width-1):
                 for j in range(1,height-1):
                     if world[BOARD][j][i] == HUMAN and world[BOARD][j][i-1] == ' ':

@@ -108,7 +108,7 @@ o x   H    o
 o          o
 oooooooooooo
 """
-_world10 = """
+_world0 = """
 oooooooooooo
 o    f     o
 oo oooooo oo
@@ -250,8 +250,8 @@ def minigrid_digest(state):
         reward = state[1]
 
 worldstr = "MiniGrid-DoorKey-8x8-v0"
-if "10" == _challenge:
-    world = _world10
+if "0" == _challenge:
+    world = _world0
 if "11" == _challenge:
     worldstr = "BabyAI-GoToRedBallNoDists-v0"
 if "12" == _challenge:
@@ -300,7 +300,7 @@ if "36" == _challenge:
 if "37" == _challenge:
     worldstr = "MiniGrid-SimpleCrossingS9N2"
 
-isMinigridWorld = int(_challenge) > 10 #Minigrid challenges start at that index
+isMinigridWorld = int(_challenge) >= 10 #Minigrid challenges start at that index
 if isMinigridWorld: #"9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
