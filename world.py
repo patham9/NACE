@@ -113,7 +113,7 @@ oooooooooooo
 o    f     o
 oo oooooo oo
 o          o
-o x   w o  o
+o x     o  o
 o          o
 oooooooooooo
 """
@@ -177,8 +177,11 @@ else:
 _slippery = "slippery" in sys.argv
 _isWorld5 = False
 _isWorld9 = False
+_isWorld0 = False
 def getIsWorld9():
     return _isWorld9
+def getIsWorld0():
+    return _isWorld0
 
 World_objective = None
 if "2" == _challenge:
@@ -252,6 +255,7 @@ def minigrid_digest(state):
 worldstr = "MiniGrid-DoorKey-8x8-v0"
 if "0" == _challenge:
     world = _world0
+    _isWorld0 = True
 if "11" == _challenge:
     worldstr = "BabyAI-GoToRedBallNoDists-v0"
 if "12" == _challenge:

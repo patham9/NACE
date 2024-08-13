@@ -32,6 +32,7 @@ else:
     print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "nopredictions" to hide prediction rectangles, "nogui" to hide GUI, "notextures" to not render textures in GUI, "colors" to render colors.')
 from nace import *
 
+adversaryWorld = "adversary" in sys.argv or getIsWorld0()
 interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
 if interactiveWorld:
     mettanars = os.path.abspath('../metta-morph/metta-nars/')
@@ -104,7 +105,8 @@ plan = []
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
-    if "adversary" in sys.argv:
+    if adversaryWorld:
+        print("Adversary movement (w/a/s/d):")
         direction = input()
         BREAK = False
         if direction == "s":
@@ -140,6 +142,7 @@ def Step(inject_key=""):
                         BREAK = True; break
                 if BREAK: break
     if interactiveWorld: #(:! ((0 x _) --> left))
+        print("MeTTa input:")
         METTA = input() #f"(:! ((4 x 0) --> left))"
         if METTA.startswith("!"):
             GOAL = "AddGoalEvent" in METTA
@@ -228,6 +231,15 @@ def Step(inject_key=""):
                 for x in negrules:
                     Prettyprint_rule(x)
                 input()
+
+if adversaryWorld:
+    for i in range(1,width-1):
+        BREAK = False
+        for j in range(1,height-1):
+            if world[BOARD][j][i] == ' ':
+                world[BOARD][j][i] = HUMAN
+                BREAK = True; break
+        if BREAK: break
 
 if "nogui" in sys.argv:
     for Time in range(300):
