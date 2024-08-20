@@ -110,9 +110,9 @@ oooooooooooo
 """
 _world0 = """
 oooooooooooo
-o    f     o
-oo oooooo oo
 o          o
+oo oooooo oo
+o    f     o
 o x     o  o
 o          o
 oooooooooooo
@@ -182,6 +182,14 @@ def getIsWorld9():
     return _isWorld9
 def getIsWorld0():
     return _isWorld0
+
+#Whether there is a cup on the table (user-given goal demo)
+def World_CupIsOnTable(world):
+    for x in range(width):
+        for y in range(height-1):
+            if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
+                return True
+    return False
 
 World_objective = None
 if "2" == _challenge:
@@ -732,14 +740,6 @@ def World_Move(loc, world, action):
                     world[BOARD][yr][xr] = SBALL
                     break
     return loc, [world[BOARD], world[VALUES], world[TIMES]]
-
-#Whether there is a cup on the table (user-given goal demo)
-def World_CupIsOnTable(world):
-    for x in range(width):
-        for y in range(height-1):
-            if world[BOARD][y+1][x] == 'T' and world[BOARD][y][x] == 'u':
-                return True
-    return False
 
 def World_Criteria(world):
     return World_objective(world)
