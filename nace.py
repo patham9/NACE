@@ -210,16 +210,15 @@ def _Plan(Time, world, rules, actions, max_depth=100, max_queue_len=2000, custom
             encountered[world_BOARD_VALUES] = depth
         for action in actions:
             new_world, new_score, new_age, _ = NACE_Predict(Time, FocusSet, deepcopy(current_world), action, rules, customGoal)
-            
             #temporary hack to avoid episode reset issue: if 'x' is close to '.' then put 0.5 (only needed for Minigrid levels)
-            for y in range(height-1):
-                for x in range(width-1):
-                    if world[BOARD][y][x] == ' ' and new_world[BOARD][y][x] == 'x' and new_world[BOARD][y+1][x] == '.' or \
-                       new_world[BOARD][y][x] == '.' and world[BOARD][y+1][x] == ' ' and new_world[BOARD][y+1][x] == 'x' or \
-                       world[BOARD][y][x] == ' ' and new_world[BOARD][y][x] == 'x' and new_world[BOARD][y][x+1] == '.' or \
-                       new_world[BOARD][y][x] == '.' and world[BOARD][y][x+1] == ' ' and new_world[BOARD][y][x+1] == 'x':
-                        new_score = 0.5
-            
+            if getisMinigridWorld(): #episode reset confuses the system
+                for y in range(height-1):
+                    for x in range(width-1):
+                        if world[BOARD][y][x] == ' ' and new_world[BOARD][y][x] == 'x' and new_world[BOARD][y+1][x] == '.' or \
+                           new_world[BOARD][y][x] == '.' and world[BOARD][y+1][x] == ' ' and new_world[BOARD][y+1][x] == 'x' or \
+                           world[BOARD][y][x] == ' ' and new_world[BOARD][y][x] == 'x' and new_world[BOARD][y][x+1] == '.' or \
+                           new_world[BOARD][y][x] == '.' and world[BOARD][y][x+1] == ' ' and new_world[BOARD][y][x+1] == 'x':
+                            new_score = 0.5
             if new_world == current_world or new_score == float("inf"):
                 continue
             new_Planned_actions = planned_actions + [action]

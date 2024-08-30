@@ -108,6 +108,15 @@ o x   H    o
 o          o
 oooooooooooo
 """
+_worldminus1 = """
+oooooooooooo
+ozb  o toooo
+oz t 0   boo
+o 0  o to oo
+ooxooo0oo oo
+oo obzt   oo
+oooooooooooo
+"""
 _world0 = """
 oooooooooooo
 o          o
@@ -211,6 +220,8 @@ if "8" == _challenge:
 if "9" == _challenge:
     world = _world9
     _isWorld9 = True
+if "-1" == _challenge:
+    world = _worldminus1
 #World states:
 loc = (2,4)
 env = None
@@ -313,6 +324,9 @@ if "37" == _challenge:
     worldstr = "MiniGrid-SimpleCrossingS9N2"
 
 isMinigridWorld = int(_challenge) >= 10 #Minigrid challenges start at that index
+def getisMinigridWorld():
+    return isMinigridWorld
+
 if isMinigridWorld: #"9" in _challenge:
     import gymnasium as gym
     from minigrid.wrappers import *
@@ -350,8 +364,8 @@ if isMinigridWorld: #"9" in _challenge:
     world = _world_empty
     loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
-HUMAN,COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
-      ('w','G', 'o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
+TRASH, HUMAN,COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
+      ('t', 'w','G', 'o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
 BOARD, VALUES, TIMES = (0, 1, 2)
 height, width = (len(world[BOARD]), len(world[BOARD][0]))
@@ -697,6 +711,11 @@ def World_Move(loc, world, action):
         loc = newloc
         world[BOARD][loc[1]][loc[0]] = ROBOT
         world[VALUES] = tuple([world[VALUES][0] - 1] + list(world[VALUES][1:])) #the first value -1 and the rest stays
+    #TRASH
+    if world[BOARD][newloc[1]][newloc[0]] == TRASH:
+        world[BOARD][loc[1]][loc[0]] = FREE
+        loc = newloc
+        world[BOARD][loc[1]][loc[0]] = ROBOT
     #FOOD
     if world[BOARD][newloc[1]][newloc[0]] == FOOD:
         world[BOARD][loc[1]][loc[0]] = FREE
@@ -721,12 +740,15 @@ def World_Move(loc, world, action):
     #Football
     crateloc = action(newloc)
     if crateloc[1] < height and crateloc[0] < width and crateloc[1] >= 0 and crateloc[0] >= 0:
-        if world[BOARD][crateloc[1]][crateloc[0]] == FREE:
+        if world[BOARD][crateloc[1]][crateloc[0]] == FREE or world[BOARD][crateloc[1]][crateloc[0]] == SHOCK:
             if world[BOARD][newloc[1]][newloc[0]] == SBALL:
                 world[BOARD][loc[1]][loc[0]] = FREE
                 loc = newloc
                 world[BOARD][loc[1]][loc[0]] = ROBOT
-                world[BOARD][crateloc[1]][crateloc[0]] = SBALL
+                if world[BOARD][crateloc[1]][crateloc[0]] == SHOCK:
+                     world[BOARD][crateloc[1]][crateloc[0]] = FREE
+                else:
+                    world[BOARD][crateloc[1]][crateloc[0]] = SBALL
         if world[BOARD][crateloc[1]][crateloc[0]] == GOAL and world[BOARD][newloc[1]][newloc[0]] == SBALL:
             world[BOARD][loc[1]][loc[0]] = FREE
             loc = newloc

@@ -480,7 +480,8 @@ else:
         GOAL: 'green',
         SBALL: 'orange',
         #eletric shock level
-        SHOCK: "yellow"
+        SHOCK: "yellow",
+        TRASH: "magenta"
     }
     fig, ax = plt.subplots()
     plt.rcParams['keymap.save'].remove('s')
