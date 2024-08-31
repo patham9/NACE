@@ -29,7 +29,21 @@ print("Welcome to NACE!")
 if "debug" in sys.argv:
     print('Debugger: enter to let agent World_Move, w/a/s/d for manual World_Movement in simulated world, v for switching to imagined world, l to list hypotheses, p to look through the predicted plan step-wise, q to exit imagined world')
 else:
-    print('Pass "debug" parameter for interactive debugging, "silent" for hiding hypothesis formation output, "manual" for trying the environment as a human, "nosleep" to remove simulation visualization delay, "nopredictions" to hide prediction rectangles, "nogui" to hide GUI, "notextures" to not render textures in GUI, "colors" to render colors.')
+    print("""COMMAND-LINE PARAMETERS:
+Pass "debug" parameter for interactive debugging, 
+"silent" for hiding hypothesis formation output, 
+"manual" for trying the environment as a human, 
+"nosleep" to remove simulation visualization delay, 
+"nopredictions" to hide prediction rectangles,
+"nogui" to hide GUI,
+"notextures" to not render textures in GUI, 
+"colors" to render colors.
+"interactive" for MeTTa-NARS bridge with shell,
+"adversary" to add shell-controllable player character,
+"frames=b" to create a gif file including frames until frame b.
+"startframe=a" optional to let the gif start later.
+"world=k" to start world k without asking for the world input.
+""")
 from nace import *
 
 adversaryWorld = "adversary" in sys.argv or getIsWorld0()

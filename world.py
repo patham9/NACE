@@ -177,7 +177,7 @@ if "manual" in sys.argv:
     if _challenge_input == "":
         print("Enter one of 1-9 to try a world:")
 else:
-    print("""
+    print("""WORLDS:
 Food collecting (1),
 cup on table challenge (2),
 doors and keys (3),
@@ -191,7 +191,8 @@ NEW WORLDS:
 Puzzleworld (-1) "minus 1 indeed"
 Minigrid worlds (11-20, interesting), (30-37, empty grid)
 world with MeTTa-Narsese console input demanding MeTTa-NARS installation (9),
-Input the corresponding world number and press enter:
+
+Input the desired world number and press enter:
 """)
 if _challenge_input == "":
     _challenge = input()
