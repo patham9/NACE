@@ -111,7 +111,7 @@ oooooooooooo
 _worldminus1 = """
 oooooooooooo
 ozb  o toooo
-oz t 0   boo
+oz t 0    oo
 o 0  o to oo
 ooxooo0oo oo
 oo obzt   oo
