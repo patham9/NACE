@@ -48,8 +48,12 @@ Pass "debug" parameter for interactive debugging,
 from nace import *
 
 useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
+useNarsese=False
 if "ona" in sys.argv:
     useONA = True
+if "narsese" in sys.argv:
+    useONA = True
+    useNarsese = True
 adversaryWorld = "adversary" in sys.argv or getIsWorld0()
 interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
 if interactiveWorld:
@@ -170,10 +174,14 @@ def Step(inject_key=""):
     if interactiveWorld: #(:! ((0 x _) --> left))
         print("MeTTa input:")
         METTA = input() #f"(:! ((4 x 0) --> left))"
-        if METTA.startswith("!"):
-            GOAL = "AddGoalEvent" in METTA
-            METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent")
-            atomic_terms = METTA.replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").split(" ")
+        if METTA.startswith("!") or METTA.endswith("! :|:"):
+            GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
+            METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
+            if useNarsese:
+                METTA2 = NAR_NarseseToMeTTa(METTA)
+            else:
+                METTA2 = METTA
+            atomic_terms = METTA2.replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").split(" ")
             connectors = ["-->", "IntSet", "<->", "<=>"]
             with open("knowledge.metta") as f:
                 backgroundknowledge = f.read()
@@ -183,13 +191,19 @@ def Step(inject_key=""):
                         if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and atomic_term in belief and not atomic_term.replace(".","").isnumeric():
                             NAR_AddInput(belief)
                             break
-            ret = NAR_AddInput(METTA)
+            if useNarsese:
+                NAR_SetUseNarsese(True) #bypass metta translation in this case
+                ret = NAR_AddInput(METTA)
+                NAR_SetUseNarsese(False)
+            else:
+                ret = NAR_AddInput(METTA)
             tasks = ret["input"] + ret["derivations"]
             ret = NAR_Cycle(2)
             tasks += (ret["input"] + ret["derivations"])
             processGoals = True
             for taskdict in tasks:
                 if 'metta' not in taskdict:
+                    #print("NOT INCLUDED", taskdict); input() TODO FIX
                     continue
                     #print("EXAMPLE", taskdict); exit(0)
                 task = taskdict['metta']
@@ -200,7 +214,7 @@ def Step(inject_key=""):
                         if processGoals:
                             World_SetObjective(groundedGoal(task))
                             processGoals = False
-                            print("TASK ACCEPTED"); input()
+                            print("TASK ACCEPTED");
                     except:
                         print("TASK REJECTED")
                         None
