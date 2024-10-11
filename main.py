@@ -43,18 +43,30 @@ Pass "debug" parameter for interactive debugging,
 "frames=b" to create a gif file including frames until frame b.
 "startframe=a" optional to let the gif start later.
 "world=k" to start world k without asking for the world input.
+"ona" to use ONA with MeTTa interface in world=9 instead of MeTTa-NARS,
 """)
 from nace import *
 
+useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
+if "ona" in sys.argv:
+    useONA = True
 adversaryWorld = "adversary" in sys.argv or getIsWorld0()
 interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
 if interactiveWorld:
-    mettanars = os.path.abspath('../metta-morph/metta-nars/')
-    sys.path.append(mettanars)
-    cwd = os.getcwd()
-    os.chdir(mettanars)
-    from NAR import *
-    os.chdir(cwd)
+    if useONA:
+        mettanars = os.path.abspath('../OpenNARS-for-Applications/misc/Python')
+        sys.path.append(mettanars)
+        cwd = os.getcwd()
+        os.chdir(mettanars)
+        from MeTTa import *
+        os.chdir(cwd)
+    else:
+        mettanars = os.path.abspath('../metta-morph/metta-nars/')
+        sys.path.append(mettanars)
+        cwd = os.getcwd()
+        os.chdir(mettanars)
+        from NAR import *
+        os.chdir(cwd)
 
 def groundedGoal(METTA):
     #s,p,yoff,xoff = groundedFunction(METTA)
@@ -172,11 +184,15 @@ def Step(inject_key=""):
                             NAR_AddInput(belief)
                             break
             ret = NAR_AddInput(METTA)
-            tasks = ret["inputs"] + ret["derivations"]
+            tasks = ret["input"] + ret["derivations"]
             ret = NAR_Cycle(2)
-            tasks += (ret["inputs"] + ret["derivations"])
+            tasks += (ret["input"] + ret["derivations"])
             processGoals = True
-            for task in tasks:
+            for taskdict in tasks:
+                if 'metta' not in taskdict:
+                    continue
+                    #print("EXAMPLE", taskdict); exit(0)
+                task = taskdict['metta']
                 if GOAL: #"(!:" in task:
                     task = task.replace("(.:", "(!:")
                     print("!!!!!TASK", task)
@@ -184,7 +200,7 @@ def Step(inject_key=""):
                         if processGoals:
                             World_SetObjective(groundedGoal(task))
                             processGoals = False
-                            print("TASK ACCEPTED")
+                            print("TASK ACCEPTED"); input()
                     except:
                         print("TASK REJECTED")
                         None
