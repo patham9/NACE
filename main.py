@@ -174,7 +174,7 @@ def Step(inject_key=""):
     if interactiveWorld: #(:! ((0 x _) --> left))
         print("MeTTa input:")
         METTA = input() #f"(:! ((4 x 0) --> left))"
-        if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:"):
+        if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith("?") or METTA.endswith("? :|:"):
             GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
             METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
             if useNarsese:
@@ -205,7 +205,6 @@ def Step(inject_key=""):
                 if 'metta' not in taskdict:
                     #print("NOT INCLUDED", taskdict); input() TODO FIX
                     continue
-                    #print("EXAMPLE", taskdict); exit(0)
                 task = taskdict['metta'].replace(" * ", " x ")  #transformation only needed for Narsese version
                 if "$1" in task or "#1" in task or "<=>" in task or "==>" in task or "=/>" in task: #check only needed for Narsese version
                     continue
