@@ -174,7 +174,7 @@ def Step(inject_key=""):
     if interactiveWorld: #(:! ((0 x _) --> left))
         print("MeTTa input:")
         METTA = input() #f"(:! ((4 x 0) --> left))"
-        if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith("?") or METTA.endswith("? :|:"):
+        if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
             GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
             METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
             if useNarsese:
