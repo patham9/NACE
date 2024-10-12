@@ -103,7 +103,7 @@ def Step(inject_key=""):
     if interactiveWorld: #(:! ((0 x _) --> left))
         print("MeTTa input:")
         METTA = input() #f"(:! ((4 x 0) --> left))"
-        BRIDGE_Input(METTA, World_SetObjective)
+        BRIDGE_Input(METTA, World_SetObjective, observed_world)
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     end_time = time.time()

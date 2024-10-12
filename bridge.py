@@ -27,7 +27,7 @@ import sys
 import os
 
 def BRIDGE_INIT(widthval, heightval, BOARDval):
-    global width, height
+    global width, height, BOARD
     width = widthval
     height = heightval
     BOARD = BOARDval
@@ -83,7 +83,7 @@ def groundedGoal(METTA):
     FUNC = eval(STR)
     return FUNC
 
-def groundedBelief(METTA):
+def groundedBelief(METTA, observed_world):
     pred = METTA.split("--> ")[1].split(")")[0]
     S = METTA.split("(.: (((")[1].split(" x")[0]
     P = METTA.split(" x ")[1].split(")")[0]
@@ -109,7 +109,7 @@ def groundedBelief(METTA):
             if observed_world[BOARD][y][x] == P:
                 observed_world[BOARD][y-yoffset][x-xoffset] = S
 
-def BRIDGE_Input(METTA, SetNACEPlanningObjective): #can now also be Narsese
+def BRIDGE_Input(METTA, SetNACEPlanningObjective, observed_world): #can now also be Narsese
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
         GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
         METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
@@ -158,7 +158,7 @@ def BRIDGE_Input(METTA, SetNACEPlanningObjective): #can now also be Narsese
             elif "(.:" in task:
                 print("!!!!!TASK", task)
                 try:
-                    groundedBelief(task)
+                    groundedBelief(task, observed_world)
                     print("TASK ACCEPTED")
                 except:
                     print("TASK REJECTED")
