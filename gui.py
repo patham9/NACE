@@ -83,7 +83,6 @@ def GUI_INIT(Stepval, NACE_Predictval, worldval, locval, leftval, rightval, upva
         SHOCK: "yellow",
         TRASH: "magenta"
     }
-    import main #TODO
     GUI_RUN()
 
 def lighten_color(color, amount=0.5):
