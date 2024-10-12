@@ -26,12 +26,12 @@
 import sys
 import os
 
-def BRIDGE_INIT(widthval, heightval):
+def BRIDGE_INIT(widthval, heightval, BOARDval):
     global width, height
     width = widthval
     height = heightval
+    BOARD = BOARDval
 
-BOARD = 0 #TODO
 useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
 useNarsese=False
 if "ona" in sys.argv:
@@ -78,7 +78,7 @@ def groundedGoal(METTA):
         yoffset = "y"
         xoffset = "x+1"
     print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
-    STR = f"lambda world: any( world[BOARD][{yoffset}][{xoffset}] == '{S}' and world[BOARD][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
+    STR = f"lambda world: any( world[0][{yoffset}][{xoffset}] == '{S}' and world[0][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
     print("FUNC:", STR)
     FUNC = eval(STR)
     return FUNC
