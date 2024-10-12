@@ -52,7 +52,7 @@ adversaryWorld = "adversary" in sys.argv or getIsWorld0()
 interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
 if interactiveWorld:
     from bridge import *
-    BRIDGE_INIT(width, height, BOARD)
+    BRIDGE_INIT(width, height, BOARD, World_SetObjective)
 
 #Configure hypotheses to use euclidean space properties if desired
 Hypothesis_UseMovementOpAssumptions(left, right, up, down, drop, "DisableOpSymmetryAssumption" in sys.argv or World_Num5())
@@ -101,11 +101,17 @@ def Step(inject_key=""):
                         BREAK = True; break
                 if BREAK: break
     if interactiveWorld: #(:! ((0 x _) --> left))
-        print("MeTTa input:")
-        METTA = input() #f"(:! ((4 x 0) --> left))"
-        BRIDGE_Input(METTA, World_SetObjective, observed_world)
+        asked = True
+        while asked:
+            print("MeTTa input:")
+            METTA = input() #f"(:! ((4 x 0) --> left))"
+            BRIDGE_Input(METTA, observed_world, NACEToNARS = False)
+            if not METTA.endswith("?") and not METTA.endswith("? :|:") and not METTA.startswith("!(EternalQuestion ") and not METTA.startswith("!(EventQuestion "):
+                asked = False
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
+    if interactiveWorld:
+        BRIDGE_observationToNARS(observed_world)
     end_time = time.time()
     print("score=" + str(world[VALUES][0]) + ", vars="+str(list(world[VALUES][1:])), end="")
     if "manual" in sys.argv:

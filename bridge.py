@@ -26,11 +26,12 @@
 import sys
 import os
 
-def BRIDGE_INIT(widthval, heightval, BOARDval):
-    global width, height, BOARD
+def BRIDGE_INIT(widthval, heightval, BOARDval, SetNACEPlanningObjectiveVal):
+    global width, height, BOARD, SetNACEPlanningObjective
     width = widthval
     height = heightval
     BOARD = BOARDval
+    SetNACEPlanningObjective = SetNACEPlanningObjectiveVal
 
 useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
 useNarsese=False
@@ -109,11 +110,12 @@ def groundedBelief(METTA, observed_world):
             if observed_world[BOARD][y][x] == P:
                 observed_world[BOARD][y-yoffset][x-xoffset] = S
 
-def BRIDGE_Input(METTA, SetNACEPlanningObjective, observed_world): #can now also be Narsese
+def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #can now also be Narsese
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
         GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
         METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
-        if useNarsese:
+        useNarseseNow = useNarsese and not ForceMeTTa
+        if useNarseseNow:
             METTA2 = NAR_NarseseToMeTTa(METTA)
         else:
             METTA2 = METTA
@@ -127,12 +129,14 @@ def BRIDGE_Input(METTA, SetNACEPlanningObjective, observed_world): #can now also
                     if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and atomic_term in belief and not atomic_term.replace(".","").isnumeric():
                         NAR_AddInput(belief)
                         break
-        if useNarsese:
+        if useNarseseNow:
             NAR_SetUseNarsese(True) #bypass metta translation in this case
             ret = NAR_AddInput(METTA)
             NAR_SetUseNarsese(False)
         else:
             ret = NAR_AddInput(METTA)
+        if NACEToNARS:
+            return
         tasks = ret["input"] + ret["derivations"]
         ret = NAR_Cycle(2)
         tasks += (ret["input"] + ret["derivations"])
@@ -163,3 +167,48 @@ def BRIDGE_Input(METTA, SetNACEPlanningObjective, observed_world): #can now also
                 except:
                     print("TASK REJECTED")
                     None
+
+def observeSpatialRelation(y,x, observed_world, horizontal=True, vertical=True):
+    board = observed_world[BOARD]
+    if horizontal:
+        valueMid = board[y][x]
+        valueLeft = board[y][x-1]
+        valueRight = board[y][x+1]
+        MeTTaL = f"!(AddBeliefEvent ((({valueRight} x {valueMid}) --> right) (1.0 0.90)))"
+        MeTTaR = f"!(AddBeliefEvent ((({valueLeft} x {valueMid}) --> left) (1.0 0.90)))"
+        if valueRight != " " and valueMid != " ":
+            BRIDGE_Input(MeTTaL, observed_world, NACEToNARS = True, ForceMeTTa = True)
+        if valueRight != " " and valueMid != " " and valueLeft != " ":
+            if useONA:
+                NAR_SetUseNarsese(True)
+                NAR_AddInput("*concurrent")
+                NAR_SetUseNarsese(False)
+        if valueMid != " " and valueLeft != " ":
+            BRIDGE_Input(MeTTaR, observed_world, NACEToNARS = True, ForceMeTTa = True)
+    if vertical:
+        valueMid = board[y][x]
+        valueUp = board[y-1][x]
+        valueDown = board[y+1][x]
+        MeTTaD = f"!(AddBeliefEvent ((({valueDown} x {valueMid}) --> down) (1.0 0.90)))"
+        MeTTaU = f"!(AddBeliefEvent ((({valueUp} x {valueMid}) --> up) (1.0 0.90)))"
+        if valueUp != " " and valueMid != " ":
+            BRIDGE_Input(MeTTaU, observed_world, NACEToNARS = True, ForceMeTTa = True)
+        if valueUp != " " and valueMid != " " and valueDown != " ":
+            if useONA:
+                NAR_SetUseNarsese(True)
+                NAR_AddInput("*concurrent")
+                NAR_SetUseNarsese(False)
+        if valueMid != " " and valueDown != " ":
+            BRIDGE_Input(MeTTaD, observed_world, NACEToNARS = True, ForceMeTTa = True)
+
+def BRIDGE_observationToNARS(observed_world):
+    agent = False
+    for x in range(1,width-1):
+        for y in range(1,height-1):
+            if observed_world[BOARD][y][x] == 'x': #AGENT
+                agent_x, agent_y = (x,y)
+                agent = True
+                observeSpatialRelation(y, x, observed_world)
+                break
+        if agent:
+            break
