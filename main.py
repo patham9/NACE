@@ -43,7 +43,8 @@ Pass "debug" parameter for interactive debugging,
 "frames=b" to create a gif file including frames until frame b.
 "startframe=a" optional to let the gif start later.
 "world=k" to start world k without asking for the world input.
-"ona" to use ONA with MeTTa interface in world=9 instead of MeTTa-NARS,
+"ona" to use ONA with MeTTa interface in world=9 instead of MeTTa-NARS.
+"narsese" to use Narsese input instead of MeTTa.
 """)
 from nace import *
 
