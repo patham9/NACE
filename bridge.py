@@ -146,7 +146,7 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
                 #print("NOT INCLUDED", taskdict); input() TODO FIX
                 continue
             task = taskdict['metta'].replace(" * ", " x ")  #transformation only needed for Narsese version
-            if "$1" in task or "#1" in task or "<=>" in task or "==>" in task or "=/>" in task or "/1" in task or "/2" in task: #check only needed for Narsese version
+            if "$1" in task or "#1" in task or "<=>" in task or "==>" in task or "=/>" in task or "&&" in task or "/1" in task or "/2" in task: #check only needed for Narsese version
                 continue
             if GOAL: #"(!:" in task:
                 task = task.replace("(.:", "(!:")
