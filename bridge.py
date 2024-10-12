@@ -119,14 +119,14 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
             METTA2 = NAR_NarseseToMeTTa(METTA)
         else:
             METTA2 = METTA
-        atomic_terms = METTA2.replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").split(" ")
+        atomic_terms = [x for x in METTA2.replace("AddBeliefEvent", "").replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").replace("-->","").split(" ") if x != ""]
         connectors = ["-->", "IntSet", "<->", "<=>"]
         with open("knowledge.metta") as f:
             backgroundknowledge = f.read()
         for belief in backgroundknowledge.split("\n"):
             if belief != "" and not belief.startswith(";"):
                 for atomic_term in atomic_terms:
-                    if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and atomic_term in belief and not atomic_term.replace(".","").isnumeric():
+                    if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and ("(" + atomic_term + " " in belief or "(" + atomic_term + " " in belief) and not atomic_term.replace(".","").isnumeric():
                         NAR_AddInput(belief)
                         break
         if useNarseseNow:

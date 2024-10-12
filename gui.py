@@ -96,7 +96,6 @@ def lighten_color(color, amount=0.5):
 predicted_certainty = None
 def plot_pattern(pattern, values, DrawPredictions=True):
     global loc, predicted_certainty, plan
-    import main
     if DrawPredictions and "nopredictions" in sys.argv:
         DrawPredictions = False
     rows = len(pattern)
