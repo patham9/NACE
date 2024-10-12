@@ -47,84 +47,11 @@ Pass "debug" parameter for interactive debugging,
 """)
 from nace import *
 
-useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
-useNarsese=False
-if "ona" in sys.argv:
-    useONA = True
-if "narsese" in sys.argv:
-    useONA = True
-    useNarsese = True
 adversaryWorld = "adversary" in sys.argv or getIsWorld0()
 interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
 if interactiveWorld:
-    if useONA:
-        mettanars = os.path.abspath('../OpenNARS-for-Applications/misc/Python')
-        sys.path.append(mettanars)
-        cwd = os.getcwd()
-        os.chdir(mettanars)
-        from MeTTa import *
-        os.chdir(cwd)
-    else:
-        mettanars = os.path.abspath('../metta-morph/metta-nars/')
-        sys.path.append(mettanars)
-        cwd = os.getcwd()
-        os.chdir(mettanars)
-        from NAR import *
-        os.chdir(cwd)
-
-def groundedGoal(METTA):
-    #s,p,yoff,xoff = groundedFunction(METTA)
-    #((S x P) --> left)
-    pred = METTA.split("--> ")[1].split(")")[0]
-    if pred not in ["left", "right", "up", "down"]:
-        exceptionThrown = 1/0 #TODO return flag
-    S = METTA.split("(!: (((")[1].split(" x")[0]
-    P = METTA.split(" x ")[1].split(")")[0]
-    yoffset = "y+1"
-    xoffset = "x"
-    if pred == "up":
-        yoffset = "y-1"
-        xoffset = "x"
-    if pred == "down":
-        yoffset = "y+1"
-        xoffset = "x"
-    if pred == "left":
-        yoffset = "y"
-        xoffset = "x-1"
-    if pred == "right":
-        yoffset = "y"
-        xoffset = "x+1"
-    print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
-    STR = f"lambda world: any( world[BOARD][{yoffset}][{xoffset}] == '{S}' and world[BOARD][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
-    print("FUNC:", STR)
-    FUNC = eval(STR)
-    return FUNC
-
-def groundedBelief(METTA):
-    pred = METTA.split("--> ")[1].split(")")[0]
-    S = METTA.split("(.: (((")[1].split(" x")[0]
-    P = METTA.split(" x ")[1].split(")")[0]
-    #print("DEBUG", S, P); input()
-    yoffset = 1
-    xoffset = 0
-    if pred == "up":
-        yoffset = +1
-        xoffset = 0
-    if pred == "down":
-        yoffset = -1
-        xoffset = 0
-    if pred == "left":
-        yoffset = 0
-        xoffset = -1
-    if pred == "right":
-        yoffset = 0
-        xoffset = +1
-    for x in range(1,width-1):
-        for y in range(1,height-1):
-            if observed_world[BOARD][y][x] == S:
-                 observed_world[BOARD][y+yoffset][x+xoffset] = P
-            if observed_world[BOARD][y][x] == P:
-                observed_world[BOARD][y-yoffset][x-xoffset] = S
+    from bridge import *
+    BRIDGE_INIT(width, height)
 
 #Configure hypotheses to use euclidean space properties if desired
 Hypothesis_UseMovementOpAssumptions(left, right, up, down, drop, "DisableOpSymmetryAssumption" in sys.argv or World_Num5())
@@ -174,59 +101,7 @@ def Step(inject_key=""):
     if interactiveWorld: #(:! ((0 x _) --> left))
         print("MeTTa input:")
         METTA = input() #f"(:! ((4 x 0) --> left))"
-        if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
-            GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
-            METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
-            if useNarsese:
-                METTA2 = NAR_NarseseToMeTTa(METTA)
-            else:
-                METTA2 = METTA
-            atomic_terms = METTA2.replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").split(" ")
-            connectors = ["-->", "IntSet", "<->", "<=>"]
-            with open("knowledge.metta") as f:
-                backgroundknowledge = f.read()
-            for belief in backgroundknowledge.split("\n"):
-                if belief != "" and not belief.startswith(";"):
-                    for atomic_term in atomic_terms:
-                        if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and atomic_term in belief and not atomic_term.replace(".","").isnumeric():
-                            NAR_AddInput(belief)
-                            break
-            if useNarsese:
-                NAR_SetUseNarsese(True) #bypass metta translation in this case
-                ret = NAR_AddInput(METTA)
-                NAR_SetUseNarsese(False)
-            else:
-                ret = NAR_AddInput(METTA)
-            tasks = ret["input"] + ret["derivations"]
-            ret = NAR_Cycle(2)
-            tasks += (ret["input"] + ret["derivations"])
-            processGoals = True
-            for taskdict in tasks:
-                if 'metta' not in taskdict:
-                    #print("NOT INCLUDED", taskdict); input() TODO FIX
-                    continue
-                task = taskdict['metta'].replace(" * ", " x ")  #transformation only needed for Narsese version
-                if "$1" in task or "#1" in task or "<=>" in task or "==>" in task or "=/>" in task: #check only needed for Narsese version
-                    continue
-                if GOAL: #"(!:" in task:
-                    task = task.replace("(.:", "(!:")
-                    print("!!!!!TASK", task)
-                    try:
-                        if processGoals:
-                            World_SetObjective(groundedGoal(task))
-                            processGoals = False
-                            print("TASK ACCEPTED")
-                    except:
-                        print("TASK REJECTED")
-                        None
-                elif "(.:" in task:
-                    print("!!!!!TASK", task)
-                    try:
-                        groundedBelief(task)
-                        print("TASK ACCEPTED")
-                    except:
-                        print("TASK REJECTED")
-                        None
+        BRIDGE_Input(METTA, World_SetObjective)
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     end_time = time.time()
