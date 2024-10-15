@@ -42,7 +42,7 @@ if "narsese" in sys.argv:
     useNarsese = True
 
 if useONA:
-    mettanars = os.path.abspath('../OpenNARS-for-Applications/misc/Python')
+    mettanars = os.path.abspath('../AniNAL/OpenNARS-for-Applications/misc/Python')
     sys.path.append(mettanars)
     cwd = os.getcwd()
     os.chdir(mettanars)
@@ -88,7 +88,10 @@ def groundedBelief(METTA, observed_world):
     pred = METTA.split("--> ")[1].split(")")[0]
     S = METTA.split("(.: (((")[1].split(" x")[0]
     P = METTA.split(" x ")[1].split(")")[0]
-    #print("DEBUG", S, P); input()
+    F_C = METTA.split(") (")[1].split(")")[0].split(" ")
+    if float(F_C[1]) < 0.1: #confidence threshold
+        exceptionThrown = 1/0 #TODO return flag
+    #print("DEBUG", S, P, METTA); input()
     yoffset = 1
     xoffset = 0
     if pred == "up":
