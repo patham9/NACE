@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  * """
 
-import sys
-import random
+import sys, random
+from base_utils import Logger as log
 from copy import deepcopy
 
 #The worlds:
@@ -173,27 +173,7 @@ for arg in sys.argv:
     if arg.startswith("world="):
         _challenge_input = arg.split("world=")[1]
 #Description for world choice
-if "manual" in sys.argv:
-    if _challenge_input == "":
-        print("Enter one of 1-9 to try a world:")
-else:
-    print("""WORLDS:
-Food collecting (1),
-cup on table challenge (2),
-doors and keys (3),
-food collecting with moving object (4),
-pong (5),
-bring eggs to chicken (6),
-soccer (7),
-shock world (8),
-
-NEW WORLDS:
-Puzzleworld (-1) "minus 1 indeed"
-Minigrid worlds (11-20, interesting), (30-37, empty grid)
-world with MeTTa-Narsese console input demanding MeTTa-NARS installation (9),
-
-Input the desired world number and press enter:
-""")
+log.world_init_message("manual" in sys.argv, _challenge_input == "")
 if _challenge_input == "":
     _challenge = input()
 else:
