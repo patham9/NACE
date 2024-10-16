@@ -26,7 +26,7 @@
 import sys
 import os
 
-useONA = True #whether to use OpenNARS-for-Applications with MeTTa interface instead of MeTTa-NARS for world=9
+useONA = True #whether to use ONA for MeTTa-NARS acceleration instead of MeTTa-NARS with MeTTa-Morph for world=9
 useNarsese=False
 if "ona" in sys.argv:
     useONA = True
@@ -77,21 +77,21 @@ def groundedGoal(METTA):
     S, P, R, F_C = ParseGroundedRelation(METTA)
     yoffset = "y+1"
     xoffset = "x"
-    if P == "up":
+    if R == "up":
         yoffset = "y-1"
         xoffset = "x"
-    if P == "down":
+    if R == "down":
         yoffset = "y+1"
         xoffset = "x"
-    if P == "left":
+    if R == "left":
         yoffset = "y"
         xoffset = "x-1"
-    if P == "right":
+    if R == "right":
         yoffset = "y"
         xoffset = "x+1"
-    print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
+    #print("GROUNDING DEBUG:", S, P, R, yoffset, xoffset)
     STR = f"lambda world: any( world[0][{yoffset}][{xoffset}] == '{S}' and world[0][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
-    print("FUNC:", STR)
+    #print("FUNC:", STR); input()
     FUNC = eval(STR)
     return FUNC
 
@@ -180,9 +180,10 @@ def observeSpatialRelation(y,x, observed_world, horizontal=True, vertical=True):
             BRIDGE_Input(MeTTaL, observed_world, NACEToNARS = True, ForceMeTTa = True)
         if valueRight != " " and valueMid != " " and valueLeft != " ":
             if useONA:
-                NAR_SetUseNarsese(True)
-                NAR_AddInput("*concurrent")
-                NAR_SetUseNarsese(False)
+                NAR_Cycle(20)
+                #NAR_SetUseNarsese(True)
+                #NAR_AddInput("*concurrent")
+                #NAR_SetUseNarsese(False)
         if valueMid != " " and valueLeft != " ":
             BRIDGE_Input(MeTTaR, observed_world, NACEToNARS = True, ForceMeTTa = True)
     if vertical:
@@ -195,9 +196,10 @@ def observeSpatialRelation(y,x, observed_world, horizontal=True, vertical=True):
             BRIDGE_Input(MeTTaU, observed_world, NACEToNARS = True, ForceMeTTa = True)
         if valueUp != " " and valueMid != " " and valueDown != " ":
             if useONA:
-                NAR_SetUseNarsese(True)
-                NAR_AddInput("*concurrent")
-                NAR_SetUseNarsese(False)
+                NAR_Cycle(20)
+                #NAR_SetUseNarsese(True)
+                #NAR_AddInput("*concurrent")
+                #NAR_SetUseNarsese(False)
         if valueMid != " " and valueDown != " ":
             BRIDGE_Input(MeTTaD, observed_world, NACEToNARS = True, ForceMeTTa = True)
 
@@ -209,6 +211,7 @@ def BRIDGE_observationToNARS(observed_world):
                 agent_x, agent_y = (x,y)
                 agent = True
                 observeSpatialRelation(y, x, observed_world)
+                NAR_Cycle(20)
                 break
         if agent:
             break

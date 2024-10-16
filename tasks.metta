@@ -14,7 +14,7 @@
 ;the bird should be above the coffee machine
 !(AddGoalEvent (((x x G) --> up) (1.0 0.90)))
 
-;the bird is above the table
+;the bird should be above the table
 !(AddGoalEvent (((x x T) --> up) (1.0 0.90)))
 
 ;HIGHER-LEVEL GOALS:
