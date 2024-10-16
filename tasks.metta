@@ -74,7 +74,7 @@
 !(AddBeliefEvent ((cup --> (IntSet stored)) (1.0 0.90)))
 
 ;the bird sits at the table
-!(AddBeliefEvent (((bird x table) --> (IntSet sit)) (1.0 0.90)))
+!(AddBeliefEvent (((bird x table) --> sit) (1.0 0.90)))
 
 ;HIGHER-HIGHER-LEVEL BELIEFS:
 

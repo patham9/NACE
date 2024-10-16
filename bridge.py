@@ -26,13 +26,6 @@
 import sys
 import os
 
-def BRIDGE_INIT(widthval, heightval, BOARDval, SetNACEPlanningObjectiveVal):
-    global width, height, BOARD, SetNACEPlanningObjective
-    width = widthval
-    height = heightval
-    BOARD = BOARDval
-    SetNACEPlanningObjective = SetNACEPlanningObjectiveVal
-
 useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
 useNarsese=False
 if "ona" in sys.argv:
@@ -40,7 +33,6 @@ if "ona" in sys.argv:
 if "narsese" in sys.argv:
     useONA = True
     useNarsese = True
-
 if useONA:
     mettanars = os.path.abspath('../AniNAL/OpenNARS-for-Applications/misc/Python')
     sys.path.append(mettanars)
@@ -56,26 +48,45 @@ else:
     from NAR import *
     os.chdir(cwd)
 
+def BRIDGE_INIT(widthval, heightval, BOARDval, SetNACEPlanningObjectiveVal):
+    global width, height, BOARD, SetNACEPlanningObjective
+    width = widthval
+    height = heightval
+    BOARD = BOARDval
+    SetNACEPlanningObjective = SetNACEPlanningObjectiveVal
+    with open("knowledge.metta") as f:
+        backgroundknowledge = f.read()
+    for belief in backgroundknowledge.split("\n"):
+        if belief != "" and not belief.startswith(";"):
+            NAR_AddInput(belief)
+            NAR_Cycle(30)
+
+def ParseGroundedRelation(METTA):
+    R = METTA.split("--> ")[1].split(")")[0]
+    S = METTA.split(": (((")[1].split(" x")[0]
+    P = METTA.split(" x ")[1].split(")")[0]
+    F_C = METTA.split(") (")[1].split(")")[0].split(" ")
+    #print("DEBUG", S, P, R, F_C, METTA, float(F_C[1]) < 0.1, R not in ["left", "right", "up", "down"], len(S), len(P)); input()
+    if float(F_C[1]) < 0.1 or R not in ["left", "right", "up", "down"] or len(S) > 1 or len(P) > 1:
+        exceptionThrown = 1/0 #TODO return flag
+    return S, P, R, F_C
+
 def groundedGoal(METTA):
     #s,p,yoff,xoff = groundedFunction(METTA)
     #((S x P) --> left)
-    pred = METTA.split("--> ")[1].split(")")[0]
-    if pred not in ["left", "right", "up", "down"]:
-        exceptionThrown = 1/0 #TODO return flag
-    S = METTA.split("(!: (((")[1].split(" x")[0]
-    P = METTA.split(" x ")[1].split(")")[0]
+    S, P, R, F_C = ParseGroundedRelation(METTA)
     yoffset = "y+1"
     xoffset = "x"
-    if pred == "up":
+    if P == "up":
         yoffset = "y-1"
         xoffset = "x"
-    if pred == "down":
+    if P == "down":
         yoffset = "y+1"
         xoffset = "x"
-    if pred == "left":
+    if P == "left":
         yoffset = "y"
         xoffset = "x-1"
-    if pred == "right":
+    if P == "right":
         yoffset = "y"
         xoffset = "x+1"
     print("GROUNDING DEBUG:", S, P, yoffset, xoffset)
@@ -85,25 +96,19 @@ def groundedGoal(METTA):
     return FUNC
 
 def groundedBelief(METTA, observed_world):
-    pred = METTA.split("--> ")[1].split(")")[0]
-    S = METTA.split("(.: (((")[1].split(" x")[0]
-    P = METTA.split(" x ")[1].split(")")[0]
-    F_C = METTA.split(") (")[1].split(")")[0].split(" ")
-    if float(F_C[1]) < 0.1: #confidence threshold
-        exceptionThrown = 1/0 #TODO return flag
-    #print("DEBUG", S, P, METTA); input()
+    S, P, R, F_C = ParseGroundedRelation(METTA)
     yoffset = 1
     xoffset = 0
-    if pred == "up":
+    if P == "up":
         yoffset = +1
         xoffset = 0
-    if pred == "down":
+    if P == "down":
         yoffset = -1
         xoffset = 0
-    if pred == "left":
+    if P == "left":
         yoffset = 0
         xoffset = -1
-    if pred == "right":
+    if P == "right":
         yoffset = 0
         xoffset = +1
     for x in range(1,width-1):
@@ -116,7 +121,7 @@ def groundedBelief(METTA, observed_world):
 def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #can now also be Narsese
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
         GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
-        METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
+        #METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
         useNarseseNow = useNarsese and not ForceMeTTa
         if useNarseseNow:
             METTA2 = NAR_NarseseToMeTTa(METTA)
@@ -124,14 +129,6 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
             METTA2 = METTA
         atomic_terms = [x for x in METTA2.replace("AddBeliefEvent", "").replace(" x ", " ").replace("(", " ").replace(")", " ").replace("!", "").replace("-->","").split(" ") if x != ""]
         connectors = ["-->", "IntSet", "<->", "<=>"]
-        with open("knowledge.metta") as f:
-            backgroundknowledge = f.read()
-        for belief in backgroundknowledge.split("\n"):
-            if belief != "" and not belief.startswith(";"):
-                for atomic_term in atomic_terms:
-                    if atomic_term != "AddBeliefEvent" and atomic_term != "" and atomic_term not in connectors and ("(" + atomic_term + " " in belief or "(" + atomic_term + " " in belief) and not atomic_term.replace(".","").isnumeric():
-                        NAR_AddInput(belief)
-                        break
         if useNarseseNow:
             NAR_SetUseNarsese(True) #bypass metta translation in this case
             ret = NAR_AddInput(METTA)
@@ -141,7 +138,7 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
         if NACEToNARS:
             return
         tasks = ret["input"] + ret["derivations"]
-        ret = NAR_Cycle(2)
+        ret = NAR_Cycle(20)
         tasks += (ret["input"] + ret["derivations"])
         processGoals = True
         for taskdict in tasks:
@@ -158,7 +155,7 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
                     if processGoals:
                         SetNACEPlanningObjective(groundedGoal(task))
                         processGoals = False
-                        print("TASK ACCEPTED")
+                        print("TASK ACCEPTED", task); #input()
                 except:
                     print("TASK REJECTED")
                     None
@@ -166,9 +163,9 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
                 print("!!!!!TASK", task)
                 try:
                     groundedBelief(task, observed_world)
-                    print("TASK ACCEPTED")
-                except:
-                    print("TASK REJECTED")
+                    print("TASK ACCEPTED", task); #input()
+                except Exception as ex:
+                    print("TASK REJECTED")#,ex)
                     None
 
 def observeSpatialRelation(y,x, observed_world, horizontal=True, vertical=True):
