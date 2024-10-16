@@ -26,7 +26,7 @@
 import sys
 import os
 
-useONA = False #whether to use OpenNARS-for-Applications instead of MeTTa-NARS for world=9
+useONA = True #whether to use OpenNARS-for-Applications with MeTTa interface instead of MeTTa-NARS for world=9
 useNarsese=False
 if "ona" in sys.argv:
     useONA = True
