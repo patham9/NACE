@@ -104,7 +104,7 @@ oooooooooooo
 o          o
 o     u    o
 o  T     G o
-o x   H    o
+o x    H   o
 o          o
 oooooooooooo
 """
