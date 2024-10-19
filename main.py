@@ -44,6 +44,19 @@ Time = -1
 behavior = "BABBLE"
 plan = []
 
+def safe_check(item):
+    """Return True if item is True, catch exceptions and return False."""
+    try:
+        return bool(item)
+    except Exception:
+        return False
+
+def safe_any(condition):
+    """Return True if any condition holds; catch exceptions and return False for the iteration with an exception."""
+    return any(
+        (safe_check(item) for item in condition)
+    )
+
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
     Time+=1
@@ -87,10 +100,41 @@ def Step(inject_key=""):
         asked = True
         while asked:
             print("MeTTa input:")
-            METTA = input() #f"(:! ((4 x 0) --> left))"
-            BRIDGE_Input(METTA, observed_world, NACEToNARS = False)
-            if not METTA.endswith("?") and not METTA.endswith("? :|:") and not METTA.startswith("!(EternalQuestion ") and not METTA.startswith("!(EventQuestion "):
-                asked = False
+            METTA = input()
+            #example: the cup should be above the coffee machine
+            #example: the cup should be above the table
+            #example: the cup should be above the table and the agent should be below the table
+            if METTA.strip() == "":
+                break
+            COND = METTA
+            PROMPT = f"Imagine you have a 2D array named 'grid' of ASCII characters, first y coordinate then x in indexing order. up means y-1, down means y+1, right means x+1, left means x-1. Now knowing the grid has width 'width' and height 'height' now define a condition which reflects {COND} in Python, only return the Python condition which when evaluated at a particular x,y position would return True or False."
+            PROMPT += "Please consider the mapping u=cup, G=coffee machine, T=table, x=agent, o=wall, H=cabinet"
+           
+            
+            from openai import OpenAI
+
+            client = OpenAI(
+              api_key=''
+            )
+
+            completion = client.chat.completions.create(
+              model="o1-preview", #gpt-4o, o1-preview
+              messages=[
+                {"role": "user", "content": PROMPT}
+              ]
+            )
+
+            #import os
+            response = completion.choices[0].message.content.replace("grid","world[0]")
+            response = "lambda world: safe_any(" + response.split("python")[1].split('```')[0].strip() + " for y in range(height) for x in range(width))"
+            #os.system('say "' + response + '"')
+            print("!!!!", response); input()
+            
+            World_SetObjective(eval(response))
+            break
+            #BRIDGE_Input(METTA, observed_world, NACEToNARS = False)
+            #if not METTA.endswith("?") and not METTA.endswith("? :|:") and not METTA.startswith("!(EternalQuestion ") and not METTA.startswith("!(EventQuestion "):
+            #    asked = False
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     if interactiveWorld:
