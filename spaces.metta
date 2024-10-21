@@ -3,8 +3,7 @@
 !(bind! &goals (new-space))
 (= (InputInto $space $val) (add-atom $space $val))
 
-;metta-nars inputs and derivations:
-
+;recent metta-nars beliefs and goals:
 (= (AddGoalEvent $t $1) (InputInto &goals (GotAtTime $t $1)))
 (= (.: $t $1) (InputInto &beliefs (GotAtTime $t $1)))
 (= (AddBeliefEvent $t $1) (InputInto &beliefs (GotAtTime $t $1)))
@@ -23,4 +22,9 @@
 (= (MakeAndBringCoffee)
    (bridgeinput (SequenceGoal (coffee --> (IntSet made)) (table --> (IntSet prepared)))))
 
-(= (Step $t) (MakeAndBringCoffee))
+(= (Step $t) (superpose ((MakeAndBringCoffee)
+                         (let* (($space (superpose (&beliefs &goals)))
+                                ($Ev (get-atoms $space))
+                                ((GotAtTime $t2 $task) $Ev))
+                          (if (> (- $t 50) $t2)
+                              (remove-atom $space $Ev) Empty)))))
