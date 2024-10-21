@@ -36,7 +36,6 @@ def space_init():
     runner = MeTTa()
     runner.run(metta_code)
 
-
 time = 0
 def space_input(metta):
     if metta.strip() == "":
