@@ -26,12 +26,6 @@
 import sys
 import os
 
-useSpaces = False
-if "spaces" in sys.argv and "narsese" not in sys.argv:
-    from spaces import space_input, space_init
-    useSpaces = True
-    space_init()
-
 useONA = True #whether to use ONA for MeTTa-NARS acceleration instead of MeTTa-NARS with MeTTa-Morph for world=9
 useNarsese=False
 if "ona" in sys.argv:
@@ -53,6 +47,11 @@ else:
     os.chdir(mettanars)
     from NAR import *
     os.chdir(cwd)
+useSpaces = False
+if "spaces" in sys.argv and not useNarsese:
+    from spaces import space_input, space_init, space_tick
+    useSpaces = True
+    space_init()
 
 def BRIDGE_INIT(widthval, heightval, BOARDval, SetNACEPlanningObjectiveVal):
     global width, height, BOARD, SetNACEPlanningObjective
@@ -126,8 +125,9 @@ def groundedBelief(METTA, observed_world):
             if observed_world[BOARD][y][x] == P:
                 observed_world[BOARD][y-yoffset][x-xoffset] = S
 
-def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #can now also be Narsese
-    if useSpaces:
+def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, FromSpace=False): #can now also be Narsese
+    if useSpaces and not FromSpace:
+        space_tick()
         space_input(METTA)
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
         GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
