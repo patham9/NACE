@@ -1,3 +1,6 @@
+;Fully MeTTa-controlled agent demo with atom spaces, featuring NACE + NARS
+;Run with:
+;python3 main.py world=9 spaces
 !(import! &self spaces)
 !(bind! &beliefs (new-space))
 !(bind! &goals (new-space))
