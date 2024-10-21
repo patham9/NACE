@@ -125,9 +125,19 @@ def groundedBelief(METTA, observed_world):
             if observed_world[BOARD][y][x] == P:
                 observed_world[BOARD][y-yoffset][x-xoffset] = S
 
-def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, FromSpace=False): #can now also be Narsese
-    if useSpaces and not FromSpace:
+goal = None
+goalTask = ""
+def BRIDGE_Tick(observed_world):
+    if goal is not None:
+        if goal(observed_world): #goal achieved
+            beliefEventFromAchievedGoal = "!(AddBeliefEvent " + goalTask.split("(!: ")[1].split(") (")[0] + ")" + " (1.0 0.9)))"
+            BRIDGE_Input(beliefEventFromAchievedGoal, observed_world, NACEToNARS=False, ForceMeTTa=True, FromSpace=False)
+    if useSpaces:
         space_tick()
+
+def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, FromSpace=False): #can now also be Narsese
+    global goal, goalTask
+    if useSpaces and not FromSpace:
         space_input(METTA)
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
         GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
@@ -160,19 +170,20 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, From
                 space_input(taskdict['metta'])
             if "$1" in task or "#1" in task or "<=>" in task or "==>" in task or "=/>" in task or "&&" in task or "||" in task or "/1" in task or "/2" in task: #check only needed for Narsese version
                 continue
-            if GOAL: #"(!:" in task:
-                task = task.replace("(.:", "(!:")
-                print("!!!!!TASK", task)
+            if GOAL:
+                #print("!!!!!TASK", task)
                 try:
                     if processGoals:
-                        SetNACEPlanningObjective(groundedGoal(task))
+                        goalTask = task
+                        goal = groundedGoal(task)
+                        SetNACEPlanningObjective(goal)
                         processGoals = False
                         print("TASK ACCEPTED", task); #input()
                 except:
                     print("TASK REJECTED")
                     None
             elif "(.:" in task:
-                print("!!!!!TASK", task)
+                #print("!!!!!TASK", task)
                 try:
                     groundedBelief(task, observed_world)
                     print("TASK ACCEPTED", task); #input()

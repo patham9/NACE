@@ -10,8 +10,17 @@
 (= (AddBeliefEvent $t $1) (InputInto &beliefs (GotAtTime $t $1)))
 (= (!: $t $1) (InputInto &goals (GotAtTime $t $1)))
 
+(= (Goal $A)
+   (case (match &goals (GotAtTime $someTime ($A ($SomeFreq $SomeConf))) ok)
+                                ((Empty (AddGoalEvent ($A (1.0 0.90))))
+                                 ($Else Empty))))
+
+(= (SequenceGoal $A $B)
+   (case (match &beliefs (GotAtTime $someTime ($A ($SomeFreq $SomeConf))) ok)
+                                ((Empty (Goal $A))
+                                 ($Else (Goal $B)))))
+
 (= (MakeAndBringCoffee)
-   (bridgeinput (case (match &beliefs (GotAtTime $someTime ((coffee --> (IntSet made)) ($SomeFreq $SomeConf))) ok)
-                                ((Empty (AddGoalEvent ((coffee --> (IntSet made)) (1.0 0.90))))
-                                 ($Else (AddGoalEvent ((table --> (IntSet prepared)) (1.0 0.90))))))))
+   (bridgeinput (SequenceGoal (coffee --> (IntSet made)) (table --> (IntSet prepared)))))
+
 (= (Step $t) (MakeAndBringCoffee))

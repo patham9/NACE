@@ -19,7 +19,7 @@ def call_bridgeinput(*a):
     from bridge import BRIDGE_Input
     tokenizer = globalmetta.tokenizer()
     parser = SExprParser("(Task injected via MeTTa)")
-    BRIDGE_Input("!"+str(a[0]), None, False, False, True) #TODO pass observed_world for belief input
+    BRIDGE_Input("!"+str(a[0]), None, False, True, True) #TODO pass observed_world for belief input
     return parser.parse(tokenizer)
 
 @register_atoms(pass_metta=True)
