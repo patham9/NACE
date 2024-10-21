@@ -47,6 +47,11 @@ else:
     os.chdir(mettanars)
     from NAR import *
     os.chdir(cwd)
+useSpaces = False
+if "spaces" in sys.argv and not useNarsese:
+    from spaces import space_input, space_init, space_tick
+    useSpaces = True
+    space_init()
 
 def BRIDGE_INIT(widthval, heightval, BOARDval, SetNACEPlanningObjectiveVal):
     global width, height, BOARD, SetNACEPlanningObjective
@@ -59,6 +64,8 @@ def BRIDGE_INIT(widthval, heightval, BOARDval, SetNACEPlanningObjectiveVal):
     for belief in backgroundknowledge.split("\n"):
         if belief != "" and not belief.startswith(";"):
             NAR_AddInput(belief)
+            if useSpaces:
+                space_input(belief)
             NAR_Cycle(30)
 
 def ParseGroundedRelation(METTA):
@@ -118,7 +125,25 @@ def groundedBelief(METTA, observed_world):
             if observed_world[BOARD][y][x] == P:
                 observed_world[BOARD][y-yoffset][x-xoffset] = S
 
-def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #can now also be Narsese
+goal = None
+goalTask = ""
+def BRIDGE_Tick(observed_world):
+    if goal is not None:
+        if goal(observed_world): #goal achieved
+            beliefEventFromAchievedGoal = "!(AddBeliefEvent " + goalTask.split("(!: ")[1].split(") (")[0] + ")" + " (1.0 0.9)))"
+            BRIDGE_Input(beliefEventFromAchievedGoal, observed_world, NACEToNARS=False, ForceMeTTa=True, FromSpace=False)
+    if useSpaces:
+        space_tick()
+
+last_observed_world = None
+def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, FromSpace=False): #can now also be Narsese
+    global goal, goalTask, last_observed_world
+    if observed_world is not None:
+        last_observed_world = observed_world
+    else:
+        observed_world = last_observed_world
+    if useSpaces and not FromSpace:
+        space_input(METTA)
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):
         GOAL = "AddGoalEvent" in METTA or METTA.endswith("! :|:")
         #METTA = METTA.replace("AddGoalEvent", "AddBeliefEvent").replace("! :|:", ". :|:")
@@ -146,21 +171,24 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False): #ca
                 #print("NOT INCLUDED", taskdict); input() TODO FIX
                 continue
             task = taskdict['metta'].replace(" * ", " x ")  #transformation only needed for Narsese version
+            if useSpaces:
+                space_input(taskdict['metta'])
             if "$1" in task or "#1" in task or "<=>" in task or "==>" in task or "=/>" in task or "&&" in task or "||" in task or "/1" in task or "/2" in task: #check only needed for Narsese version
                 continue
-            if GOAL: #"(!:" in task:
-                task = task.replace("(.:", "(!:")
-                print("!!!!!TASK", task)
+            if GOAL:
+                #print("!!!!!TASK", task)
                 try:
                     if processGoals:
-                        SetNACEPlanningObjective(groundedGoal(task))
+                        goalTask = task
+                        goal = groundedGoal(task)
+                        SetNACEPlanningObjective(goal)
                         processGoals = False
                         print("TASK ACCEPTED", task); #input()
                 except:
                     print("TASK REJECTED")
                     None
             elif "(.:" in task:
-                print("!!!!!TASK", task)
+                #print("!!!!!TASK", task)
                 try:
                     groundedBelief(task, observed_world)
                     print("TASK ACCEPTED", task); #input()
