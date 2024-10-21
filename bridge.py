@@ -135,8 +135,13 @@ def BRIDGE_Tick(observed_world):
     if useSpaces:
         space_tick()
 
+last_observed_world = None
 def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, FromSpace=False): #can now also be Narsese
-    global goal, goalTask
+    global goal, goalTask, last_observed_world
+    if observed_world is not None:
+        last_observed_world = observed_world
+    else:
+        observed_world = last_observed_world
     if useSpaces and not FromSpace:
         space_input(METTA)
     if METTA.startswith("!") or METTA.endswith("! :|:") or METTA.endswith(". :|:") or METTA.endswith(".") or METTA.endswith("?") or METTA.endswith("? :|:"):

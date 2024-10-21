@@ -23,6 +23,7 @@
    (bridgeinput (SequenceGoal (coffee --> (IntSet made)) (table --> (IntSet prepared)))))
 
 (= (Step $t) (superpose ((MakeAndBringCoffee)
+                         ;(bridgeinput (AddBeliefEvent ((table --> (IntSet prepared)) (1.0 0.90)))) ;test belief inject
                          (let* (($space (superpose (&beliefs &goals)))
                                 ($Ev (get-atoms $space))
                                 ((GotAtTime $t2 $task) $Ev))
