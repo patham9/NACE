@@ -14,13 +14,13 @@
 
 (= (Goal $A)
    (case (match &goals (GotAtTime $someTime ($A ($SomeFreq $SomeConf))) ok)
-                                ((Empty (AddGoalEvent ($A (1.0 0.90))))
-                                 ($Else Empty))))
+         ((Empty (AddGoalEvent ($A (1.0 0.90))))
+          ($Else Empty))))
 
 (= (SequenceGoal $A $B)
    (case (match &beliefs (GotAtTime $someTime ($A ($SomeFreq $SomeConf))) ok)
-                                ((Empty (Goal $A))
-                                 ($Else (Goal $B)))))
+         ((Empty (Goal $A))
+          ($Else (Goal $B)))))
 
 (= (MakeAndBringCoffee)
    (bridgeinput (SequenceGoal (coffee --> (IntSet made)) (table --> (IntSet prepared)))))
