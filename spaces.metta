@@ -13,12 +13,12 @@
 (= (!: $t $1) (InputInto &goals (GotAtTime $t $1)))
 
 (= (Goal $A)
-   (case (match &goals (GotAtTime $someTime ($A ($SomeFreq $SomeConf))) ok)
+   (case (match &goals (GotAtTime $someTime ($A ($Freq $Conf))) ok)
          ((Empty (AddGoalEvent ($A (1.0 0.90))))
           ($Else Empty))))
 
 (= (SequenceGoal $A $B)
-   (case (match &beliefs (GotAtTime $someTime ($A ($SomeFreq $SomeConf))) ok)
+   (case (match &beliefs (GotAtTime $someTime ($A ($Freq $Conf))) ok)
          ((Empty (Goal $A))
           ($Else (Goal $B)))))
 
