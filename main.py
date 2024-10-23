@@ -91,7 +91,8 @@ def Step(inject_key=""):
             BRIDGE_Input(METTA, observed_world, NACEToNARS = False)
             if not METTA.endswith("?") and not METTA.endswith("? :|:") and not METTA.startswith("!(EternalQuestion ") and not METTA.startswith("!(EventQuestion "):
                 asked = False
-    BRIDGE_Tick(observed_world)
+    if "spaces" in sys.argv:
+        BRIDGE_Tick(observed_world)
     start_time = time.time()
     usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan = NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, deepcopy(world), inject_key)
     if interactiveWorld:
