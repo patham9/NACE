@@ -132,6 +132,8 @@ def BRIDGE_Tick(observed_world):
         if goal(observed_world): #goal achieved
             beliefEventFromAchievedGoal = "!(AddBeliefEvent " + goalTask.split("(!: ")[1].split(") (")[0] + ")" + " (1.0 0.9)))"
             BRIDGE_Input(beliefEventFromAchievedGoal, observed_world, NACEToNARS=False, ForceMeTTa=True, FromSpace=False)
+            if useONA:
+                NAR_Cycle(20)
     if useSpaces:
         space_tick()
 
