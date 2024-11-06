@@ -53,6 +53,6 @@ class Logger():
                   "{1}9: world with MeTTa-Narsese console input demanding NARS installation{0}" \
                   "MINIGRID WORLDS:{0}" \
                   "{1}11-20: Interesting MiniGrids{0}" \
-                  "{1}30-37: Eempty grids{0}" \
+                  "{1}30-37: Empty grids{0}" \
                   "NEW WORLDS:{0}" \
                   "{1}-1: Puzzleworld \"minus 1 indeed\"{0}".format('\n\t', '  '))
