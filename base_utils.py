@@ -55,4 +55,5 @@ class Logger():
                   "{1}11-20: Interesting MiniGrids{0}" \
                   "{1}30-37: Eempty grids{0}" \
                   "NEW WORLDS:{0}" \
-                  "{1}-1: Puzzleworld \"minus 1 indeed\"{0}".format('\n\t', '  '))
+                  "{1}-1: Puzzleworld \"minus 1 indeed\"{0}" \
+                  "{1}-2: ROS2 bridge".format('\n\t', '  '))

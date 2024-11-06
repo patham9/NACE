@@ -20,9 +20,9 @@ def rosgrid_perceive():
     return data_valid, width, height, agx, agy, data
 
 def rosgrid_act(action):
-    os.system("python3 ~/nartech_ws/src/nartech_ros/channels/grid4nace_movetest.py " + action)
+    os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + action)
     time.sleep(10)
 
-M = {100: 'o', 127, 'x'}
+M = {100: 'o', 127: 'x'}
 def rosgrid_toNACE(value):
     return M.get(value, ' ')
