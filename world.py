@@ -166,7 +166,7 @@ _world_empty_large = """
                          
                          
 """
-
+ros_connect = "-2"
 
 _challenge_input = ""
 for arg in sys.argv:
@@ -268,6 +268,10 @@ def minigrid_digest(state):
         reward = state[1]
 
 worldstr = "MiniGrid-DoorKey-8x8-v0"
+if ros_connect == _challenge: #ROS
+    world = _world_empty_large
+    from rosgrid import *
+    #_isWorld9 = True after we added everything we can allow bridge interact
 if "0" == _challenge:
     world = _world0
     _isWorld0 = True
@@ -415,6 +419,9 @@ def World_Move(loc, world, action):
     global lastseen, lastreward, hasReset, resetscore, acummulatedScore, step, episode_id, lastevaltime, seed, lastseed
     lastseen = set([])
     lastreward = 0
+    if _challenge == ros_connect:
+        rosgrid_act(action.__name__)
+        return loc, [world[BOARD], world[VALUES], world[TIMES]]
     if env is not None:
         """if action == pick:
             minigrid_digest(env.step(action_pick))
@@ -782,14 +789,28 @@ def World_FieldOfView(Time, loc, observed_world, world):
             if observed_world[TIMES][Y][X] == Time:
                 observed_world[TIMES][Y][X] = Time - 1 #WHY can this ever happen??? DEBUG!
     if env is None:
+        if _challenge == ros_connect:
+            valid,w,h,agx,agy, data = rosgrid_perceive()
+            loc = (agx,agy)
         for y in range(VIEWDISTY*2+1):
             for x in range(VIEWDISTX*2+1):
                 Y = loc[1]+y-VIEWDISTY
                 X = loc[0]+x-VIEWDISTX
                 if Y >= 0 and Y < height and \
                    X >= 0 and X < width:
-                    observed_world[BOARD][Y][X] = world[BOARD][Y][X]
+                    if _challenge != ros_connect:
+                        observed_world[BOARD][Y][X] = world[BOARD][Y][X]
                     observed_world[TIMES][Y][X] = Time
+                    if _challenge == ros_connect:
+                        if valid and Y < h and X < w:
+                            idx = Y * w + X
+                            TYPE = ' '
+                            if idx < len(data):
+                                if data[idx] == 100:
+                                    TYPE = 'o';# print("wall", data[idx], CX, CY); input()
+                                if data[idx] == 127:
+                                    TYPE = 'x';# print("agent", data[idx], CX, CY); input()
+                            observed_world[BOARD][Y][X] = TYPE
     else:
         if hasReset > 0:
             world[VALUES] = (resetscore, 0)
@@ -802,7 +823,7 @@ def World_FieldOfView(Time, loc, observed_world, world):
             world[VALUES] = (resetscore, 0)
             hasReset -= 1
             #PRINT("RESET!!!!!!!!!!!!")
-            return observed_world
+            return loc, observed_world
         for Y in range(height):
             for X in range(width):
                 if observed_world[BOARD][Y][X] == ROBOT:
@@ -815,7 +836,9 @@ def World_FieldOfView(Time, loc, observed_world, world):
                         observed_world[BOARD][Y][X] = world[BOARD][Y][X]
                         observed_world[TIMES][Y][X] = Time
     observed_world[VALUES] = deepcopy(world[VALUES])
-    return observed_world
+    if _challenge == ros_connect: #location can come from observation
+        loc =  (agx, agy)
+    return loc, observed_world
 
 #The world component represented as an immutable tuple
 def World_AsTuple(worldpart):
