@@ -42,7 +42,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     global nochange
     rulesExcluded = set([])
     rules = deepcopy(rulesin)
-    observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
+    loc, observed_world = World_FieldOfView(Time, loc, observed_world, oldworld)
     Hypothesis_BestSelection(rules, rulesExcluded, RuleEvidence, nochange)
     behavior = ""
     if "manual" not in sys.argv:
@@ -108,7 +108,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     show_plansteps = debuginput == 'p'
     loc, newworld = World_Move(loc, deepcopy(oldworld), action)
     observed_world_old = deepcopy(observed_world)
-    observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
+    loc, observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
     if observed_world_old[VALUES] == observed_world[VALUES] and observed_world_old[BOARD] == observed_world[BOARD]:
         nochange = True
     else:

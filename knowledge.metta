@@ -21,34 +21,34 @@
 ;Cups are containers
 ;!(AddBeliefEvent ((cup --> container) (1.0 0.9)))
 !(AddBeliefEvent (((container --> $1) ==> (cup --> $1)) (1.0 0.9)))
-!(AddBeliefEvent ((($1 --> container) ==> ($1 --> cup)) (1.0 0.9)))
+!(AddBeliefEvent ((($1 --> cup) ==> ($1 --> container)) (1.0 0.9)))
 !(AddBeliefEvent (((cup --> $1) ==> (container --> $1)) (1.0 0.5)))
 !(AddBeliefEvent ((($1 --> container) ==> ($1 --> cup)) (1.0 0.5)))
 
 ;Tables are furniture
 ;!(AddBeliefEvent ((table --> furniture) (1.0 0.9)))
 !(AddBeliefEvent (((furniture --> $1) ==> (table --> $1)) (1.0 0.9)))
-!(AddBeliefEvent ((($1 --> furniture) ==> ($1 --> table)) (1.0 0.9)))
+!(AddBeliefEvent ((($1 --> table) ==> ($1 --> furniture)) (1.0 0.9)))
 !(AddBeliefEvent (((table --> $1) ==> (furniture --> $1)) (1.0 0.5)))
 !(AddBeliefEvent ((($1 --> furniture) ==> ($1 --> table)) (1.0 0.5)))
 
 ;Coffee is a drink
 ;!(AddBeliefEvent ((coffee --> drink) (1.0 0.9)))
 !(AddBeliefEvent (((drink --> $1) ==> (coffee --> $1)) (1.0 0.9)))
-!(AddBeliefEvent ((($1 --> drink) ==> ($1 --> coffee)) (1.0 0.9)))
+!(AddBeliefEvent ((($1 --> coffee) ==> ($1 --> drink)) (1.0 0.9)))
 !(AddBeliefEvent (((coffee --> $1) ==> (drink --> $1)) (1.0 0.5)))
 !(AddBeliefEvent ((($1 --> drink) ==> ($1 --> coffee)) (1.0 0.5)))
 
 ;Coffee is black
 ;!(AddBeliefEvent ((coffee --> (IntSet black)) (1.0 0.9)))
 !(AddBeliefEvent ((((IntSet black) --> $1) ==> (coffee --> $1)) (1.0 0.9)))
-!(AddBeliefEvent ((($1 --> (IntSet black)) ==> ($1 --> coffee)) (1.0 0.9)))
+!(AddBeliefEvent ((($1 --> coffee) ==> ($1 --> (IntSet black))) (1.0 0.9)))
 !(AddBeliefEvent (((coffee --> $1) ==> ((IntSet black) --> $1)) (1.0 0.5)))
 !(AddBeliefEvent ((($1 --> (IntSet black)) ==> ($1 --> coffee)) (1.0 0.5)))
 
 ;table is brown
 ;!(AddBeliefEvent ((table --> (IntSet brown)) (1.0 0.9)))
 !(AddBeliefEvent ((((IntSet brown) --> $1) ==> (table --> $1)) (1.0 0.9)))
-!(AddBeliefEvent ((($1 --> (IntSet brown)) ==> ($1 --> table)) (1.0 0.9)))
+!(AddBeliefEvent ((($1 --> table) ==> ($1 --> (IntSet brown))) (1.0 0.9)))
 !(AddBeliefEvent (((table --> $1) ==> ((IntSet brown) --> $1)) (1.0 0.5)))
 !(AddBeliefEvent ((($1 --> (IntSet brown)) ==> ($1 --> table)) (1.0 0.5)))
