@@ -806,10 +806,7 @@ def World_FieldOfView(Time, loc, observed_world, world):
                             idx = Y * w + X
                             TYPE = ' '
                             if idx < len(data):
-                                if data[idx] == 100:
-                                    TYPE = 'o';# print("wall", data[idx], CX, CY); input()
-                                if data[idx] == 127:
-                                    TYPE = 'x';# print("agent", data[idx], CX, CY); input()
+                                TYPE = rosgrid_toNACE(data[idx])
                             observed_world[BOARD][Y][X] = TYPE
     else:
         if hasReset > 0:
