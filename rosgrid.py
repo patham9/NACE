@@ -1,6 +1,8 @@
-import os, time
+import os
 
-#loose-coupling interface with nartech_ws
+#Loose-coupled interface with nartech_ws (no ROS Python dependency here)
+#Ensure to run python3 /home/nartech/nartech_ws/src/nartech_ros/channels/grid.py first in the background
+
 def rosgrid_perceive():
     global location
     with open("/home/nartech/nartech_ws/src/nartech_ros/channels/grid.txt","r") as f:
@@ -21,7 +23,6 @@ def rosgrid_perceive():
 
 def rosgrid_act(action):
     os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + action)
-    time.sleep(10)
 
 M = {100: 'o', 127: 'x'}
 def rosgrid_toNACE(value):
