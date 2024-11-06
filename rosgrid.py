@@ -22,6 +22,10 @@ def rosgrid_perceive():
     return data_valid, width, height, agx, agy, data
 
 def rosgrid_act(action):
+    if action == "up":
+        action = "down"
+    elif action == "down":
+        action = "up"
     os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + action)
 
 M = {100: 'o', 127: 'x'}
