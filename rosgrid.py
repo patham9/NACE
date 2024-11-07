@@ -1,4 +1,4 @@
-import os
+import os, sys
 
 #Loose-coupled interface with nartech_ws (no ROS Python dependency here)
 #Ensure to run python3 /home/nartech/nartech_ws/src/nartech_ros/channels/grid.py first in the background
@@ -30,6 +30,8 @@ def rosgrid_act(action):
     #send command
     os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + action)
 
-M = {100: 'o', 127: 'x'}
+#reversed mapping from M in grid.py
+M = {100: 'o', 127: 'x', -126: 'T', -125: "u", -124: 'w'}
+
 def rosgrid_toNACE(value):
     return M.get(value, ' ')
