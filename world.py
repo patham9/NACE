@@ -800,14 +800,15 @@ def World_FieldOfView(Time, loc, observed_world, world):
                    X >= 0 and X < width:
                     if _challenge != ros_connect:
                         observed_world[BOARD][Y][X] = world[BOARD][Y][X]
-                    observed_world[TIMES][Y][X] = Time
+                        observed_world[TIMES][Y][X] = Time
                     if _challenge == ros_connect:
                         if valid and Y < h and X < w:
                             idx = Y * w + X
                             TYPE = ' '
                             if idx < len(data):
                                 TYPE = rosgrid_toNACE(data[idx])
-                            observed_world[BOARD][Y][X] = TYPE
+                            observed_world[BOARD][height - 1 - Y][X] = TYPE  # Upside down mapping
+                            observed_world[TIMES][height - 1 - Y][X] = Time
     else:
         if hasReset > 0:
             world[VALUES] = (resetscore, 0)
