@@ -365,7 +365,7 @@ if isMinigridWorld: #"9" in _challenge:
     loc = env.agent_pos
 VIEWDISTX, VIEWDISTY = (3, 2)
 if _challenge == ros_connect:
-    VIEWDISTX, VIEWDISTY = (4, 4)
+    VIEWDISTX, VIEWDISTY = (8, 8)
 TRASH, HUMAN,COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK  = \
       ('t', 'w','G', 'o', 'x', 'u', 'f', 'b', ' ', 'T', 'H', 'k', 'D', 'v', '^', 'c', 'O', '_', '4', '0', 'z')
 world=[[[*x] for x in world[1:-1].split("\n")], tuple([0, 0])]
