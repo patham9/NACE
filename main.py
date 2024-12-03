@@ -33,7 +33,8 @@ from nace import *
 
 adversaryWorld = "adversary" in sys.argv or getIsWorld0()
 interactiveWorld = "manual" not in sys.argv and ("interactive" in sys.argv or getIsWorld9())
-if interactiveWorld:
+inputmettafile = getIsROSBridge() or "input.metta" in sys.argv
+if interactiveWorld or inputmettafile:
     from bridge import *
     BRIDGE_INIT(width, height, BOARD, World_SetObjective)
 
@@ -83,11 +84,15 @@ def Step(inject_key=""):
                         world[BOARD][j][i-1] = HUMAN
                         BREAK = True; break
                 if BREAK: break
-    if interactiveWorld and not "spaces" in sys.argv: #(:! ((0 x _) --> left))
+    if (interactiveWorld or inputmettafile) and not "spaces" in sys.argv: #(:! ((0 x _) --> left))
         asked = True
         while asked:
             print("MeTTa input:")
-            METTA = input() #f"(:! ((4 x 0) --> left))"
+            if not inputmettafile:
+                METTA = input() #f"(:! ((4 x 0) --> left))"
+            else:
+                with open("input.metta", "r") as f:
+                    METTA = f.read().strip()
             BRIDGE_Input(METTA, observed_world, NACEToNARS = False)
             if not METTA.endswith("?") and not METTA.endswith("? :|:") and not METTA.startswith("!(EternalQuestion ") and not METTA.startswith("!(EventQuestion "):
                 asked = False

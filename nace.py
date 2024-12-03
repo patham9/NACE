@@ -106,7 +106,12 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
             Prettyprint_rule(RuleEvidence, Hypothesis_TruthValue, x)
         input()
     show_plansteps = debuginput == 'p'
-    loc, newworld = World_Move(loc, deepcopy(oldworld), action)
+    loc, newworld = World_Move(loc, deepcopy(oldworld), action, plan)
+    updateRules = True
+    rulescopy = deepcopy(rules)
+    RuleEvidenceCopy = deepcopy(RuleEvidence)
+    if len(plan) > 1:
+        updateRules = False
     observed_world_old = deepcopy(observed_world)
     loc, observed_world = World_FieldOfView(Time, loc, observed_world, newworld)
     if observed_world_old[VALUES] == observed_world[VALUES] and observed_world_old[BOARD] == observed_world[BOARD]:
@@ -135,6 +140,9 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
     print("\033[0m")
     if "manual" not in sys.argv:
         FocusSet, RuleEvidence, newrules, newnegrules = _Observe(Time, FocusSet, RuleEvidence, observed_world_old, action, observed_world, rules, negrules, predicted_world)
+        if not updateRules:
+            newrules = rulescopy
+            RuleEvidence = RuleEvidenceCopy
         usedRules = deepcopy(newrules)
         for rule in rulesExcluded: #add again so we won't loose them
             newrules.add(rule)

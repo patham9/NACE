@@ -30,6 +30,8 @@ class Logger():
                   "\"startframe=a\"  : optional to let the gif start later{0}" \
                   "\"world=k\"       : starts world k without asking for the world input{0}" \
                   "\"ona\"           : uses ONA with MeTTa interface in world=9 instead of MeTTa-NARS{0}" \
+                  "\"atomicaction\"  : forces navigation stack to move between individual grid cells" \
+                  "\"input.metta\"   : whether to use input.metta instead of stdin" \
                   "\"narsese\"       : allows Narsese input instead of MeTTa to use the Bridge.".format('\n\t'))
 
     @staticmethod

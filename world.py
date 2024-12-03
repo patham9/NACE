@@ -183,10 +183,13 @@ _slippery = "slippery" in sys.argv
 _isWorld5 = False
 _isWorld9 = False
 _isWorld0 = False
+_isROSBridge = False
 def getIsWorld9():
     return _isWorld9
 def getIsWorld0():
     return _isWorld0
+def getIsROSBridge():
+    return _isROSBridge
 
 #Whether there is a cup on the table (user-given goal demo)
 def World_CupIsOnTable(world):
@@ -269,6 +272,7 @@ def minigrid_digest(state):
 
 worldstr = "MiniGrid-DoorKey-8x8-v0"
 if ros_connect == _challenge: #ROS
+    _isROSBridge = True
     world = _world_empty_large
     from rosgrid import *
     #_isWorld9 = True after we added everything we can allow bridge interact
@@ -417,12 +421,12 @@ lastevaltime = -1
 lastseed = seed
 
 #Applies the effect of the movement operations, considering how different grid cell types interact with each other
-def World_Move(loc, world, action):
+def World_Move(loc, world, action, plan = None):
     global lastseen, lastreward, hasReset, resetscore, acummulatedScore, step, episode_id, lastevaltime, seed, lastseed
     lastseen = set([])
     lastreward = 0
     if _challenge == ros_connect:
-        rosgrid_act(action.__name__)
+        rosgrid_act(action, plan, VIEWDISTX)
         return loc, [world[BOARD], world[VALUES], world[TIMES]]
     if env is not None:
         """if action == pick:

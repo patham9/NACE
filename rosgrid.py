@@ -21,9 +21,21 @@ def rosgrid_perceive():
         data_valid = False
     return data_valid, width, height, agx, agy, data
 
-def rosgrid_act(action):
+def rosgrid_act(action, plan = None, max_planlen = None):
+    actionname = action.__name__
+    oldlen = len(plan)
+    if not max_planlen is None:
+        plan = plan[:max_planlen]
+    newlen = len(plan)
+    if plan and len(plan) > 1 and "atomicaction" not in sys.argv:
+        truncateplan = plan[:-1] if newlen == oldlen else plan
+        actionname = ",".join([a.__name__ for a in truncateplan]) #plan[:-1] if the last action should be omitted
     #send command
-    os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + action)
+    #start_time = time.time()
+    os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + actionname)
+    #elapsed_time = time.time() - start_time
+    #remaining_time = max(0, 5 - elapsed_time)
+    #stime.sleep(remaining_time)
 
 #reversed mapping from M in grid.py
 M = {100: 'o', 127: 'x', -126: 'T', -125: "u", -124: 'w'}
