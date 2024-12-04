@@ -91,8 +91,11 @@ def Step(inject_key=""):
             if not inputmettafile:
                 METTA = input() #f"(:! ((4 x 0) --> left))"
             else:
-                with open("input.metta", "r") as f:
-                    METTA = f.read().strip()
+                METTA = "!(wait)"
+                while METTA == "!(wait)":
+                    time.sleep(0.01)
+                    with open("input.metta", "r") as f:
+                        METTA = f.read().strip()
             BRIDGE_Input(METTA, observed_world, NACEToNARS = False)
             if not METTA.endswith("?") and not METTA.endswith("? :|:") and not METTA.startswith("!(EternalQuestion ") and not METTA.startswith("!(EventQuestion "):
                 asked = False

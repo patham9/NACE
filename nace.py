@@ -319,6 +319,19 @@ def _Observe(Time, FocusSet, RuleEvidence, oldworld, action, newworld, oldrules,
                 _AddToAdjacentSet(changesets, (y-1,x), MaxCapacity=3, CanCreateNewSet=False)
             if (action == up or action == down) and y<height-1 and newworld[BOARD][y+1][x]  in FocusSet and oldworld[BOARD][y+1][x] != '.':
                 _AddToAdjacentSet(changesets, (y+1,x), MaxCapacity=3, CanCreateNewSet=False)
+    #filter test
+    if "rosfilter" in sys.argv or getIsROSBridge():
+        excluded = []
+        for changeset in changesets:
+            aboutX = False
+            for (y,x) in changeset:
+                if oldworld[BOARD][y][x] == 'x' or newworld[BOARD][y][x] == 'x':
+                    aboutX = True
+            if not aboutX or len(changeset) != 2:
+                excluded.append(changeset)
+        for changeset in excluded:
+            if changeset in changesets:
+                changesets.remove(changeset)
     print(changesets)
     #Build rules based on changes and prediction-observation mismatches
     for changeset in changesets:
