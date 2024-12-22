@@ -30,8 +30,11 @@ class Logger():
                   "\"startframe=a\"  : optional to let the gif start later{0}" \
                   "\"world=k\"       : starts world k without asking for the world input{0}" \
                   "\"ona\"           : uses ONA with MeTTa interface in world=9 instead of MeTTa-NARS{0}" \
-                  "\"atomicaction\"  : forces navigation stack to move between individual grid cells" \
-                  "\"input.metta\"   : whether to use input.metta instead of stdin" \
+                  "\"atomicaction\"  : forces navigation stack to move between individual grid cells{0}" \
+                  "\"input.metta\"   : whether to use input.metta instead of stdin{0}" \
+                  "\"spaces\"        : enables MeTTa-NARS bridge with shell{0}" \
+                  "\"saveknowledge\" : save agent knowledge to knowledge file{0}" \
+                  "\"loadknowledge\" : load agent knowledge from knowledge file{0}" \
                   "\"narsese\"       : allows Narsese input instead of MeTTa to use the Bridge.".format('\n\t'))
 
     @staticmethod

@@ -47,6 +47,15 @@ plan = []
 
 def Step(inject_key=""):
     global usedRules, FocusSet, RuleEvidence, loc, observed_world, rules, negrules, world, debuginput, values, lastplanworld, planworld, behavior, plan, Time
+    if "loadknowledge" in sys.argv:
+        with open('knowledge.txt', 'r') as knowledgefile:
+            text = knowledgefile.read().strip()
+            #print(text.split("<function "))
+            supertext = "({((" + "".join([x.split(" at ")[0] + x.split(">")[1] for x in text.split("<function ") if ">" in x])
+            (rules, RuleEvidence) = eval(supertext.strip())
+    if "saveknowledge" in sys.argv:
+        with open('knowledge.txt', 'w') as knowledgefile:
+            knowledgefile.write(str((rules, RuleEvidence)))
     Time+=1
     if adversaryWorld:
         print("Adversary movement (w/a/s/d):")

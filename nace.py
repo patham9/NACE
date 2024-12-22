@@ -107,7 +107,7 @@ def NACE_Cycle(Time, FocusSet, RuleEvidence, loc, observed_world, rulesin, negru
         input()
     show_plansteps = debuginput == 'p'
     loc, newworld = World_Move(loc, deepcopy(oldworld), action, plan)
-    updateRules = True
+    updateRules = "loadknowledge" not in sys.argv
     rulescopy = deepcopy(rules)
     RuleEvidenceCopy = deepcopy(RuleEvidence)
     if len(plan) > 1:

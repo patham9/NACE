@@ -28,7 +28,7 @@ def rosgrid_act(action, plan = None, max_planlen = None):
         plan = plan[:max_planlen]
     newlen = len(plan)
     if plan and len(plan) > 1 and "atomicaction" not in sys.argv:
-        truncateplan = plan[:-1] if newlen == oldlen else plan
+        truncateplan = plan #plan[:-1] if newlen == oldlen else plan
         actionname = ",".join([a.__name__ for a in truncateplan]) #plan[:-1] if the last action should be omitted
     #send command
     #start_time = time.time()
