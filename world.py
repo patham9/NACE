@@ -815,6 +815,8 @@ def World_FieldOfView(Time, loc, observed_world, world):
                                 TYPE = rosgrid_toNACE(data[idx])
                             observed_world[BOARD][height - 1 - Y][X] = TYPE  # Upside down mapping
                             observed_world[TIMES][height - 1 - Y][X] = Time
+                        if Y == 0 or X == 0 or X == width-1 or Y == height-1 and observed_world[BOARD][height - 1 - Y][X] == ' ':
+                            observed_world[BOARD][height - 1 - Y][X] = WALL # BOUND ENVIRONMENT
     else:
         if hasReset > 0:
             world[VALUES] = (resetscore, 0)

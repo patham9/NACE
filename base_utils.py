@@ -25,7 +25,7 @@ class Logger():
                   "\"notextures\"    : renders textures in GUI{0}" \
                   "\"colors\"        : renders colors{0}" \
                   "\"interactive\"   : enables MeTTa-NARS bridge with shell{0}" \
-                  "\"adversary\"     : adda shell-controllable player character{0}" \
+                  "\"adversary\"     : add a shell-controllable player character{0}" \
                   "\"frames=b\"      : creates a gif file including frames until frame b{0}" \
                   "\"startframe=a\"  : optional to let the gif start later{0}" \
                   "\"world=k\"       : starts world k without asking for the world input{0}" \
@@ -60,5 +60,6 @@ class Logger():
                   "{1}11-20: Interesting MiniGrids{0}" \
                   "{1}30-37: Empty grids{0}" \
                   "NEW WORLDS:{0}" \
+                  "{1} 0: Adversary world \"with player character\"{0}" \
                   "{1}-1: Puzzleworld \"minus 1 indeed\"{0}" \
                   "{1}-2: ROS2 bridge".format('\n\t', '  '))

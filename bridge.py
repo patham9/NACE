@@ -74,7 +74,7 @@ def ParseGroundedRelation(METTA):
     P = METTA.split(" x ")[1].split(")")[0]
     F_C = METTA.split(") (")[1].split(")")[0].split(" ")
     #print("DEBUG", S, P, R, F_C, METTA, float(F_C[1]) < 0.1, R not in ["left", "right", "up", "down"], len(S), len(P)); input()
-    if float(F_C[1]) < 0.1 or R not in ["left", "right", "up", "down"] or len(S) > 1 or len(P) > 1:
+    if float(F_C[1]) < 0.1 or R not in ["left", "right", "up", "down", "near", "far"] or len(S) > 1 or len(P) > 1:
         exceptionThrown = 1/0 #TODO return flag
     return S, P, R, F_C
 
@@ -98,6 +98,10 @@ def groundedGoal(METTA):
         xoffset = "x+1"
     #print("GROUNDING DEBUG:", S, P, R, yoffset, xoffset)
     STR = f"lambda world: any( world[0][{yoffset}][{xoffset}] == '{S}' and world[0][y][x] == '{P}' for x in range(1, width-1) for y in range(1, height-1))"
+    if R == "near":
+        STR = f"lambda world: any( (world[0][y-1][x] == '{S}' and world[0][y][x] == '{P}') or (world[0][y+1][x] == '{S}' and world[0][y][x] == '{P}') or (world[0][y][x-1] == '{S}' and world[0][y][x] == '{P}') or (world[0][y][x+1] == '{S}' and world[0][y][x] == '{P}') for x in range(1, width-1) for y in range(1, height-1))"
+    if R == "far":
+        STR = f"lambda world: not any( (world[0][y-1][x] == '{S}' and world[0][y][x] == '{P}') or (world[0][y+1][x] == '{S}' and world[0][y][x] == '{P}') or (world[0][y][x-1] == '{S}' and world[0][y][x] == '{P}') or (world[0][y][x+1] == '{S}' and world[0][y][x] == '{P}') for x in range(1, width-1) for y in range(1, height-1))"
     #print("FUNC:", STR); input()
     FUNC = eval(STR)
     return FUNC

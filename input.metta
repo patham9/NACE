@@ -1,1 +1,1 @@
-!(AddGoalEvent (((w x x) --> up) (1.0 0.90)))
+!(AddGoalEvent (((x x w) --> near) (1.0 0.90)))

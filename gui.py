@@ -11,7 +11,7 @@ import sys
 import os
 from copy import deepcopy
 from world import BOARD, VALUES, TIMES
-from world import TRASH, HUMAN,COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK
+from world import TRASH, HUMAN, COFFEEMACHINE, WALL, ROBOT, CUP, FOOD, BATTERY, FREE, TABLE, GOAL, KEY, DOOR, ARROW_DOWN, ARROW_UP, BALL, EGG, EGGPLACE, CHICKEN, SBALL, SHOCK
 
 def GUI_INIT(Stepval, NACE_Predictval, worldval, locval, leftval, rightval, upval, downval, pickval, dropval, toggleval, widthval, heightval, behaviorval, planval, observed_worldval):
     global Step, NACE_Predict, planworld, lastplanworld, lastloc, direction, M, pattern, colors, left, right, up, down, pick, drop, toggle, width, height, behavior, plan, observed_world
