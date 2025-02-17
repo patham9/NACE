@@ -32,7 +32,7 @@ def rosgrid_act(action, plan = None, max_planlen = None):
         actionname = ",".join([a.__name__ for a in truncateplan]) #plan[:-1] if the last action should be omitted
     #send command
     #start_time = time.time()
-    os.system("python3 ~/nartech_ws/src/nartech_ros/channels/move.py " + actionname)
+    os.system("python3 ~/nartech_ws/src/nartech_ros/optional/move.py " + actionname)
     #elapsed_time = time.time() - start_time
     #remaining_time = max(0, 5 - elapsed_time)
     #stime.sleep(remaining_time)
