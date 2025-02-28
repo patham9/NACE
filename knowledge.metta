@@ -19,36 +19,36 @@
 ;CATEGORICAL INFORMATION
 
 ;Cups are containers
-;!(AddBeliefEternal ((cup --> container) (1.0 0.9)))
-!(AddBeliefEternal (((container --> $1) ==> (cup --> $1)) (1.0 0.9)))
-!(AddBeliefEternal ((($1 --> cup) ==> ($1 --> container)) (1.0 0.9)))
-!(AddBeliefEternal (((cup --> $1) ==> (container --> $1)) (1.0 0.5)))
-!(AddBeliefEternal ((($1 --> container) ==> ($1 --> cup)) (1.0 0.5)))
+!(AddBeliefEternal ((cup --> container) (1.0 0.9)))
+;!(AddBeliefEternal (((container --> $1) ==> (cup --> $1)) (1.0 0.9)))
+;!(AddBeliefEternal ((($1 --> cup) ==> ($1 --> container)) (1.0 0.9)))
+;!(AddBeliefEternal (((cup --> $1) ==> (container --> $1)) (1.0 0.5)))
+;!(AddBeliefEternal ((($1 --> container) ==> ($1 --> cup)) (1.0 0.5)))
 
 ;Tables are furniture
-;!(AddBeliefEternal ((table --> furniture) (1.0 0.9)))
-!(AddBeliefEternal (((furniture --> $1) ==> (table --> $1)) (1.0 0.9)))
-!(AddBeliefEternal ((($1 --> table) ==> ($1 --> furniture)) (1.0 0.9)))
-!(AddBeliefEternal (((table --> $1) ==> (furniture --> $1)) (1.0 0.5)))
-!(AddBeliefEternal ((($1 --> furniture) ==> ($1 --> table)) (1.0 0.5)))
+!(AddBeliefEternal ((table --> furniture) (1.0 0.9)))
+;!(AddBeliefEternal (((furniture --> $1) ==> (table --> $1)) (1.0 0.9)))
+;!(AddBeliefEternal ((($1 --> table) ==> ($1 --> furniture)) (1.0 0.9)))
+;!(AddBeliefEternal (((table --> $1) ==> (furniture --> $1)) (1.0 0.5)))
+;!(AddBeliefEternal ((($1 --> furniture) ==> ($1 --> table)) (1.0 0.5)))
 
 ;Coffee is a drink
-;!(AddBeliefEternal ((coffee --> drink) (1.0 0.9)))
-!(AddBeliefEternal (((drink --> $1) ==> (coffee --> $1)) (1.0 0.9)))
-!(AddBeliefEternal ((($1 --> coffee) ==> ($1 --> drink)) (1.0 0.9)))
-!(AddBeliefEternal (((coffee --> $1) ==> (drink --> $1)) (1.0 0.5)))
-!(AddBeliefEternal ((($1 --> drink) ==> ($1 --> coffee)) (1.0 0.5)))
+!(AddBeliefEternal ((coffee --> drink) (1.0 0.9)))
+;!(AddBeliefEternal (((drink --> $1) ==> (coffee --> $1)) (1.0 0.9)))
+;!(AddBeliefEternal ((($1 --> coffee) ==> ($1 --> drink)) (1.0 0.9)))
+;!(AddBeliefEternal (((coffee --> $1) ==> (drink --> $1)) (1.0 0.5)))
+;!(AddBeliefEternal ((($1 --> drink) ==> ($1 --> coffee)) (1.0 0.5)))
 
 ;Coffee is black
-;!(AddBeliefEternal ((coffee --> (IntSet black)) (1.0 0.9)))
-!(AddBeliefEternal ((((IntSet black) --> $1) ==> (coffee --> $1)) (1.0 0.9)))
-!(AddBeliefEternal ((($1 --> coffee) ==> ($1 --> (IntSet black))) (1.0 0.9)))
-!(AddBeliefEternal (((coffee --> $1) ==> ((IntSet black) --> $1)) (1.0 0.5)))
-!(AddBeliefEternal ((($1 --> (IntSet black)) ==> ($1 --> coffee)) (1.0 0.5)))
+!(AddBeliefEternal ((coffee --> (IntSet black)) (1.0 0.9)))
+;!(AddBeliefEternal ((((IntSet black) --> $1) ==> (coffee --> $1)) (1.0 0.9)))
+;!(AddBeliefEternal ((($1 --> coffee) ==> ($1 --> (IntSet black))) (1.0 0.9)))
+;!(AddBeliefEternal (((coffee --> $1) ==> ((IntSet black) --> $1)) (1.0 0.5)))
+;!(AddBeliefEternal ((($1 --> (IntSet black)) ==> ($1 --> coffee)) (1.0 0.5)))
 
 ;table is brown
-;!(AddBeliefEternal ((table --> (IntSet brown)) (1.0 0.9)))
-!(AddBeliefEternal ((((IntSet brown) --> $1) ==> (table --> $1)) (1.0 0.9)))
-!(AddBeliefEternal ((($1 --> table) ==> ($1 --> (IntSet brown))) (1.0 0.9)))
-!(AddBeliefEternal (((table --> $1) ==> ((IntSet brown) --> $1)) (1.0 0.5)))
-!(AddBeliefEternal ((($1 --> (IntSet brown)) ==> ($1 --> table)) (1.0 0.5)))
+!(AddBeliefEternal ((table --> (IntSet brown)) (1.0 0.9)))
+;!(AddBeliefEternal ((((IntSet brown) --> $1) ==> (table --> $1)) (1.0 0.9)))
+;!(AddBeliefEternal ((($1 --> table) ==> ($1 --> (IntSet brown))) (1.0 0.9)))
+;!(AddBeliefEternal (((table --> $1) ==> ((IntSet brown) --> $1)) (1.0 0.5)))
+;!(AddBeliefEternal ((($1 --> (IntSet brown)) ==> ($1 --> table)) (1.0 0.5)))

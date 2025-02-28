@@ -34,7 +34,7 @@ if "narsese" in sys.argv:
     useONA = True
     useNarsese = True
 if useONA:
-    mettanars = os.path.abspath('../AniNAL/OpenNARS-for-Applications/misc/Python')
+    mettanars = os.path.abspath('../OpenNARS-for-Applications/misc/Python')
     sys.path.append(mettanars)
     cwd = os.getcwd()
     os.chdir(mettanars)
@@ -73,8 +73,9 @@ def ParseGroundedRelation(METTA):
     S = METTA.split(": (((")[1].split(" x")[0]
     P = METTA.split(" x ")[1].split(")")[0]
     F_C = METTA.split(") (")[1].split(")")[0].split(" ")
+    F_C = (float(F_C[0]), float(F_C[1]))
     #print("DEBUG", S, P, R, F_C, METTA, float(F_C[1]) < 0.1, R not in ["left", "right", "up", "down"], len(S), len(P)); input()
-    if float(F_C[1]) < 0.1 or R not in ["left", "right", "up", "down", "near", "far"] or len(S) > 1 or len(P) > 1:
+    if R not in ["left", "right", "up", "down", "near", "far"] or len(S) > 1 or len(P) > 1:
         exceptionThrown = 1/0 #TODO return flag
     return S, P, R, F_C
 
@@ -82,6 +83,8 @@ def groundedGoal(METTA):
     #s,p,yoff,xoff = groundedFunction(METTA)
     #((S x P) --> left)
     S, P, R, F_C = ParseGroundedRelation(METTA)
+    if F_C[1] < 0.5:
+        return
     yoffset = "y+1"
     xoffset = "x"
     if R == "up":
@@ -106,28 +109,53 @@ def groundedGoal(METTA):
     FUNC = eval(STR)
     return FUNC
 
-def groundedBelief(METTA, observed_world):
+def truth_expectation(F_C):
+    frequency, confidence = F_C
+    return confidence * (frequency - 0.5) + 0.5
+
+def groundedBelief(METTA, observed_world, placeTruths):
     S, P, R, F_C = ParseGroundedRelation(METTA)
+    if F_C[1] < 0.5:
+        return
     yoffset = 1
     xoffset = 0
-    if P == "up":
+    if R == "up":
         yoffset = +1
         xoffset = 0
-    if P == "down":
+    if R == "down":
         yoffset = -1
         xoffset = 0
-    if P == "left":
+    if R == "left":
         yoffset = 0
         xoffset = -1
-    if P == "right":
+    if R == "right":
         yoffset = 0
         xoffset = +1
-    for x in range(1,width-1):
-        for y in range(1,height-1):
+    for x in range(1, width-1):
+        for y in range(1, height-1):
+            #do not override more confident assignments!
             if observed_world[BOARD][y][x] == S:
-                 observed_world[BOARD][y+yoffset][x+xoffset] = P
+                key = (BOARD, y+yoffset, x+xoffset)
+                if key not in placeTruths:
+                    placeTruths[key] = F_C
+                    observed_world[BOARD][y+yoffset][x+xoffset] = P
+                else:
+                    if truth_expectation(F_C) > truth_expectation(placeTruths[key]):
+                        placeTruths[key] = F_C
+                        observed_world[BOARD][y+yoffset][x+xoffset] = P
+                    else:
+                        print("Less truth expectation than prior option"); #input()
             if observed_world[BOARD][y][x] == P:
-                observed_world[BOARD][y-yoffset][x-xoffset] = S
+                key = (BOARD, y-yoffset, x-xoffset)
+                if key not in placeTruths:
+                    placeTruths[key] = F_C
+                    observed_world[BOARD][y-yoffset][x-xoffset] = S
+                else:
+                    if truth_expectation(F_C[1]) > truth_expectation(placeTruths[key]):
+                        placeTruths[key] = F_C
+                        observed_world[BOARD][y-yoffset][x-xoffset] = S
+                    else:
+                        print("Less truth expectation than prior option"); #input()
 
 goal = None
 goalTask = ""
@@ -138,6 +166,7 @@ def BRIDGE_Tick(observed_world):
             BRIDGE_Input(beliefEventFromAchievedGoal, observed_world, NACEToNARS=False, ForceMeTTa=True, FromSpace=False)
             if useONA:
                 NAR_Cycle(20)
+            SetNACEPlanningObjective(eval("lambda world: False"))
     if useSpaces:
         space_tick()
 
@@ -172,6 +201,7 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, From
         ret = NAR_Cycle(20)
         tasks += (ret["input"] + ret["derivations"])
         processGoals = True
+        placeTruths = dict([])
         for taskdict in tasks:
             if 'metta' not in taskdict:
                 #print("NOT INCLUDED", taskdict); input() TODO FIX
@@ -196,7 +226,7 @@ def BRIDGE_Input(METTA, observed_world, NACEToNARS=False, ForceMeTTa=False, From
             elif "(.:" in task:
                 #print("!!!!!TASK", task)
                 try:
-                    groundedBelief(task, observed_world)
+                    groundedBelief(task, observed_world, placeTruths)
                     print("TASK ACCEPTED", task); #input()
                 except Exception as ex:
                     print("TASK REJECTED")#,ex)
