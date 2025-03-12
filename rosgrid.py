@@ -38,7 +38,12 @@ def rosgrid_act(action, plan = None, max_planlen = None):
     #stime.sleep(remaining_time)
 
 #reversed mapping from M in grid.py
-M = {100: 'o', 127: 'x', -126: 'T', -125: "u", -124: 'w'}
+M = { 100: 'o',  #obstacle
+      127: 'x',  #agent
+     -126: 'T',  #table
+     -125: "u",  #cup
+     -124: 'w',  #human
+     -120: 'T' } #chair
 
 def rosgrid_toNACE(value):
     return M.get(value, ' ')
