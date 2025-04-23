@@ -18,7 +18,7 @@ def wrapnpop(func):
 def call_bridgeinput(*a):
     from bridge import BRIDGE_Input
     tokenizer = globalmetta.tokenizer()
-    parser = SExprParser("(Task injected via MeTTa)")
+    parser = SExprParser("(Injected task " + str(a[0]) + ")");
     BRIDGE_Input("!"+str(a[0]), None, False, True, True) #TODO pass observed_world for belief input
     return parser.parse(tokenizer)
 

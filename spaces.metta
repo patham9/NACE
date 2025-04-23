@@ -12,20 +12,21 @@
 (= (AddBeliefEvent $t $1) (InputInto &beliefs (GotAtTime $t $1)))
 (= (!: $t $1) (InputInto &goals (GotAtTime $t $1)))
 
-(= (Goal $A)
-   (case (match &goals (GotAtTime $someTime ($A ($Freq $Conf))) ok)
-         ((Empty (AddGoalEvent ($A (1.0 0.90))))
-          ($Else Empty))))
+(= (Goal $t $A)
+   (if (== (% $t 5) 0)
+       (AddGoalEvent ($A (1.0 0.90)))
+       (empty)))
 
-(= (SequenceGoal $A $B)
+
+(= (SequenceGoal $t $A $B)
    (case (match &beliefs (GotAtTime $someTime ($A ($Freq $Conf))) ok)
-         ((Empty (Goal $A))
-          ($Else (Goal $B)))))
+         ((Empty (Goal $t $A))
+          ($Else (Goal $t $B)))))
 
-(= (MakeAndBringCoffee)
-   (bridgeinput (SequenceGoal (coffee --> (IntSet made)) (table --> (IntSet prepared)))))
+(= (MakeAndBringCoffee $t)
+   (bridgeinput (SequenceGoal $t (coffee --> (IntSet made)) (table --> (IntSet prepared)))))
 
-(= (Step $t) (superpose ((MakeAndBringCoffee)
+(= (Step $t) (superpose ((MakeAndBringCoffee $t)
                          ;(bridgeinput (AddBeliefEvent ((table --> (IntSet prepared)) (1.0 0.90)))) ;test belief inject
                          (let* (($space (superpose (&beliefs &goals)))
                                 ($Ev (get-atoms $space))
