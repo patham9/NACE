@@ -5,9 +5,12 @@ from matplotlib.patches import Rectangle, Circle
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import matplotlib.colors as mc
+import matplotlib
+import sys
+if "Qt" in sys.argv:
+    matplotlib.use("QtAgg")
 from nace import _IsPresentlyObserved
 import colorsys
-import sys
 import os
 from copy import deepcopy
 from world import BOARD, VALUES, TIMES
@@ -255,6 +258,10 @@ def update(wat):
         updateloc()
     plot_pattern(observed_world[BOARD], observed_world[VALUES])
     frame += 1
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.pause(0.001)  # Small pause allows GUI event loop to catch up
+
 
 def GUI_RUN():
     global fig, ax

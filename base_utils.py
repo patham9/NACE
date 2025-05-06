@@ -16,6 +16,7 @@ class Logger():
                   "q       : exit imagined world".format('\n\t'))
         else:
             print("COMMAND-LINE PARAMETERS:{0}" \
+                  "\"Qt\"            : Use Qt backend of Matplotlib" \
                   "\"debug\"         : interactive debugging{0}" \
                   "\"silent\"        : hiding hypothesis formation output{0}" \
                   "\"manual\"        : trying the environment as a human{0}" \
